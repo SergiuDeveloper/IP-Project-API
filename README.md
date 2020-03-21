@@ -1,2 +1,1 @@
-"# IP-Green-Team" 
-Mi se face rau
+"# IP-Green-Team"
