@@ -1,10 +1,10 @@
 <?php
 
 class DatabaseManager {
-    private static $ServerName = 'sergiu-mysql-server.mysql.database.azure.com';
-    private static $SchemaName = 'Fiscal_Documents_EDI_Test';
-    private static $Username = 'Fiscal_Documents_EDI_User@sergiu-mysql-server';
-    private static $Password = 'Fiscal_Documents_EDI_Password';
+    private static $ServerName = "sergiu-mysql-server.mysql.database.azure.com";
+    private static $SchemaName = "Fiscal_Documents_EDI_Test";
+    private static $Username = "Fiscal_Documents_EDI_User@sergiu-mysql-server";
+    private static $Password = "Fiscal_Documents_EDI_Password";
 
     private static $pdoDatabaseConnection;
     private static $connectionActive = false;
@@ -14,7 +14,7 @@ class DatabaseManager {
             return false;
 
         $connectionString = sprintf(
-            'mysql:host=%s;dbname=%s;',
+            "mysql:host=%s;dbname=%s;",
             DatabaseManager::$ServerName,
             DatabaseManager::$SchemaName
         );
