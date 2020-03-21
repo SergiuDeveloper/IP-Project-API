@@ -1,5 +1,4 @@
-DROP SCHEMA IF EXISTS Fiscal_Documents_EDI;
-CREATE SCHEMA Fiscal_Documents_EDI;
+CREATE SCHEMA IF NOT EXISTS Fiscal_Documents_EDI;
 
 USE Fiscal_Documents_EDI;
 
