@@ -1,5 +1,3 @@
-USE Fiscal_Documents_EDI_Live;
-
 DROP TABLE IF EXISTS Users;
 CREATE TABLE Users (
 	ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
