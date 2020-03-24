@@ -1,5 +1,8 @@
 <?php
 
+/*
+    Database management class(connection, disconnection, statement preparing)
+*/
 class DatabaseManager {
     private static $ServerName = "sergiu-mysql-server.mysql.database.azure.com";
     private static $SchemaName = "Fiscal_Documents_EDI_Test";
@@ -9,6 +12,9 @@ class DatabaseManager {
     private static $pdoDatabaseConnection;
     private static $connectionActive = false;
 
+    /*
+        Return: boolean = Database connection success state
+    */
     public static function Connect() {
         if (DatabaseManager::$connectionActive)
             return false;
@@ -35,6 +41,9 @@ class DatabaseManager {
         return true;
     }
 
+    /*
+        Return: boolean = Database disconnection success state
+    */
     public static function Disconnect() {
         if (!DatabaseManager::$connectionActive)
             return false;
@@ -44,6 +53,10 @@ class DatabaseManager {
         return true;
     }
 
+    /*
+        Return:                 PDOStatement = Prepared statement resulted from the input query
+        preparedStatementQuery: string       = Query to prepare
+    */
     public static function PrepareStatement($preparedStatementQuery) {
         if (!DatabaseManager::$connectionActive)
             return null;
