@@ -1,3 +1,5 @@
+USE Fiscal_Documents_EDI_Live;
+
 DROP TABLE IF EXISTS Users;
 CREATE TABLE Users (
 	ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
@@ -18,6 +20,33 @@ CREATE TABLE User_Activation_Keys (
 	Unique_Key			VARCHAR(64)		NOT NULL	UNIQUE KEY,
 	DateTime_Created	DATETIME			NULL,
 	DateTime_Used		DATETIME			NULL
+);
+
+DROP TABLE IF EXISTS Newsfeed_Posts;
+CREATE TABLE Newsfeed_Posts (
+	ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
+    Title				VARCHAR(64)		NOT NULL,
+    Content				VARCHAR(256)	NOT NULL,
+    URL					VARCHAR(2048)	NOT NULL,
+    DateTime_Created	DATETIME			NULL
+);
+
+DROP TABLE IF EXISTS Newsfeed_Tags;
+CREATE TABLE Newsfeed_Tags (
+	ID 		INT 						PRIMARY KEY		AUTO_INCREMENT,
+	Title	VARCHAR (64)	NOT NULL	UNIQUE KEY
+);
+
+DROP TABLE IF EXISTS Newsfeed_Posts_Tags_Assignations;
+CREATE TABLE Newsfeed_Posts_Tags_Assignations (
+	ID 					INT 		PRIMARY KEY		AUTO_INCREMENT,
+	Newsfeed_Post_ID	INT							REFERENCES Newsfeed_Posts.ID,
+    Newsfeed_Tag_ID		INT							REFERENCES Newsfeed_Tags.ID,
+    
+    UNIQUE KEY (
+		Newsfeed_Post_ID,
+        Newsfeed_Tag_ID
+    )
 );
 
 DROP TABLE IF EXISTS Institutions;
@@ -45,11 +74,11 @@ DROP TABLE IF EXISTS Institution_Addresses_List;
 CREATE TABLE Institution_Addresses_List (
 	ID					INT							PRIMARY KEY		AUTO_INCREMENT,
 	Institution_ID		INT				NOT NULL					REFERENCES Institutions.ID,
-	Addresses_ID		INT				NOT NULL					REFERENCES Addresses.ID,
+	Address_ID			INT				NOT NULL					REFERENCES Addresses.ID,
 	
 	UNIQUE KEY (
 		Institution_ID,
-		Addresses_ID
+		Address_ID
 	)
 );
 
@@ -92,7 +121,7 @@ CREATE TABLE Institution_Members (
 	ID							INT								PRIMARY KEY		AUTO_INCREMENT,
 	Institution_ID				INT					NOT NULL				REFERENCES Institutions.ID,
 	User_ID						INT					NOT NULL				REFERENCES Users.ID,
-	Institution_Rights_ID		INT					NOT NULL				REFERENCES Institution_Rights.ID,
+	Institution_Right_ID		INT					NOT NULL				REFERENCES Institution_Rights.ID,
 	DateTime_Added				DATETIME				NULL,
 	DateTime_Modified_Rights	DATETIME				NULL,
 	
