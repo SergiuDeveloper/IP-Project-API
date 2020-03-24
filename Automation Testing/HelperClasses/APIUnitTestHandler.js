@@ -1,25 +1,52 @@
 "use strict"
 
+/*
+    Unit test helper class for the API
+*/
 module.exports =
-class APIUnitTestHandler {
+class APIUnitTestHelper {
+    /*
+        Return:         void <=> Checks a condition; If true, it logs the success message; otherwise, it logs the failure message as an error
+        testCondition:  boolean = Condition to check
+        successMessage: string = Success message
+        failureMessage: string = Failure message
+    */
     static Test(testCondition, successMessage, failureMessage) {
         if (testCondition)
-            APIUnitTestHandler.Success(successMessage);
+            APIUnitTestHelper.Success(successMessage);
         else
-            APIUnitTestHandler.Failure(failureMessage);
+            APIUnitTestHelper.Failure(failureMessage);
     }
 
+     /*
+        Return:         void <=> Logs a success message
+        successMessage: string = Success message to log
+    */
     static Success(successMessage) {
         console.log(`Test Success: ${successMessage}`);
     }
 
+     /*
+        Return:         void <=> Logs a failure message as error
+        failureMessage: string = Failure message to log as error
+    */
     static Failure(failureMessage) {
         console.error(`Test Failure: ${failureMessage}`);
     }
 
-    static HTTPRequestsHandler = class {
+    /*
+        HTTP requests helper class for the API
+    */
+    static HTTPRequestsHelper = class {
         static STATUS_CODE_SUCCESS = 200;
 
+        /*
+            Return:             void <=> Performs a HTTP GET request on a URL, calling a success callback if the operation was successfull; otherwise, it calls the error callback
+            webpagePath:        string = Page URL
+            requestParameters:  Object = Request parameters
+            successCallback:    function(string) = Success callback, having a string parameter, representing a success message
+            errorCallback:      function(string) = Failure callback, having a string parameter, representing a failure message
+        */
         static Get(webpagePath, requestParameters, successCallback, errorCallback) {
             try {
                 const http = require("http");
@@ -63,6 +90,13 @@ class APIUnitTestHandler {
             }
         }
 
+        /*
+            Return:             void <=> Performs a HTTP POST request on a URL, calling a success callback if the operation was successfull; otherwise, it calls the error callback
+            webpagePath:        string = Page URL
+            requestParameters:  Object = Request parameters
+            successCallback:    function(string) = Success callback, having a string parameter, representing a success message
+            errorCallback:      function(string) = Failure callback, having a string parameter, representing a failure message
+        */
         static Post(webpagePath, requestParameters, successCallback, errorCallback) {
             try {
                 const http = require("http");
@@ -89,7 +123,7 @@ class APIUnitTestHandler {
                     });
                     
                     response.on("end", () => {
-                        if (response.statusCode == APIUnitTestHandler.HTTPRequestsHandler.STATUS_CODE_SUCCESS)
+                        if (response.statusCode == APIUnitTestHelper.HTTPRequestsHelper.STATUS_CODE_SUCCESS)
                             successCallback(`Status code: ${response.statusCode}`);
                         else
                             errorCallback(`Status code: ${response.statusCode}`);
