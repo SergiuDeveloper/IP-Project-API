@@ -49,7 +49,7 @@ class APIUnitTestHelper {
         */
         static Get(webpagePath, requestParameters, successCallback, errorCallback) {
             try {
-                const http = require("http");
+                const http = require("https");
 
                 var webpagePathWithParameters = webpagePath;
                 const requestParametersEntries = Object.entries(requestParameters);
