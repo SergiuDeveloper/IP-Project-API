@@ -12,7 +12,7 @@ class UserValidation {
         inputHashedPassword:    string = User's associated hashed password
 
         Return values: -1 - DB_EXCEPT
-                        0 - CREDENTIALS_CORRECT
+                        0 - SUCCESS
                         1 - WRONG_PASSWORD
                         2 - USER_NOT_FOUND
                         3 - USER_INACTIVE
@@ -36,14 +36,14 @@ class UserValidation {
 
         if ($usersTableRow == null)
             return UserValidation::$USER_NOT_FOUND;
-       
+        
         if ($usersTableRow->Hashed_Password != $inputHashedPassword)
             return UserValidation::$WRONG_PASSWORD;
-
+        
         if (!$usersTableRow->Is_Active)
             return UserValidation::$USER_INACTIVE;
-        
-        return UserValidation::$CREDENTIALS_CORRECT;
+
+        return UserValidation::$SUCCESS;
     }
 
     /*
@@ -51,6 +51,12 @@ class UserValidation {
         inputUsername:                                  string = User's associated username
         inputInstitutionName:                           string = The institution's associated name
         inputInstitutionActionRequiredRightsDictionary: array(key => value) = The required institution rights to perform a certain action
+
+        Return value:  -2 - OPERATION_EXCEPT
+                       -1 - DB_EXCEPT
+                        0 - SUCCESS
+                        4 - INSTITUTION_RIGHTS_ROW_FOUND
+                        5 - NOT_ENOUGH_RIGHTS
 
         Usage example:
         <
@@ -88,25 +94,25 @@ class UserValidation {
         }
         catch (Exception $databaseException) {
             echo $databaseException;
-            return false;
+            return UserValidation::$DB_EXCEPT;
         }
 
         if ($institutionRightsRow == null)
-            return false;
+            return UserValidation::$INSTITUTION_RIGHTS_ROW_FOUND;
         
         try {
             unset($institutionRightsRow["ID"]);
             foreach ($inputInstitutionActionRequiredRightsDictionary as $rightName => $rightValue)
                 if ($rightValue == true)
                     if ($institutionRightsRow[$rightName] == false)
-                        return false;
+                        return UserValidation::$NOT_ENOUGH_RIGHTS;
         }
         catch (Exception $operationException) {
             echo $operationException;
-            return false;
+            return UserValidation::$OPERATION_EXCEPT;
         }
         
-        return true;
+        return UserValidation::$SUCCESS;
     }
 
     private static $getHashedPasswordAndActiveStateQuery = "
@@ -119,11 +125,15 @@ class UserValidation {
                 Institution_ID = (SELECT ID From Institutions WHERE Name = :inputInstitutionName)
         );
     ";
+
+    public static $OPERATION_EXCEPT = -2;
     public static $DB_EXCEPT = -1;
-    public static $CREDENTIALS_CORRECT = 0;
+    public static $SUCCESS = 0;
     public static $WRONG_PASSWORD = 1;
     public static $USER_NOT_FOUND = 2;
     public static $USER_INACTIVE = 3;
+    public static $INSTITUTION_RIGHTS_ROW_FOUND = 4;
+    public static $NOT_ENOUGH_RIGHTS = 5;
 }
 
 ?>
