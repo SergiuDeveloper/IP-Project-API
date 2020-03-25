@@ -7,9 +7,15 @@ require "DatabaseManager.php";
 */
 class UserValidation {
     /*
-        Return:                 boolean = User credentials validation state
+        Return:                 int = User credentials validation state
         inputUsername:          string = User's associated username
         inputHashedPassword:    string = User's associated hashed password
+
+        Return values: -1 - DB_EXCEPT
+                        0 - CREDENTIALS_CORRECT
+                        1 - WRONG_PASSWORD
+                        2 - USER_NOT_FOUND
+                        3 - USER_INACTIVE
     */
     public static function ValidateCredentials($inputUsername, $inputHashedPassword) {
         try {
@@ -25,17 +31,19 @@ class UserValidation {
         }
         catch (Exception $databaseException) {
             echo $databaseException;
-            return false;
+            return UserValidation::$DB_EXCEPT;
         }
 
         if ($usersTableRow == null)
-            return false;
-        if (!$usersTableRow->Is_Active)
-            return false;
+            return UserValidation::$USER_NOT_FOUND;
+       
         if ($usersTableRow->Hashed_Password != $inputHashedPassword)
-            return false;
+            return UserValidation::$WRONG_PASSWORD;
+
+        if (!$usersTableRow->Is_Active)
+            return UserValidation::$USER_INACTIVE;
         
-        return true;
+        return UserValidation::$CREDENTIALS_CORRECT;
     }
 
     /*
@@ -111,6 +119,11 @@ class UserValidation {
                 Institution_ID = (SELECT ID From Institutions WHERE Name = :inputInstitutionName)
         );
     ";
+    public static $DB_EXCEPT = -1;
+    public static $CREDENTIALS_CORRECT = 0;
+    public static $WRONG_PASSWORD = 1;
+    public static $USER_NOT_FOUND = 2;
+    public static $USER_INACTIVE = 3;
 }
 
 ?>
