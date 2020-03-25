@@ -24,6 +24,7 @@ class UserValidation {
             DatabaseManager::Disconnect();
         }
         catch (Exception $databaseException) {
+            echo $databaseException;
             return false;
         }
 
@@ -78,6 +79,7 @@ class UserValidation {
             DatabaseManager::Disconnect();
         }
         catch (Exception $databaseException) {
+            echo $databaseException;
             return false;
         }
 
@@ -92,6 +94,7 @@ class UserValidation {
                         return false;
         }
         catch (Exception $operationException) {
+            echo $operationException;
             return false;
         }
         
