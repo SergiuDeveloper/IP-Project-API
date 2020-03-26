@@ -49,7 +49,7 @@ class APIUnitTestHelper {
         */
         static Get(webpagePath, requestParameters, successCallback, errorCallback) {
             try {
-                const http = require("https");
+                const https = require("https");
 
                 var webpagePathWithParameters = webpagePath;
                 const requestParametersEntries = Object.entries(requestParameters);
@@ -65,7 +65,7 @@ class APIUnitTestHelper {
 
                 webpagePathWithParameters = webpagePathWithParameters.slice(0, -1);
 
-                http.get(webpagePathWithParameters, (response) => {
+                https.get(webpagePathWithParameters, (response) => {
                     var responseData = "";
 
                     response.on("data", (responseDataChunk) => {
@@ -92,30 +92,31 @@ class APIUnitTestHelper {
 
         /*
             Return:             void <=> Performs a HTTP POST request on a URL, calling a success callback if the operation was successfull; otherwise, it calls the error callback
-            webpagePath:        string = Page URL
+            websiteURL:         string = Website root URL
+            pagePath:           string = Path to requested page
             requestParameters:  Object = Request parameters
             successCallback:    function(string) = Success callback, having a string parameter, representing a success message
             errorCallback:      function(string) = Failure callback, having a string parameter, representing a failure message
         */
-        static Post(webpagePath, requestParameters, successCallback, errorCallback) {
+        static Post(websiteURL, pagePath, requestParameters, successCallback, errorCallback) {
             try {
-                const http = require("http");
+                const https = require("https");
+                const querystring = require("querystring");
 
-                var webpagePathWithParameters = webpagePath;
-                const requestParametersEntries = Object.entries(requestParameters);
-                if (requestParametersEntries != null)
-                    webpagePathWithParameters += "?";
+                var requestParametersJSONEncoded = querystring.stringify(requestParameters);
 
-                requestParametersEntries.forEach(entry => {
-                    const requestParameterKey = entry[0];
-                    const requestParameterValue = entry[1];
-                        
-                    webpagePathWithParameters += `${requestParameterKey}=${requestParameterValue}&`;
-                });
+                var requestOptions = {
+                    hostname: websiteURL,
+                    port: 80,
+                    path: pagePath,
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Content-Length": Buffer.byteLength(requestParametersJSONEncoded)
+                    }
+                };
 
-                webpagePathWithParameters = webpagePathWithParameters.slice(0, -1);
-
-                http.get(webpagePathWithParameters, (response) => {
+                var httpRequest = https.request(requestOptions, (response) => {
                     var responseData = "";
 
                     response.on("data", (responseDataChunk) => {
@@ -123,18 +124,24 @@ class APIUnitTestHelper {
                     });
                     
                     response.on("end", () => {
-                        if (response.statusCode == APIUnitTestHelper.HTTPRequestsHelper.STATUS_CODE_SUCCESS)
-                            successCallback(`Status code: ${response.statusCode}`);
-                        else
-                            errorCallback(`Status code: ${response.statusCode}`);
+                        try {
+                            const returnedObject = JSON.parse(responseData);
+                            successCallback(returnedObject);
+                        }
+                        catch (thrownException) {
+                            errorCallback(thrownException);    
+                        }
                     });
                 }).on("error", (thrownError) => {
                     errorCallback(thrownError);
                 });
+                  
+                httpRequest.write(requestParametersJSONEncoded);
+                httpRequest.end();
             }
             catch (thrownException) {
                 errorCallback(thrownException);
-            }
+            }   
         }
     }
 }
