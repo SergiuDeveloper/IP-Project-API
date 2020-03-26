@@ -4,6 +4,7 @@
      * TODO : Standardize Errors
      * TODO : Document
      * TODO : Apply Code Standardization where possible
+     */
 
     require 'ModifyAccountDataFunctions.php';
 
