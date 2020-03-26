@@ -1,21 +1,16 @@
 <?php
 
-require "DatabaseManager.php";
+require_once("DatabaseManager.php");
+require_once("SuccessStates.php");
 
 /*
     Validation class for user-related actions
 */
 class UserValidation {
     /*
-        Return:                 int = User credentials validation state
+        Return:                 int(SuccessState) = User credentials validation state
         inputUsername:          string = User's associated username
         inputHashedPassword:    string = User's associated hashed password
-
-        Return values: -1 - DB_EXCEPT
-                        0 - SUCCESS
-                        1 - WRONG_PASSWORD
-                        2 - USER_NOT_FOUND
-                        3 - USER_INACTIVE
     */
     public static function ValidateCredentials($inputUsername, $inputHashedPassword) {
         try {
@@ -31,32 +26,26 @@ class UserValidation {
         }
         catch (Exception $databaseException) {
             echo $databaseException;
-            return UserValidation::$DB_EXCEPT;
+            return SuccessStates::DB_EXCEPT;
         }
 
         if ($usersTableRow == null)
-            return UserValidation::$USER_NOT_FOUND;
+            return SuccessStates::USER_NOT_FOUND;
         
         if ($usersTableRow->Hashed_Password != $inputHashedPassword)
-            return UserValidation::$WRONG_PASSWORD;
+            return SuccessStates::WRONG_PASSWORD;
         
         if (!$usersTableRow->Is_Active)
-            return UserValidation::$USER_INACTIVE;
+            return SuccessStates::USER_INACTIVE;
 
-        return UserValidation::$SUCCESS;
+        return SuccessStates::SUCCESS;
     }
 
     /*
-        Return:                                         boolean = User's possession of the required rights, for the given institution
+        Return:                                         int(SuccessState) = User's possession of the required rights, for the given institution
         inputUsername:                                  string = User's associated username
         inputInstitutionName:                           string = The institution's associated name
         inputInstitutionActionRequiredRightsDictionary: array(key => value) = The required institution rights to perform a certain action
-
-        Return value:  -2 - OPERATION_EXCEPT
-                       -1 - DB_EXCEPT
-                        0 - SUCCESS
-                        4 - INSTITUTION_RIGHTS_ROW_FOUND
-                        5 - NOT_ENOUGH_RIGHTS
 
         Usage example:
         <
@@ -94,25 +83,25 @@ class UserValidation {
         }
         catch (Exception $databaseException) {
             echo $databaseException;
-            return UserValidation::$DB_EXCEPT;
+            return SuccessStates::DB_EXCEPT;
         }
 
         if ($institutionRightsRow == null)
-            return UserValidation::$INSTITUTION_RIGHTS_ROW_FOUND;
+            return SuccessStates::INSTITUTION_RIGHTS_ROW_FOUND;
         
         try {
             unset($institutionRightsRow["ID"]);
             foreach ($inputInstitutionActionRequiredRightsDictionary as $rightName => $rightValue)
                 if ($rightValue == true)
                     if ($institutionRightsRow[$rightName] == false)
-                        return UserValidation::$NOT_ENOUGH_RIGHTS;
+                        return SuccessStates::NOT_ENOUGH_RIGHTS;
         }
         catch (Exception $operationException) {
             echo $operationException;
-            return UserValidation::$OPERATION_EXCEPT;
+            return SuccessStates::OPERATION_EXCEPT;
         }
         
-        return UserValidation::$SUCCESS;
+        return SuccessStates::SUCCESS;
     }
 
     private static $getHashedPasswordAndActiveStateQuery = "
@@ -125,15 +114,6 @@ class UserValidation {
                 Institution_ID = (SELECT ID From Institutions WHERE Name = :inputInstitutionName)
         );
     ";
-
-    public static $OPERATION_EXCEPT = -2;
-    public static $DB_EXCEPT = -1;
-    public static $SUCCESS = 0;
-    public static $WRONG_PASSWORD = 1;
-    public static $USER_NOT_FOUND = 2;
-    public static $USER_INACTIVE = 3;
-    public static $INSTITUTION_RIGHTS_ROW_FOUND = 4;
-    public static $NOT_ENOUGH_RIGHTS = 5;
 }
 
 ?>
