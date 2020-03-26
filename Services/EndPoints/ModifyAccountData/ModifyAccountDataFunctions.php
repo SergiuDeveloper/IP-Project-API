@@ -1,5 +1,5 @@
 <?php
-    require '../HelperClasses/DatabaseManager.php';
+    require_once ('../HelperClasses/DatabaseManager.php');
 
     class ModifyAccountManager{
         static function fetchIDandHashedPassword($username){

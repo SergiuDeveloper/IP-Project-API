@@ -5,8 +5,8 @@
      * TODO : Document
      * TODO : Apply Code Standardization where possible
      */
-
-    require 'ModifyAccountDataFunctions.php';
+    
+    require_once ('ModifyAccountDataFunctions.php');
 
     if($_SERVER["REQUEST_METHOD"] != "GET"){
         echo "REQUEST_NOT_FOUND", PHP_EOL;
