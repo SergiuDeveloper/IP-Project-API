@@ -1,8 +1,9 @@
 <?php
-    require_once ('../HelperClasses/DatabaseManager.php');
+    require_once ("../../HelperClasses/DatabaseManager.php");
+    require_once("../../HelperClasses/CommonEndPointLogic.php");
 
-    class ModifyAccountManager{
-        static function fetchIDandHashedPassword($username){
+    class ModifyAccountManager {
+        static function fetchIDandHashedPassword($username) {
             $getIDandHashedPasswordQuery = "
                 SELECT ID, Hashed_Password FROM USERS
                     WHERE Username = :username
@@ -20,30 +21,18 @@
             return $userRow;
         }
 
-        static function prepareResponse($userRow, $inputCurrentHashedPassword){
-            if($userRow['ID'] == null){
-                $response = [
-                    'status' => 'FAILED',
-                    'error' => 'USER_NOT_FOUND'
-                ];
-            }
-            else if($userRow['Hashed_Password'] != $inputCurrentHashedPassword){
-                $response = [
-                    'status' => 'FAILED',
-                    'error' => 'WRONG_PASSWORD'
-                ];
-            }
-            else{
-                $response = [
-                    'status' => 'SUCCESS',
-                    'error' => ''
-                ];
-            }
+        static function prepareResponse($userRow, $inputCurrentHashedPassword) {
+            if ($userRow["ID"] == null)
+                $response = CommonEndPointLogic::GetFailureResponseStatus("USER_NOT_FOUND");
+            else if ($userRow["Hashed_Password"] != $inputCurrentHashedPassword)
+                $response = CommonEndPointLogic::GetFailureResponseStatus("WRONG_PASSWORD");
+            else 
+                $response = CommonEndPointLogic::GetSuccessResponseStatus();
 
             return $response;
         }
 
-        static function updateHashedPasswordInDatabase($ID, $newHashedPassword){
+        static function updateHashedPasswordInDatabase($ID, $newHashedPassword) {
             $SQLUpdateStatement = "UPDATE Users SET Hashed_Password = :hashedPassword
                 WHERE :ID = Users.ID;
             ";
@@ -53,7 +42,7 @@
             $SQLStatement->execute();
         }
 
-        static function updateFirstNameInDatabase($ID, $newFirstName){
+        static function updateFirstNameInDatabase($ID, $newFirstName) {
             $SQLUpdateStatement = "UPDATE Users SET First_Name = :firstName
                 WHERE :ID = Users.ID;
             ";
@@ -63,7 +52,7 @@
             $SQLStatement->execute();
         }
 
-        static function updateLastNameInDatabase($ID, $newLastName){
+        static function updateLastNameInDatabase($ID, $newLastName) {
             $SQLUpdateStatement = "UPDATE Users SET Last_Name = :lastName
                 WHERE :ID = Users.ID;
             ";
@@ -74,7 +63,7 @@
 
         }
 
-        static function updateFieldsInDatabase($ID, $newHashedPassword, $newFirstName, $newLastName){
+        static function updateFieldsInDatabase($ID, $newHashedPassword, $newFirstName, $newLastName) {
             DatabaseManager::Connect();
 
             if($newHashedPassword != null)
