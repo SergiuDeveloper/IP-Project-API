@@ -5,10 +5,10 @@ require_once("../../HelperClasses/ValidationHelper.php");
 require_once("../../HelperClasses/StatusCodes.php");
 require_once("../../HelperClasses/SuccessStates.php");
 
-CommonEndPointLogic::ValidateHTTPGETRequest();
+CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
-$username = $_GET["username"];
-$hashedPassword = $_GET["hashedPassword"];
+$username = $_POST["username"];
+$hashedPassword = $_POST["hashedPassword"];
     
 if ($username == null || $hashedPassword == null) {
     $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL");
