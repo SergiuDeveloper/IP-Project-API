@@ -17,7 +17,8 @@
     $inputNewLastName           = $_POST["newLastName"];
 
     if ($inputUsername == null || $inputCurrentHashedPassword == null) {
-        CommonEndPointLogic::GetFailureResponseStatus("BAD_USERNAME_PASSWORD");
+        $response = CommonEndPointLogic::GetFailureResponseStatus("BAD_USERNAME_PASSWORD");
+        echo json_encode($response), PHP_EOL;
         http_response_code(StatusCodes::BAD_REQUEST);
         die();
     }
