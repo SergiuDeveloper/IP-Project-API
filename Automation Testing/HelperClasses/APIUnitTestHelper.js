@@ -49,7 +49,7 @@ class APIUnitTestHelper {
         */
         static Get(webpagePath, requestParameters, successCallback, errorCallback) {
             try {
-                const https = require("https");
+                const http = require("http");
 
                 var webpagePathWithParameters = webpagePath;
                 const requestParametersEntries = Object.entries(requestParameters);
@@ -65,7 +65,7 @@ class APIUnitTestHelper {
 
                 webpagePathWithParameters = webpagePathWithParameters.slice(0, -1);
 
-                https.get(webpagePathWithParameters, (response) => {
+                http.get(webpagePathWithParameters, (response) => {
                     var responseData = "";
 
                     response.on("data", (responseDataChunk) => {
@@ -100,7 +100,7 @@ class APIUnitTestHelper {
         */
         static Post(websiteURL, pagePath, requestParameters, successCallback, errorCallback) {
             try {
-                const https = require("https");
+                const http = require("http");
                 const querystring = require("querystring");
 
                 var requestParametersJSONEncoded = querystring.stringify(requestParameters);
@@ -116,7 +116,7 @@ class APIUnitTestHelper {
                     }
                 };
 
-                var httpRequest = https.request(requestOptions, (response) => {
+                var httpRequest = http.request(requestOptions, (response) => {
                     var responseData = "";
 
                     response.on("data", (responseDataChunk) => {
