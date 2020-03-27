@@ -19,8 +19,6 @@ if ($username == null || $hashedPassword == null) {
 }   
 
 $responseStatus = CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
-if ($responseStatus == null)
-    die();
 
 echo json_encode($responseStatus), PHP_EOL;
 http_response_code(StatusCodes::OK);
