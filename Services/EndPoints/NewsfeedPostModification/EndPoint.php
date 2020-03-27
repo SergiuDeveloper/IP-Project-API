@@ -42,8 +42,6 @@ $newsfeedPostURL = $_POST["newsfeedPostURL"];
 $newsfeedPostTags = $_POST["newsfeedPostTags"];
 
 $responseStatus = CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
-if ($responseStatus == null)
-    die();
 
 //to-do
 
