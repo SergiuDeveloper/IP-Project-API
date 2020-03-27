@@ -32,46 +32,39 @@
             return $response;
         }
 
-        static function updateHashedPasswordInDatabase($ID, $newHashedPassword) {
-            $SQLUpdateStatement = "UPDATE Users SET Hashed_Password = :hashedPassword
-                WHERE :ID = Users.ID;
-            ";
-            $SQLStatement = DatabaseManager::PrepareStatement($SQLUpdateStatement);
-            $SQLStatement->bindParam(":hashedPassword", $newHashedPassword);
-            $SQLStatement->bindParam(":ID", $ID);
-            $SQLStatement->execute();
-        }
+        static function PrepareStatementUpdateUserInDatabase($ID, $newHashedPassword, $newFirstName, $newLastName){
+            $SQLPreparedStatement = "UPDATE Users SET ";
+            if($newHashedPassword != null)
+                $SQLPreparedStatement = $SQLPreparedStatement . "Hashed_Password = :hashedPassword, ";
+            if($newFirstName != null)
+                $SQLPreparedStatement = $SQLPreparedStatement . "First_Name = :firstName, ";
+            if($newLastName != null)
+                $SQLPreparedStatement = $SQLPreparedStatement . "Last_Name = :lastName, ";
 
-        static function updateFirstNameInDatabase($ID, $newFirstName) {
-            $SQLUpdateStatement = "UPDATE Users SET First_Name = :firstName
-                WHERE :ID = Users.ID;
-            ";
-            $SQLStatement = DatabaseManager::PrepareStatement($SQLUpdateStatement);
-            $SQLStatement->bindParam(":firstName", $newFirstName);
-            $SQLStatement->bindParam(":ID", $ID);
-            $SQLStatement->execute();
-        }
+            $SQLPreparedStatement = rtrim($SQLPreparedStatement, ", ");
 
-        static function updateLastNameInDatabase($ID, $newLastName) {
-            $SQLUpdateStatement = "UPDATE Users SET Last_Name = :lastName
-                WHERE :ID = Users.ID;
-            ";
-            $SQLStatement = DatabaseManager::PrepareStatement($SQLUpdateStatement);
-            $SQLStatement->bindParam(":lastName", $newLastName);
-            $SQLStatement->bindParam(":ID", $ID);
-            $SQLStatement->execute();
+            $SQLPreparedStatement = $SQLPreparedStatement . " WHERE :ID = Users.ID";
 
+            echo $SQLPreparedStatement, PHP_EOL;
+            echo $ID, $newHashedPassword, $newFirstName, $newLastName, PHP_EOL;
+
+            $SQLUpdateStatement = DatabaseManager::PrepareStatement($SQLPreparedStatement);
+            
+            if($newHashedPassword != null)
+                $SQLUpdateStatement->bindParam(":hashedPassword", $newHashedPassword);
+            if($newFirstName != null)
+                $SQLUpdateStatement->bindParam(":firstName", $newFirstName);
+            if($newLastName != null)
+                $SQLUpdateStatement->bindParam(":lastName", $newLastName);
+            $SQLUpdateStatement->bindParam(":ID", $ID);
+
+            $SQLUpdateStatement->execute();
         }
 
         static function updateFieldsInDatabase($ID, $newHashedPassword, $newFirstName, $newLastName) {
             DatabaseManager::Connect();
-
-            if($newHashedPassword != null)
-                ModifyAccountManager::updateHashedPasswordInDatabase($ID, $newHashedPassword);
-            if($newFirstName != null)
-                ModifyAccountManager::updateFirstNameInDatabase($ID, $newFirstName);
-            if($newLastName != null)
-                ModifyAccountManager::updateLastNameInDatabase($ID, $newLastName);
+           
+            ModifyAccountManager::PrepareStatementUpdateUserInDatabase($ID, $newHashedPassword, $newFirstName, $newLastName);
 
             DatabaseManager::Disconnect();
         }

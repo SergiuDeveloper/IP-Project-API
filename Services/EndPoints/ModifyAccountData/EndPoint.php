@@ -1,9 +1,7 @@
 <?php
 
     /**
-     * TODO : Standardize Errors
      * TODO : Document
-     * TODO : Apply Code Standardization where possible
      */
     
     require_once("ModifyAccountDataFunctions.php");
