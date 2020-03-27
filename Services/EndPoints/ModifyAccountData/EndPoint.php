@@ -8,13 +8,13 @@
     require_once("../../HelperClasses/CommonEndPointLogic.php");
     require_once("../../HelperClasses/StatusCodes.php");
 
-    CommonEndPointLogic::ValidateHTTPGETRequest();
+    CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
-    $inputUsername              = $_GET["username"];
-    $inputCurrentHashedPassword = $_GET["currentHashedPassword"];
-    $inputNewHashedPassword     = $_GET["newHashedPassword"];
-    $inputNewFirstName          = $_GET["newFirstName"];
-    $inputNewLastName           = $_GET["newLastName"];
+    $inputUsername              = $_POST["username"];
+    $inputCurrentHashedPassword = $_POST["currentHashedPassword"];
+    $inputNewHashedPassword     = $_POST["newHashedPassword"];
+    $inputNewFirstName          = $_POST["newFirstName"];
+    $inputNewLastName           = $_POST["newLastName"];
 
     if ($inputUsername == null || $inputCurrentHashedPassword == null) {
         CommonEndPointLogic::GetFailureResponseStatus("BAD_USERNAME_PASSWORD");

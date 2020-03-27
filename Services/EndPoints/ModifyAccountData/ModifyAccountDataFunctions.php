@@ -45,9 +45,6 @@
 
             $SQLPreparedStatement = $SQLPreparedStatement . " WHERE :ID = Users.ID";
 
-            echo $SQLPreparedStatement, PHP_EOL;
-            echo $ID, $newHashedPassword, $newFirstName, $newLastName, PHP_EOL;
-
             $SQLUpdateStatement = DatabaseManager::PrepareStatement($SQLPreparedStatement);
             
             if($newHashedPassword != null)
