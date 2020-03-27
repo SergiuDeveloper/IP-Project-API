@@ -65,7 +65,7 @@
     }
 
     if($inactiveUserTableRow["Is_Active"]){
-        $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("FAILED_TO_ACTIVATE_USER");
+        $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("USER_ALREADY_ACTIVE");
         echo json_encode($failureResponseStatus), PHP_EOL;
         die();
     }
