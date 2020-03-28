@@ -12,17 +12,30 @@ class APIUnitTestHelper {
         failureMessage: string = Failure message
     */
     static Test(testCondition, successMessage, failureMessage) {
-        if (testCondition)
-            APIUnitTestHelper.Success(successMessage);
-        else
-            APIUnitTestHelper.Failure(failureMessage);
-    }
+        if (testCondition) {
+			if (successMessage === null)
+				APIUnitTestHelper.Success(null);
+			else
+				APIUnitTestHelper.Success(successMessage);
+		}
+        else {
+			if (failureMessage === null)
+				APIUnitTestHelper.Failure(null);
+			else
+				APIUnitTestHelper.Failure(failureMessage);
+		}
+	}
 
      /*
         Return:         void <=> Logs a success message
         successMessage: string = Success message to log
     */
     static Success(successMessage) {
+		if (successMessage === null) {
+			console.log("Test Success");
+			return;
+		}
+		
 		if (typeof successMessage === 'object')
 			successMessage = JSON.stringify(successMessage);
         console.log(`Test Success: ${successMessage}`);
@@ -33,6 +46,11 @@ class APIUnitTestHelper {
         failureMessage: string = Failure message to log as error
     */
     static Failure(failureMessage) {
+		if (failureMessage === null) {
+				console.log("Test Failure");
+				return;
+		}
+		
 		if (typeof failureMessage === 'object')
 			failureMessage = JSON.stringify(failureMessage);
         console.error(`Test Failure: ${failureMessage}`);
@@ -59,19 +77,22 @@ class APIUnitTestHelper {
 				if (!webpagePath.startsWith("http://"))
 					webpagePath = "http://" + webpagePath;
 
-                var webpagePathWithParameters = webpagePath;
-                const requestParametersEntries = Object.entries(requestParameters);
-                if (requestParametersEntries != null)
-                    webpagePathWithParameters += "?";
+				var webpagePathWithParameters = webpagePath;
+				
+				if (requestParameters !== null) {
+					const requestParametersEntries = Object.entries(requestParameters);
+					if (requestParametersEntries != null)
+						webpagePathWithParameters += "?";
 
-                requestParametersEntries.forEach(entry => {
-                    const requestParameterKey = entry[0];
-                    const requestParameterValue = entry[1];
-                        
-                    webpagePathWithParameters += `${requestParameterKey}=${requestParameterValue}&`;
-                });
+					requestParametersEntries.forEach(entry => {
+						const requestParameterKey = entry[0];
+						const requestParameterValue = entry[1];
+							
+						webpagePathWithParameters += `${requestParameterKey}=${requestParameterValue}&`;
+					});
 
-                webpagePathWithParameters = webpagePathWithParameters.slice(0, -1);
+					webpagePathWithParameters = webpagePathWithParameters.slice(0, -1);
+				}
 
                 http.get(webpagePathWithParameters, (response) => {
                     var responseData = "";
@@ -113,8 +134,12 @@ class APIUnitTestHelper {
 				
 				websiteURL = websiteURL.replace("https://", "");
 				websiteURL = websiteURL.replace("http://", "");
-
-                var requestParametersJSONEncoded = querystring.stringify(requestParameters);
+				
+				var requestParametersByteLength = 0;
+				if (requestParameters !== null) {
+					var requestParametersJSONEncoded = querystring.stringify(requestParameters);
+					requestParametersByteLength = Buffer.byteLength(requestParametersJSONEncoded);
+				}
 
                 var requestOptions = {
                     hostname: websiteURL,
@@ -123,7 +148,7 @@ class APIUnitTestHelper {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded",
-                        "Content-Length": Buffer.byteLength(requestParametersJSONEncoded)
+                        "Content-Length": requestParametersByteLength
                     }
                 };
 
@@ -147,7 +172,9 @@ class APIUnitTestHelper {
                     errorCallback(thrownError);
                 });
                   
-                httpRequest.write(requestParametersJSONEncoded);
+				if (requestParameters !== null) 
+					httpRequest.write(requestParametersJSONEncoded);
+				
                 httpRequest.end();
             }
             catch (thrownException) {
