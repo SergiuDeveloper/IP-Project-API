@@ -23,6 +23,8 @@ class APIUnitTestHelper {
         successMessage: string = Success message to log
     */
     static Success(successMessage) {
+		if (typeof successMessage === 'object')
+			successMessage = JSON.stringify(successMessage);
         console.log(`Test Success: ${successMessage}`);
     }
 
@@ -31,6 +33,8 @@ class APIUnitTestHelper {
         failureMessage: string = Failure message to log as error
     */
     static Failure(failureMessage) {
+		if (typeof failureMessage === 'object')
+			failureMessage = JSON.stringify(failureMessage);
         console.error(`Test Failure: ${failureMessage}`);
     }
 
@@ -50,6 +54,10 @@ class APIUnitTestHelper {
         static Get(webpagePath, requestParameters, successCallback, errorCallback) {
             try {
                 const http = require("http");
+
+				webpagePath = webpagePath.replace("https://", "http://");
+				if (!webpagePath.startsWith("http://"))
+					webpagePath = "http://" + webpagePath;
 
                 var webpagePathWithParameters = webpagePath;
                 const requestParametersEntries = Object.entries(requestParameters);
@@ -75,7 +83,7 @@ class APIUnitTestHelper {
                     response.on("end", () => {
                         try {
                             const returnedObject = JSON.parse(responseData);
-                            successCallback(returnedObject);
+                            successCallback(responseData);
                         }
                         catch (thrownException) {
                             errorCallback(thrownException);    
@@ -102,6 +110,9 @@ class APIUnitTestHelper {
             try {
                 const http = require("http");
                 const querystring = require("querystring");
+				
+				websiteURL = websiteURL.replace("https://", "");
+				websiteURL = websiteURL.replace("http://", "");
 
                 var requestParametersJSONEncoded = querystring.stringify(requestParameters);
 
