@@ -106,6 +106,8 @@ catch(Exception $exception){
     die();
 }
 
+CommonEndPointLogic::SendEmail($email, "Fiscal Documents EDI Activation Key", $userActivationKey);
+
 $successResponseStatus = CommonEndPointLogic::GetSuccessResponseStatus();
 
 DatabaseManager::Disconnect(); // Si sa te deconectezi

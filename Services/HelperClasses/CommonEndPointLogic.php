@@ -75,6 +75,51 @@ class CommonEndPointLogic {
     }
 
     /*
+        Return:     void <=> Sends an email. On failure, stop execution and log
+        receiver:   string = The receiver's email address
+        subject:    string = The email's subject
+        content:    string = The email's content
+    */
+    public static function SendEmail($receiver, $subject, $content) {
+        $url = "https://api.sendgrid.com/api/mail.send.json";
+        $emailUser = "azure_0a4e0665ba1ddbf27cff9409f952abb8@azure.com";
+        $emailPassword = "FiscalDocsEDI123";
+       
+        $requestParameters = array(
+            "api_user" => $emailUser,
+            "api_key"  => $emailPassword,
+            "to"       => $receiver,
+            "subject"  => $subject,
+            "html"     => $content,
+            "text"     => $content,
+            "from"     => "azure_0a4e0665ba1ddbf27cff9409f952abb8@azure.com",
+            "fromname" => "Fiscal Documents EDI"
+        );
+       
+        $curlSession = curl_init($url);
+       
+        curl_setopt($curlSession, CURLOPT_POST, true);
+        curl_setopt($curlSession, CURLOPT_POSTFIELDS, $requestParameters);
+        curl_setopt($curlSession, CURLOPT_HEADER, false);
+        curl_setopt($curlSession, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curlSession, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curlSession, CURLOPT_SSL_VERIFYHOST, false);
+       
+        $azureEmailAPIResponse = curl_exec($curlSession);
+        curl_close($curlSession);
+
+        $azureEmailAPIResponse = json_decode($azureEmailAPIResponse);
+
+        if ($azureEmailAPIResponse->message == "success")
+            return;
+
+        $responseStatus = CommonEndPointLogic::GetFailureResponseStatus("CONFIRMATION_EMAIL_SEND_FAILURE");
+        echo json_encode($responseStatus), PHP_EOL;
+        http_response_code(StatusCodes::OK);
+        die();
+    }
+
+    /*
         Return: Array["status" => string, "error" => string default ""] = Requested success reponse status
     */   
     public static function GetSuccessResponseStatus() {
