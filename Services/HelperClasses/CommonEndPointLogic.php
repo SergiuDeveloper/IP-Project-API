@@ -149,7 +149,7 @@ class CommonEndPointLogic {
     }
 
     private static function composeEmailBody($activationKey){
-        return "Hello!\nYour activation link is below :\n\thttps://fiscaldocumentseditest.azurewebsites.net/EndPoints/AccountActivation/EndPoint.php?Unique_Key=$activationKey\n";
+        return "Hello!<br>Your activation link is below :<br> http://fiscaldocumentseditest.azurewebsites.net/EndPoints/AccountActivation/EndPoint.php?Unique_Key=$activationKey <br>";
     }
 }
 
