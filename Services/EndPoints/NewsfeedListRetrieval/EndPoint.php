@@ -3,6 +3,7 @@
 require_once("../../HelperClasses/CommonEndPointLogic.php");
 require_once("../../HelperClasses/ValidationHelper.php");
 require_once("../../HelperClasses/SuccessStates.php");
+require_once("../../HelperClasses/DatabaseManager.php");
 
 CommonEndPointLogic::ValidateHTTPGETRequest();
 
@@ -20,13 +21,16 @@ if ($username == null || $hashedPassword == null || $postsCount == null) {
 
 $responseStatus = CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
 
-
+/**
+ * LIMIT with param does not work, needs hardcoding
+ */
+/*
 $getPostsQuery = "
-SELECT ID, title, content, URL, DateTime_Created FROM NewsFeed_Posts Order by DateTime_Created LIMIT :postsCount;
-    ";
+SELECT ID, title, content, URL, DateTime_Created FROM NewsFeed_Posts Order by DateTime_Created LIMIT :numberOfPosts
+    ";*/
 
 $getTagsQuery = "
-SELECT t.title AS tagTitle FROM newsfeed_tags t join newsfeed_posts_tags_assignations r ON t.ID = r.Newsfeed_Tag_ID 
+SELECT t.title FROM newsfeed_tags t join newsfeed_posts_tags_assignations r ON t.ID = r.Newsfeed_Tag_ID 
 JOIN newsfeed_posts p ON p.ID = r.Newsfeed_Post_ID
 WHERE p.ID = :postID;
     ";
@@ -36,8 +40,8 @@ $postsArray = array();
 try {
     DatabaseManager::Connect();
 
-    $getPosts = DatabaseManager::PrepareStatement($getPostsQuery);
-    $getPosts->bindParam(":postsCount", $postsCount);
+    $getPosts = DatabaseManager::PrepareStatement("SELECT ID, title, content, 
+      URL, DateTime_Created FROM NewsFeed_Posts Order by DateTime_Created LIMIT $postsCount");
     $getPosts->execute();
 
     while($getPostsRow = $getPosts->fetch(PDO::FETCH_ASSOC)){
@@ -46,14 +50,15 @@ try {
         $post->set_content($getPostsRow["content"]);
         $post->set_URL($getPostsRow["URL"]);
         $post->set_dateCreated($getPostsRow["DateTime_Created"]);
-        $post->set_title($getPostsRow["title"]);
 
         $getTags = DatabaseManager::PrepareStatement($getTagsQuery);
-        $getTags->bindParam(":postsID", $getPostsRow["ID"]);
+        $getTags->bindParam(":postID", $getPostsRow["ID"]);
         $getTags->execute();
         while($getTagsRow = $getTags->fetch(PDO::FETCH_ASSOC)){
-            $post->add_tags($getTagsRow["tagTitle"]);
+            $post->add_tags($getTagsRow['title']);
         }
+
+
 
         array_push($postsArray,$post);
     }
@@ -61,8 +66,8 @@ try {
     DatabaseManager::Disconnect();
 }
 catch (Exception $databaseException) {
-    $response = CommonEndPointLogic::GetFailureResponseStatus("BD_EXCEPT");
-    echo json_encode($response), PHP_EOL;
+    $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
+    echo json_encode($response);
     http_response_code(StatusCodes::OK);
     die();
 }
@@ -79,6 +84,10 @@ class Posts {
     public $URL;
     public $dateCreated;
     public $tags;
+    function __construct()
+    {
+      $this->tags = array();
+    }
     function set_title($title) {
       $this->title = $title;
     }
