@@ -23,7 +23,7 @@ CREATE TABLE User_Activation_Keys (
 DROP TABLE IF EXISTS Newsfeed_Posts;
 CREATE TABLE Newsfeed_Posts (
 	ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
-    Title				VARCHAR(64)		NOT NULL,
+    Title				VARCHAR(64)		NOT NULL	UNIQUE KEY,
     Content				VARCHAR(256)	NOT NULL,
     URL					VARCHAR(2048)	NOT NULL,
     DateTime_Created	DATETIME			NULL
