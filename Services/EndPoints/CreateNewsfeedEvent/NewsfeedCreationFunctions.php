@@ -18,7 +18,7 @@
 
                 DatabaseManager::Disconnect();
 
-                echo json_decode($failureResponseStatus);
+                echo json_encode($failureResponseStatus);
                 http_response_code(StatusCodes::OK);
                 die();
             }

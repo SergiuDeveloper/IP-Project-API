@@ -4,6 +4,7 @@
     require_once("../../HelperClasses/DatabaseManager.php");
     require_once("../../HelperClasses/ValidationHelper.php");
     require_once("../../HelperClasses/StatusCodes.php");
+    require_once("./NewsfeedCreationFunctions.php");
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
@@ -13,13 +14,13 @@
     $notificationContent = $_POST["contentOfPost"];
     $notificationLink = $_POST["linkOfPost"];
     $notificationTags = $_POST["tagsOfPost"];
-    $notificationTagsArray = unserialize(base64_decode($notificationTags));
+    $notificationTagsArray = unserialize($notificationTags);
 
     if($username == null
         || $hashedPassword == null
         || $notificationName == null
         || $notificationLink == null
-        || $notificationTags == null
+        || $notificationTagsArray == null
     ){
         $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
 
@@ -32,9 +33,14 @@
 
     $tagsIDsArray = NewsfeedCreation::validateNewsfeedPostAndGetTagsID($notificationName, $notificationTagsArray);
 
+    NewsfeedCreation::CreatePostIntoDatabase($notificationName, $notificationLink, $notificationContent);
+
+    NewsfeedCreation::AssociatePostWithTags($notificationName, $notificationTagsArray, $tagsIDsArray);
+
+    /*
     $successResponseStatus = CommonEndPointLogic::GetSuccessResponseStatus();
 
     echo json_encode($successResponseStatus);
     http_response_code(StatusCodes::OK);
-    
+    */
 ?>
