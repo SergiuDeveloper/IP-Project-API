@@ -19,7 +19,7 @@
     $notificationContent = $_POST["contentOfPost"];
     $notificationLink = $_POST["linkOfPost"];
     $notificationTags = $_POST["tagsOfPost"];
-    $notificationTagsArray = unserialize($notificationTags);
+    $notificationTagsArray = json_decode($notificationTags);
 
     if($username == null
         || $hashedPassword == null

@@ -8,7 +8,8 @@ class SuccessStates {
     const USER_NOT_FOUND = 4;
     const USER_INACTIVE = 5;
     const INSTITUTION_RIGHTS_ROW_FOUND = 6;
-    const NOT_ENOUGH_RIGHTS = 7;
+    const INSTITUTION_RIGHTS_ROW_NOT_FOUND = 7;
+    const NOT_ENOUGH_RIGHTS = 8;
 }
 
 ?>
