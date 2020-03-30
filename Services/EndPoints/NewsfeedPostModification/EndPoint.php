@@ -33,13 +33,13 @@ require_once("../../HelperClasses/StatusCodes.php");
 
 CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
-$username = $_POST["username"];
-$hashedPassword = $_POST["hashedPassword"];
-$newsfeedPostID = $_POST["newsfeedPostID"];
-$newsfeedPostTitle = $_POST["newsfeedPostTitle"];
-$newsfeedPostContent = $_POST["newsfeedPostContent"];
-$newsfeedPostURL = $_POST["newsfeedPostURL"];
-$newsfeedPostTags = $_POST["newsfeedPostTags"];
+$username               = $_POST["username"];
+$hashedPassword         = $_POST["hashedPassword"];
+$newsfeedPostID         = $_POST["newsfeedPostID"];
+$newsfeedPostTitle      = $_POST["newsfeedPostTitle"];
+$newsfeedPostContent    = $_POST["newsfeedPostContent"];
+$newsfeedPostURL        = $_POST["newsfeedPostURL"];
+$newsfeedPostTags       = $_POST["newsfeedPostTags"];
 
 $responseStatus = CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
 
