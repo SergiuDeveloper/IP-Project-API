@@ -87,7 +87,7 @@ class UserValidation {
         }
 
         if ($institutionRightsRow == null)
-            return SuccessStates::INSTITUTION_RIGHTS_ROW_FOUND;
+            return SuccessStates::INSTITUTION_RIGHTS_ROW_NOT_FOUND;
         
         try {
             unset($institutionRightsRow["ID"]);
