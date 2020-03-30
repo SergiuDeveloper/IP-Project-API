@@ -79,11 +79,11 @@ if ($newsfeedPostTitle != null || $newsfeedPostContent != null | $newsfeedPostUR
         $firstModification = false;
     }
     if ($newsfeedPostContent != null) {
-        $modifyPostEntryQuery = sprintf("%s%s Content = :newsfeedPostContent", $modifyPostEntryQuery, $firstModification ? "" : " AND", $newsfeedPostContent);
+        $modifyPostEntryQuery = sprintf("%s%s Content = :newsfeedPostContent", $modifyPostEntryQuery, $firstModification ? "" : ",", $newsfeedPostContent);
         $firstModification = false;
     }
     if ($newsfeedPostURL != null)
-        $modifyPostEntryQuery = sprintf("%s%s URL = :newsfeedPostURL", $modifyPostEntryQuery, $firstModification ? "" : " AND", $newsfeedPostURL);
+        $modifyPostEntryQuery = sprintf("%s%s URL = :newsfeedPostURL", $modifyPostEntryQuery, $firstModification ? "" : ",", $newsfeedPostURL);
     $modifyPostEntryQuery = sprintf("%s WHERE ID = :newsfeedPostID", $modifyPostEntryQuery, $newsfeedPostID);
 
     $modifyPostStatement = DatabaseManager::PrepareStatement($modifyPostEntryQuery);
@@ -142,6 +142,9 @@ foreach ($newsfeedPostTags as $newsfeedPostTag) {
 
 DatabaseManager::Disconnect();
 
+$successResponseStatus = CommonEndPointLogic::GetSuccessResponseStatus();
+
+echo json_encode($successResponseStatus), PHP_EOL;
 http_response_code(StatusCodes::OK);
 
 ?>
