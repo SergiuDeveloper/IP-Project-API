@@ -23,11 +23,13 @@ Response Status Error Codes:
     DB_EXCEPTION,
     USER_NOT_FOUND,
     WRONG_PASSWORD,
-    USER_INACTIVE
+    USER_INACTIVE,
+    NULL_CREDENTIAL,
+    POST_NOT_FOUND
 */
 
 require_once("../../HelperClasses/CommonEndPointLogic.php");
-require_once("../../HelperClasses/ValidationHelper.php");
+require_once("../../HelperClasses/DatabaseManager.php");
 require_once("../../HelperClasses/SuccessStates.php");
 require_once("../../HelperClasses/StatusCodes.php");
 
@@ -39,11 +41,106 @@ $newsfeedPostID         = $_POST["newsfeedPostID"];
 $newsfeedPostTitle      = $_POST["newsfeedPostTitle"];
 $newsfeedPostContent    = $_POST["newsfeedPostContent"];
 $newsfeedPostURL        = $_POST["newsfeedPostURL"];
-$newsfeedPostTags       = $_POST["newsfeedPostTags"];
+$newsfeedPostTags       = unserialize($_POST["newsfeedPostTags"]);
 
-$responseStatus = CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
+CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
 
-//to-do
+if ($newsfeedPostID == null) {
+    $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL");
+	
+	echo json_encode($failureResponseStatus), PHP_EOL;
+    http_response_code(StatusCodes::BAD_REQUEST);
+    die();
+}
+
+DatabaseManager::Connect();
+
+$getPostStatement = DatabaseManager::PrepareStatement("SELECT * FROM Newsfeed_Posts WHERE ID = :newsfeedPostID");
+$getPostStatement->bindParam(":newsfeedPostID", $newsfeedPostID);
+$getPostStatement->execute();
+
+$newsfeedPostRow = $getPostStatement->fetch();
+if ($newsfeedPostRow == null) {
+    $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("POST_NOT_FOUND");
+    
+    DatabaseManager::Disconnect();
+
+	echo json_encode($failureResponseStatus), PHP_EOL;
+    http_response_code(StatusCodes::OK);
+    die();
+}
+
+if ($newsfeedPostTitle != null || $newsfeedPostContent != null | $newsfeedPostURL != null) {
+    $firstModification = true;
+
+    $modifyPostEntryQuery = "UPDATE Newsfeed_Posts SET";
+    if ($newsfeedPostTitle != null) {
+        $modifyPostEntryQuery = sprintf("%s Title = :newsfeedPostTitle", $modifyPostEntryQuery, $newsfeedPostTitle);
+        $firstModification = false;
+    }
+    if ($newsfeedPostContent != null) {
+        $modifyPostEntryQuery = sprintf("%s%s Content = :newsfeedPostContent", $modifyPostEntryQuery, $firstModification ? "" : " AND", $newsfeedPostContent);
+        $firstModification = false;
+    }
+    if ($newsfeedPostURL != null)
+        $modifyPostEntryQuery = sprintf("%s%s URL = :newsfeedPostURL", $modifyPostEntryQuery, $firstModification ? "" : " AND", $newsfeedPostURL);
+    $modifyPostEntryQuery = sprintf("%s WHERE ID = :newsfeedPostID", $modifyPostEntryQuery, $newsfeedPostID);
+
+    $modifyPostStatement = DatabaseManager::PrepareStatement($modifyPostEntryQuery);
+    if ($newsfeedPostTitle != null)
+        $modifyPostStatement->bindParam(":newsfeedPostTitle", $newsfeedPostTitle);
+    if ($newsfeedPostContent != null)
+        $modifyPostStatement->bindParam(":newsfeedPostContent", $newsfeedPostContent);
+    if ($newsfeedPostURL != null)
+        $modifyPostStatement->bindParam(":newsfeedPostURL", $newsfeedPostURL);
+    $modifyPostStatement->bindParam(":newsfeedPostID", $newsfeedPostID);
+    $modifyPostStatement->execute();
+}
+
+if ($newsfeedPostTags == null) {
+    $successResponseStatus = CommonEndPointLogic::GetSuccessResponseStatus();
+    
+    DatabaseManager::Disconnect();
+
+	echo json_encode($successResponseStatus), PHP_EOL;
+    http_response_code(StatusCodes::OK);
+    die();
+}
+
+foreach ($newsfeedPostTags as $newsfeedPostTag) {
+    $getNewsfeedPostTagStatement = DatabaseManager::PrepareStatement("SELECT * FROM Newsfeed_Tags WHERE Title = :newsfeedPostTag");
+    $getNewsfeedPostTagStatement->bindParam(":newsfeedPostTag", $newsfeedPostTag);
+    $getNewsfeedPostTagStatement->execute();
+    $newsfeedPostTagRow = $getNewsfeedPostTagStatement->fetch(PDO::FETCH_OBJ);
+
+    if ($newsfeedPostTagRow == null) {
+        $createNewsfeedPostTagStatement = DatabaseManager::PrepareStatement("INSERT INTO Newsfeed_Tags(Title) VALUES(:newsfeedPostTag)");
+        $createNewsfeedPostTagStatement->bindParam(":newsfeedPostTag", $newsfeedPostTag);
+        $createNewsfeedPostTagStatement->execute();
+
+        $getNewsfeedPostTagStatement = DatabaseManager::PrepareStatement("SELECT * FROM Newsfeed_Tags WHERE Title = :newsfeedPostTag");
+        $getNewsfeedPostTagStatement->bindParam(":newsfeedPostTag", $newsfeedPostTag);
+        $getNewsfeedPostTagStatement->execute();
+        $newsfeedPostTagRow = $getNewsfeedPostTagStatement->fetch(PDO::FETCH_OBJ);
+    }
+    
+    $newsfeedTagID = $newsfeedPostTagRow->ID;
+
+    $getNewsfeedPostTagsAssociationStatement = DatabaseManager::PrepareStatement("SELECT * FROM Newsfeed_Posts_Tags_Assignations WHERE Newsfeed_Post_ID = :newsfeedPostID AND Newsfeed_Tag_ID = :newsfeedTagID");
+    $getNewsfeedPostTagsAssociationStatement->bindParam(":newsfeedPostID", $newsfeedPostID);
+    $getNewsfeedPostTagsAssociationStatement->bindParam(":newsfeedTagID", $newsfeedTagID);
+    $getNewsfeedPostTagsAssociationStatement->execute();
+    $newsfeedPostTagsAssociationRow = $getNewsfeedPostTagsAssociationStatement->fetch();
+
+    if ($newsfeedPostTagsAssociationRow == null) {
+        $associatePostWithTagStatement = DatabaseManager::PrepareStatement("INSERT INTO Newsfeed_Posts_Tags_Assignations(Newsfeed_Post_ID, Newsfeed_Tag_ID) VALUES(:newsfeedPostID, :newsfeedTagID)");
+        $associatePostWithTagStatement->bindParam(":newsfeedPostID", $newsfeedPostID);
+        $associatePostWithTagStatement->bindParam(":newsfeedTagID", $newsfeedTagID);
+        $associatePostWithTagStatement->execute();
+    }
+}
+
+DatabaseManager::Disconnect();
 
 http_response_code(StatusCodes::OK);
 
