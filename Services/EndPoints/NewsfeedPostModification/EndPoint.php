@@ -41,7 +41,7 @@ $newsfeedPostID         = $_POST["newsfeedPostID"];
 $newsfeedPostTitle      = $_POST["newsfeedPostTitle"];
 $newsfeedPostContent    = $_POST["newsfeedPostContent"];
 $newsfeedPostURL        = $_POST["newsfeedPostURL"];
-$newsfeedPostTags       = unserialize($_POST["newsfeedPostTags"]);
+$newsfeedPostTags       = json_decode($_POST["newsfeedPostTags"]);
 
 CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
 
