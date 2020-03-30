@@ -37,10 +37,8 @@
 
     NewsfeedCreation::AssociatePostWithTags($notificationName, $notificationTagsArray, $tagsIDsArray);
 
-    /*
     $successResponseStatus = CommonEndPointLogic::GetSuccessResponseStatus();
 
     echo json_encode($successResponseStatus);
     http_response_code(StatusCodes::OK);
-    */
 ?>
