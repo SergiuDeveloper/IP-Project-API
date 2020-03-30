@@ -37,9 +37,9 @@ CREATE TABLE Newsfeed_Tags (
 
 DROP TABLE IF EXISTS Newsfeed_Posts_Tags_Assignations;
 CREATE TABLE Newsfeed_Posts_Tags_Assignations (
-	ID 					INT 		PRIMARY KEY		AUTO_INCREMENT,
-	Newsfeed_Post_ID	INT							REFERENCES Newsfeed_Posts.ID,
-    Newsfeed_Tag_ID		INT							REFERENCES Newsfeed_Tags.ID,
+	ID 					INT 			PRIMARY KEY		AUTO_INCREMENT,
+	Newsfeed_Post_ID	INT	NOT NULL					REFERENCES Newsfeed_Posts.ID,
+    Newsfeed_Tag_ID		INT	NOT NULL					REFERENCES Newsfeed_Tags.ID,
     
     UNIQUE KEY (
 		Newsfeed_Post_ID,
