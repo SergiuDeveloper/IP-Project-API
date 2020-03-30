@@ -80,11 +80,12 @@ class CommonEndPointLogic {
         subject:    string = The email's subject
         content:    string = The email's content
     */
-    public static function SendEmail($receiver, $subject, $content) {
+    public static function SendEmail($receiver, $subject, $activationKey) {
         $url = "https://api.sendgrid.com/api/mail.send.json";
         $emailUser = "azure_0a4e0665ba1ddbf27cff9409f952abb8@azure.com";
         $emailPassword = "FiscalDocsEDI123";
-       
+        $content = CommonEndPointLogic::composeEmailBody($activationKey);
+
         $requestParameters = array(
             "api_user" => $emailUser,
             "api_key"  => $emailPassword,
@@ -145,6 +146,10 @@ class CommonEndPointLogic {
             "error" => $error
         ];
         return $responseStatus;
+    }
+
+    private static function composeEmailBody($activationKey){
+        return "Hello!\nYour activation link is below :\n\thttps://fiscaldocumentseditest.azurewebsites.net/EndPoints/AccountActivation/EndPoint.php?Unique_Key=$activationKey\n";
     }
 }
 
