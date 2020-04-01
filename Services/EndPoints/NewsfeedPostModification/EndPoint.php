@@ -19,9 +19,9 @@ Output: {
 }
 
 Response Status Error Codes:
+    BAD_REQUEST_TYPE,
     NULL_CREDENTIAL,
     NULL_NEWSFEED_POST_ID,
-    BAD_REQUEST_TYPE,
     DB_EXCEPTION,
     USER_NOT_FOUND,
     WRONG_PASSWORD,
