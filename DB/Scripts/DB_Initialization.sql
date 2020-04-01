@@ -11,6 +11,12 @@ CREATE TABLE Users (
 	DateTime_Modified	DATETIME			NULL
 );
 
+DROP TABLE IF EXISTS Administrators;
+CREATE TABLE Administrators (
+	ID			INT					PRIMARY KEY		AUTO_INCREMENT,
+    Users_ID	INT 	NOT NULL 	UNIQUE KEY 		REFERENCES Users.ID
+);
+
 DROP TABLE IF EXISTS User_Activation_Keys;
 CREATE TABLE User_Activation_Keys (
 	ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
@@ -73,12 +79,47 @@ CREATE TABLE Institution_Addresses_List (
 	ID					INT							PRIMARY KEY		AUTO_INCREMENT,
 	Institution_ID		INT				NOT NULL					REFERENCES Institutions.ID,
 	Address_ID			INT				NOT NULL					REFERENCES Addresses.ID,
-	
+	Is_Main_Address		BOOLEAN			NOT NULL,
+    
 	UNIQUE KEY (
 		Institution_ID,
 		Address_ID
 	)
 );
+
+DROP PROCEDURE IF EXISTS sp_Unique_Institution_Main_Address_Validation;
+DELIMITER //
+CREATE PROCEDURE sp_Unique_Institution_Main_Address_Validation(
+	new_row_is_main_address	BOOLEAN,
+    new_row_institution_id	INT
+)
+BEGIN
+	IF new_row_is_main_address = TRUE THEN
+		SET @institution_main_addresses_count = (SELECT COUNT(*) FROM Institution_Addresses_List WHERE Institution_ID = new_row_institution_id AND Is_Main_Address = TRUE);
+        IF @institution_main_addresses_count > 0 THEN
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'An institution cannot have two main addresses';
+		END IF;
+    END IF;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS t_Institution_Addresses_List_Before_Insert;
+DELIMITER //
+CREATE TRIGGER t_Institution_Addresses_List_Before_Insert BEFORE INSERT ON Institution_Addresses_List
+FOR EACH ROW
+BEGIN
+	CALL sp_Unique_Institution_Main_Address_Validation(NEW.Is_Main_Address, NEW.Institution_ID);
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS t_Institution_Addresses_List_Before_Update;
+DELIMITER //
+CREATE TRIGGER t_Institution_Addresses_List_Before_Update BEFORE UPDATE ON Institution_Addresses_List
+FOR EACH ROW
+BEGIN
+	CALL sp_Unique_Institution_Main_Address_Validation(NEW.Is_Main_Address, NEW.Institution_ID);
+END //
+DELIMITER ;
 
 DROP TABLE IF EXISTS Institution_Rights;
 CREATE TABLE Institution_Rights (
@@ -114,12 +155,29 @@ CREATE TABLE Institution_Rights (
 	)
 );
 
+DROP TABLE IF EXISTS Institution_Roles;
+CREATE TABLE Institution_Roles (
+	ID						INT					PRIMARY KEY		AUTO_INCREMENT,
+    Institution_ID			INT 	NOT NULL					REFERENCES Institutions.ID,
+    Institution_Rights_ID 	INT 	NOT NULL					REFERENCES Institution_Rights.ID,
+    Title					VARCHAR(64),
+    
+    UNIQUE KEY (
+		Institution_ID,
+        Institution_Rights_ID
+    ),
+    UNIQUE KEY (
+		Institution_ID,
+        Title
+    )
+);
+
 DROP TABLE IF EXISTS Institution_Members;
 CREATE TABLE Institution_Members (
 	ID							INT								PRIMARY KEY		AUTO_INCREMENT,
-	Institution_ID				INT					NOT NULL				REFERENCES Institutions.ID,
-	User_ID						INT					NOT NULL				REFERENCES Users.ID,
-	Institution_Right_ID		INT					NOT NULL				REFERENCES Institution_Rights.ID,
+	Institution_ID				INT					NOT NULL					REFERENCES Institutions.ID,
+	User_ID						INT					NOT NULL					REFERENCES Users.ID,
+	Institution_Roles_ID		INT					NOT NULL					REFERENCES Institution_Roles.ID,
 	DateTime_Added				DATETIME				NULL,
 	DateTime_Modified_Rights	DATETIME				NULL,
 	
