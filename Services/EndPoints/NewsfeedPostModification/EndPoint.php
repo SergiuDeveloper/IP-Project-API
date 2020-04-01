@@ -19,12 +19,14 @@ Output: {
 }
 
 Response Status Error Codes:
+    NULL_CREDENTIAL,
+    NULL_NEWSFEED_POST_ID,
     BAD_REQUEST_TYPE,
     DB_EXCEPTION,
     USER_NOT_FOUND,
     WRONG_PASSWORD,
     USER_INACTIVE,
-    NULL_CREDENTIAL,
+    NOT_ADMIN,
     POST_NOT_FOUND
 */
 
@@ -43,15 +45,23 @@ $newsfeedPostContent    = $_POST["newsfeedPostContent"];
 $newsfeedPostURL        = $_POST["newsfeedPostURL"];
 $newsfeedPostTags       = json_decode($_POST["newsfeedPostTags"]);
 
-CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
-
-if ($newsfeedPostID == null) {
+if ($username == null || $hashedPassword == null) {
     $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL");
 	
 	echo json_encode($failureResponseStatus), PHP_EOL;
     http_response_code(StatusCodes::BAD_REQUEST);
     die();
 }
+
+if ($newsfeedPostID == null) {
+    $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_NEWSFEED_POST_ID");
+	
+	echo json_encode($failureResponseStatus), PHP_EOL;
+    http_response_code(StatusCodes::BAD_REQUEST);
+    die();
+}
+
+CommonEndPointLogic::ValidateAdministrator($username, $hashedPassword);
 
 DatabaseManager::Connect();
 

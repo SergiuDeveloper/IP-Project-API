@@ -19,7 +19,7 @@ if ($username == null || $hashedPassword == null || $postsCount == null) {
     die();
 }   
 
-$responseStatus = CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
+CommonEndPointLogic::ValidateAdministrator($username, $hashedPassword);
 
 /**
  * LIMIT with param does not work, needs hardcoding

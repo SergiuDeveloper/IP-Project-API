@@ -2,10 +2,11 @@
 
 require_once("ValidationHelper.php");
 require_once("StatusCodes.php");
+require_once("DatabaseManager.php");
 
 /* Class containing common operations used in the API endpoints */
 class CommonEndPointLogic {
-    /* 
+    /*
         Return: void <=> If the received request is not a HTTP GET, set a BAD REQUEST response status and end execution
     */
     public static function ValidateHTTPGETRequest() {
@@ -35,7 +36,7 @@ class CommonEndPointLogic {
     }
 
     /* 
-        Return:         Array["status" => string, "error" => string] = Array containing the credentials validation status and the error, if needed; Ends the execution in case of failure
+        Return:         void <=> If the credentials are incorrect, close the session
         username:       string = The username
         hashedPassword: string = The hashed password
     */
@@ -65,13 +66,38 @@ class CommonEndPointLogic {
         }
 
         if (!$stopExecution)
-            return $responseStatus;
+            return;
 
         echo json_encode($responseStatus), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+    }
 
-        return $responseStatus;
+    /* 
+        Return:         void <=> If the credentials are incorrect or the user is not an administrator, close the session
+        username:       string = The username
+        hashedPassword: string = The hashed password
+    */
+    public static function ValidateAdministrator($username, $hashedPassword) {
+        CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
+
+        DatabaseManager::Connect();
+
+        $getAdministratorStatement = DatabaseManager::PrepareStatement("SELECT * FROM Administrators WHERE Users_ID = (SELECT ID FROM Users WHERE Username = :username)");
+        $getAdministratorStatement->bindParam(":username", $username);
+        $getAdministratorStatement->execute();
+
+        $administratorRow = $getAdministratorStatement->fetch();
+
+        DatabaseManager::Disconnect();
+
+        if ($administratorRow != null)
+            return;
+
+        $responseStatus = CommonEndPointLogic::GetFailureResponseStatus("NOT_ADMIN");
+        echo json_encode($responseStatus), PHP_EOL;
+        http_response_code(StatusCodes::OK);
+        die();
     }
 
     /*

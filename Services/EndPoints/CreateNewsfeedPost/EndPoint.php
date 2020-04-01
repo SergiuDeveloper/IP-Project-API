@@ -34,7 +34,7 @@
         die();
     }
 
-    CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
+    CommonEndPointLogic::ValidateAdministrator($username, $hashedPassword);
 
     $tagsIDsArray = NewsfeedCreation::validateNewsfeedPostAndGetTagsID($notificationName, $notificationTagsArray);
 

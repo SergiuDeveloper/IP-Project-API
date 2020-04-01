@@ -60,6 +60,8 @@ if($userRow != null) {
     die();
 }
 
+$hashedPassword = password_hash($hashedPassword, PASSWORD_BCRYPT);
+
 $insertUserStatement = DatabaseManager::PrepareStatement("INSERT INTO Users(username, hashed_password, email, first_name, last_name, is_active, datetime_created, datetime_modified) VALUES 
 (:username, :hashedPassword, :email, :firstName, :lastName, false, sysdate(), sysdate())");
 

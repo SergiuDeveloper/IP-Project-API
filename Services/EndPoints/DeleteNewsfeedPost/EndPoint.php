@@ -22,7 +22,7 @@
         die();
     }
 
-    UserValidation::ValidateCredentials($username, $password);
+    UserValidation::ValidateAdministrator($username, $password);
 
     DatabaseManager::Connect();
 
