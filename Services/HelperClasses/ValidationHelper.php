@@ -50,19 +50,23 @@ class UserValidation {
         Usage example:
         <
             $inputInstitutionActionRequiredRightsDictionary = [
-                "Can_Modify_Institution" => true,
-                "Can_Delete_Institution" => true,
-                "Can_Add_Members" => true,
-                "Can_Remove_Members" => false,
-                "Can_Change_Members_Rights" => true,
-                "Can_Upload_Documents" => false,
-                "Can_Preview_Uploaded_Documents" => true,
-                "Can_Remove_Uploaded_Documents" => false,
-                "Can_Send_Documents" => true,
-                "Can_Preview_Received_Documents" => false,
-                "Can_Preview_Specific_Received_Document" => true,
-                "Can_Remove_Received_Documents" => false,
-                "Can_Download_Documents" => true
+                "Can_Modify_Institution"                    => true,
+                "Can_Delete_Institution"                    => true,
+                "Can_Add_Members"                           => true,
+                "Can_Remove_Members"                        => false,
+                "Can_Upload_Documents"                      => false,
+                "Can_Preview_Uploaded_Documents"            => true,
+                "Can_Remove_Uploaded_Documents"             => false,
+                "Can_Send_Documents"                        => true,
+                "Can_Preview_Received_Documents"            => false,
+                "Can_Preview_Specific_Received_Document"    => true,
+                "Can_Remove_Received_Documents"             => false,
+                "Can_Download_Documents"                    => true,
+                "Can_Add_Roles"                             => false,
+                "Can_Remove_Roles"                          => false,
+                "Can_Modify_Roles"                          => true,
+                "Can_Assign_Roles"                          => true,
+                "Can_Deassign_Roles"                        => true
             ];
 
             echo (UserValidation::ValidateInstitutionActionRequiredRights("testuser", "testname", $inputInstitutionActionRequiredRightsDictionary) == true ? "true" : "false"), PHP_EOL;
