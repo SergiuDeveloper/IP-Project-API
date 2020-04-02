@@ -1,5 +1,6 @@
 <?php
 
+    require_once("../../HelperClasses/NewsfeedPostTagLinker.php");
     require_once("../../HelperClasses/DatabaseManager.php");
 
     class NewsfeedCreation{
@@ -23,31 +24,9 @@
                 die();
             }
 
-            foreach ($tagsArray as $tag){
-                $SQLStatement = DatabaseManager::PrepareStatement(NewsfeedCreation::$getTagFromDatabaseStatement);
-                $SQLStatement->bindParam(":title", $tag);
-                $SQLStatement->execute();
-
-                $tagNameRow = $SQLStatement->fetch(PDO::FETCH_OBJ);
-
-                if($tagNameRow == null){
-                    $SQLStatement = DatabaseManager::PrepareStatement(NewsfeedCreation::$insertTagIntoDatabaseStatement);
-                    $SQLStatement->bindParam(":title", $tag);
-                    $SQLStatement->execute();
-
-                    $SQLStatement = DatabaseManager::PrepareStatement(NewsfeedCreation::$getTagFromDatabaseStatement);
-                    $SQLStatement->bindParam(":title", $tag);
-                    $SQLStatement->execute();
-    
-                    $tagNameRow = $SQLStatement->fetch(PDO::FETCH_OBJ);
-                }
-
-                $tagsIDArray[$tag] = $tagNameRow->ID;
-            }
-
             DatabaseManager::Disconnect();
 
-            return $tagsIDArray;
+            return NewsfeedTagLinker::createMissingTagsAndgetPostTagsID($tagsArray);
         }
 
         public static function CreatePostIntoDatabase($postTitle, $postURL, $postContent){
@@ -73,22 +52,11 @@
             $SQLStatement->execute();
             $postIDRow = $SQLStatement->fetch(PDO::FETCH_OBJ);
 
-            foreach($postTagsArray as $postTag){
-                
-                $SQLStatement = DatabaseManager::PrepareStatement(NewsfeedCreation::$insertNewsfeedTagAssociation);
-                $SQLStatement->bindParam(":postID", $postIDRow->ID);
-                $SQLStatement->bindParam("tagID", $postTagsArrayID[$postTag]);
-                $SQLStatement->execute();
-
-            }
-
             DatabaseManager::Disconnect();
 
-        }
+            NewsfeedTagLinker::AssociatePostWithTags($postIDRow->ID, $postTagsArray, $postTagsArrayID);
 
-        private static $insertNewsfeedTagAssociation = "
-            INSERT INTO Newsfeed_Posts_Tags_Assignations (Newsfeed_Post_ID, Newsfeed_Tag_ID) VALUES (:postID, :tagID)
-        ";
+        }
 
         private static $insertPostIntoDatabase = "
             INSERT INTO Newsfeed_Posts (Title, Content, URL, DateTime_Created) VALUES (:title, :content, :url, CURRENT_TIMESTAMP())
@@ -96,14 +64,6 @@
 
         private static $getPostByNameFromDatabaseStatement = "
             SELECT ID FROM Newsfeed_Posts WHERE Title = :title
-        ";
-
-        private static $getTagFromDatabaseStatement = "
-            SELECT ID FROM Newsfeed_Tags WHERE Title = :title
-        ";
-
-        private static $insertTagIntoDatabaseStatement = "
-            INSERT INTO Newsfeed_Tags (Title) VALUES (:title)
         ";
     }
 

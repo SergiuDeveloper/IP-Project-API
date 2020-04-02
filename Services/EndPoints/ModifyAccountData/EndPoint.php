@@ -23,17 +23,18 @@
         die();
     }
 
+    CommonEndPointLogic::ValidateUserCredentials($inputUsername, $inputCurrentHashedPassword);
+
     $userRow = ModifyAccountManager::fetchIDandHashedPassword($inputUsername);
 
-    $response = ModifyAccountManager::prepareResponse($userRow, $inputCurrentHashedPassword);
+    ModifyAccountManager::updateFieldsInDatabase(
+        $userRow["ID"],
+        $inputNewHashedPassword,
+        $inputNewFirstName,
+        $inputNewLastName
+    );
 
-    if ($response["status"] == "SUCCESS")
-        ModifyAccountManager::updateFieldsInDatabase(
-            $userRow["ID"],
-            $inputNewHashedPassword,
-            $inputNewFirstName,
-            $inputNewLastName
-        );
+    $response = CommonEndPointLogic::GetSuccessResponseStatus();
 
     echo json_encode($response), PHP_EOL;
     http_response_code(StatusCodes::OK);

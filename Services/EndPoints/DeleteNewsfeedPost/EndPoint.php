@@ -22,7 +22,7 @@
         die();
     }
 
-    UserValidation::ValidateAdministrator($username, $password);
+    CommonEndPointLogic::ValidateAdministrator($username, $password);
 
     DatabaseManager::Connect();
 

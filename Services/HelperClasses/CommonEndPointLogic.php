@@ -107,6 +107,7 @@ class CommonEndPointLogic {
         content:    string = The email's content
     */
     public static function SendEmail($receiver, $subject, $activationKey) {
+        echo $activationKey, PHP_EOL;
         $url = "https://api.sendgrid.com/api/mail.send.json";
         $emailUser = "azure_0a4e0665ba1ddbf27cff9409f952abb8@azure.com";
         $emailPassword = "FiscalDocsEDI123";
@@ -141,7 +142,6 @@ class CommonEndPointLogic {
             return;
 
         $responseStatus = CommonEndPointLogic::GetFailureResponseStatus("CONFIRMATION_EMAIL_SEND_FAILURE");
-        echo json_encode($responseStatus), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
     }

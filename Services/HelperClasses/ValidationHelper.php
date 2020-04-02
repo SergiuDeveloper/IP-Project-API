@@ -32,8 +32,10 @@ class UserValidation {
         if ($usersTableRow == null)
             return SuccessStates::USER_NOT_FOUND;
         
-        if (!password_verify($inputHashedPassword, $usersTableRow->Hashed_Password))
-            return SuccessStates::WRONG_PASSWORD;
+        $state = password_verify($inputHashedPassword, $usersTableRow->Hashed_Password);
+    
+        if (!$state)
+            return SuccessStates::WRONG_PASSWORD; 
         
         if (!$usersTableRow->Is_Active)
             return SuccessStates::USER_INACTIVE;

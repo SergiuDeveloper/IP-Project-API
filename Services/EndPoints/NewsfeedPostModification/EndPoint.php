@@ -30,6 +30,7 @@ Response Status Error Codes:
     POST_NOT_FOUND
 */
 
+require_once("../../HelperClasses/NewsfeedPostTagLinker.php");
 require_once("../../HelperClasses/CommonEndPointLogic.php");
 require_once("../../HelperClasses/DatabaseManager.php");
 require_once("../../HelperClasses/SuccessStates.php");
@@ -39,11 +40,14 @@ CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
 $username               = $_POST["username"];
 $hashedPassword         = $_POST["hashedPassword"];
-$newsfeedPostID         = $_POST["newsfeedPostID"];
+//$newsfeedPostID         = $_POST["newsfeedPostID"]; Cum sa stie ID-ul? Vezi ca sunt modificari multe necomentate mai jos
 $newsfeedPostTitle      = $_POST["newsfeedPostTitle"];
+$newsfeedPostNewTitle      = $_POST["newsfeedPostNewTitle"];
 $newsfeedPostContent    = $_POST["newsfeedPostContent"];
 $newsfeedPostURL        = $_POST["newsfeedPostURL"];
-$newsfeedPostTags       = json_decode($_POST["newsfeedPostTags"]);
+$newsfeedPostTagsJSON       = $_POST["newsfeedPostTags"];
+
+$newsfeedPostTags = json_decode($newsfeedPostTagsJSON);
 
 if ($username == null || $hashedPassword == null) {
     $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL");
@@ -52,7 +56,7 @@ if ($username == null || $hashedPassword == null) {
     http_response_code(StatusCodes::BAD_REQUEST);
     die();
 }
-
+/*
 if ($newsfeedPostID == null) {
     $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_NEWSFEED_POST_ID");
 	
@@ -60,16 +64,16 @@ if ($newsfeedPostID == null) {
     http_response_code(StatusCodes::BAD_REQUEST);
     die();
 }
-
+*/
 CommonEndPointLogic::ValidateAdministrator($username, $hashedPassword);
 
 DatabaseManager::Connect();
 
-$getPostStatement = DatabaseManager::PrepareStatement("SELECT * FROM Newsfeed_Posts WHERE ID = :newsfeedPostID");
-$getPostStatement->bindParam(":newsfeedPostID", $newsfeedPostID);
+$getPostStatement = DatabaseManager::PrepareStatement("SELECT * FROM Newsfeed_Posts WHERE Title = :newsfeedPostTitle");
+$getPostStatement->bindParam(":newsfeedPostTitle", $newsfeedPostTitle);
 $getPostStatement->execute();
 
-$newsfeedPostRow = $getPostStatement->fetch();
+$newsfeedPostRow = $getPostStatement->fetch(PDO::FETCH_OBJ);
 if ($newsfeedPostRow == null) {
     $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("POST_NOT_FOUND");
     
@@ -80,12 +84,14 @@ if ($newsfeedPostRow == null) {
     die();
 }
 
-if ($newsfeedPostTitle != null || $newsfeedPostContent != null | $newsfeedPostURL != null) {
+$newsfeedPostID = $newsfeedPostRow->ID;
+
+if ($newsfeedPostNewTitle != null || $newsfeedPostContent != null | $newsfeedPostURL != null) {
     $firstModification = true;
 
     $modifyPostEntryQuery = "UPDATE Newsfeed_Posts SET";
-    if ($newsfeedPostTitle != null) {
-        $modifyPostEntryQuery = sprintf("%s Title = :newsfeedPostTitle", $modifyPostEntryQuery, $newsfeedPostTitle);
+    if ($newsfeedPostNewTitle != null) {
+        $modifyPostEntryQuery = sprintf("%s Title = :newsfeedPostNewTitle", $modifyPostEntryQuery, $newsfeedPostNewTitle);
         $firstModification = false;
     }
     if ($newsfeedPostContent != null) {
@@ -97,8 +103,8 @@ if ($newsfeedPostTitle != null || $newsfeedPostContent != null | $newsfeedPostUR
     $modifyPostEntryQuery = sprintf("%s WHERE ID = :newsfeedPostID", $modifyPostEntryQuery, $newsfeedPostID);
 
     $modifyPostStatement = DatabaseManager::PrepareStatement($modifyPostEntryQuery);
-    if ($newsfeedPostTitle != null)
-        $modifyPostStatement->bindParam(":newsfeedPostTitle", $newsfeedPostTitle);
+    if ($newsfeedPostNewTitle != null)
+        $modifyPostStatement->bindParam(":newsfeedPostNewTitle", $newsfeedPostNewTitle);
     if ($newsfeedPostContent != null)
         $modifyPostStatement->bindParam(":newsfeedPostContent", $newsfeedPostContent);
     if ($newsfeedPostURL != null)
@@ -117,6 +123,7 @@ if ($newsfeedPostTags == null) {
     die();
 }
 
+/*
 foreach ($newsfeedPostTags as $newsfeedPostTag) {
     $getNewsfeedPostTagStatement = DatabaseManager::PrepareStatement("SELECT * FROM Newsfeed_Tags WHERE Title = :newsfeedPostTag");
     $getNewsfeedPostTagStatement->bindParam(":newsfeedPostTag", $newsfeedPostTag);
@@ -148,9 +155,15 @@ foreach ($newsfeedPostTags as $newsfeedPostTag) {
         $associatePostWithTagStatement->bindParam(":newsfeedTagID", $newsfeedTagID);
         $associatePostWithTagStatement->execute();
     }
-}
+}*/
 
 DatabaseManager::Disconnect();
+
+NewsfeedTagLinker::RemoveAllTagsForPost($newsfeedPostID);
+
+$newsfeedPostTagsID = NewsfeedTagLinker::createMissingTagsAndgetPostTagsID($newsfeedPostTags);
+
+NewsfeedTagLinker::AssociatePostWithTags($newsfeedPostID, $newsfeedPostTags, $newsfeedPostTagsID);
 
 $successResponseStatus = CommonEndPointLogic::GetSuccessResponseStatus();
 

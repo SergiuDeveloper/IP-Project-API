@@ -1,5 +1,5 @@
 <?php
-    require_once ("../../HelperClasses/DatabaseManager.php");
+    require_once("../../HelperClasses/DatabaseManager.php");
     require_once("../../HelperClasses/CommonEndPointLogic.php");
 
     class ModifyAccountManager {
@@ -20,18 +20,7 @@
 
             return $userRow;
         }
-
-        static function prepareResponse($userRow, $inputCurrentHashedPassword) {
-            if ($userRow["ID"] == null)
-                $response = CommonEndPointLogic::GetFailureResponseStatus("USER_NOT_FOUND");
-            else if ($userRow["Hashed_Password"] != $inputCurrentHashedPassword)
-                $response = CommonEndPointLogic::GetFailureResponseStatus("WRONG_PASSWORD");
-            else 
-                $response = CommonEndPointLogic::GetSuccessResponseStatus();
-
-            return $response;
-        }
-
+        
         static function PrepareStatementUpdateUserInDatabase($ID, $newHashedPassword, $newFirstName, $newLastName){
             $SQLPreparedStatement = "UPDATE Users SET ";
             if($newHashedPassword != null)
