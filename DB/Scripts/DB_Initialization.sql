@@ -128,7 +128,6 @@ CREATE TABLE Institution_Rights (
 	Can_Delete_Institution					BOOLEAN			NOT NULL,
 	Can_Add_Members							BOOLEAN			NOT NULL,
 	Can_Remove_Members						BOOLEAN			NOT NULL,
-	Can_Change_Members_Rights				BOOLEAN			NOT NULL,
 	Can_Upload_Documents					BOOLEAN			NOT NULL,
 	Can_Preview_Uploaded_Documents			BOOLEAN			NOT NULL,
 	Can_Remove_Uploaded_Documents			BOOLEAN			NOT NULL,
@@ -137,23 +136,114 @@ CREATE TABLE Institution_Rights (
 	Can_Preview_Specific_Received_Document	BOOLEAN			NOT NULL,
 	Can_Remove_Received_Documents			BOOLEAN			NOT NULL,
 	Can_Download_Documents					BOOLEAN			NOT NULL,
-	
-	UNIQUE KEY (
-		Can_Modify_Institution,
-		Can_Delete_Institution,
-		Can_Add_Members,
-		Can_Remove_Members,
-		Can_Change_Members_Rights,
-		Can_Upload_Documents,
-		Can_Preview_Uploaded_Documents,
-		Can_Remove_Uploaded_Documents,
-		Can_Send_Documents,
-		Can_Preview_Received_Documents,
-		Can_Preview_Specific_Received_Document,
-		Can_Remove_Received_Documents,
-		Can_Download_Documents
-	)
+    Can_Add_Roles							BOOLEAN			NOT NULL,
+    Can_Remove_Roles						BOOLEAN			NOT NULL,
+    Can_Modify_Roles						BOOLEAN			NOT NULL,
+    Can_Assign_Roles						BOOLEAN			NOT NULL,
+    Can_Deassign_Roles						BOOLEAN			NOT NULL
 );
+
+DROP PROCEDURE IF EXISTS sp_Institution_Rights_Row_Validation;
+DELIMITER //
+CREATE PROCEDURE sp_Institution_Rights_Row_Validation(
+	can_Modify_Institution						BOOLEAN,
+	can_Delete_Institution						BOOLEAN,
+	can_Add_Members								BOOLEAN,
+	can_Remove_Members							BOOLEAN,
+	can_Upload_Documents						BOOLEAN,
+	can_Preview_Uploaded_Documents				BOOLEAN,
+	can_Remove_Uploaded_Documents				BOOLEAN,
+	can_Send_Documents							BOOLEAN,
+	can_Preview_Received_Documents				BOOLEAN,
+	can_Preview_Specific_Received_Document		BOOLEAN,
+	can_Remove_Received_Documents				BOOLEAN,
+	can_Download_Documents						BOOLEAN,
+	can_Add_Roles								BOOLEAN,
+	can_Remove_Roles							BOOLEAN,
+	can_Modify_Roles							BOOLEAN,
+	can_Assign_Roles							BOOLEAN,
+	can_Deassign_Roles							BOOLEAN
+)
+BEGIN
+	SET @institution_rights_row_count = (
+		SELECT COUNT(*) FROM Institution_Rights WHERE
+			Can_Modify_Institution 					= can_Modify_Institution 					AND
+			Can_Delete_Institution 					= can_Delete_Institution 					AND
+			Can_Add_Members 						= can_Add_Members							AND
+			Can_Remove_Members 						= can_Remove_Members 						AND
+			Can_Upload_Documents 					= can_Upload_Documents 						AND
+			Can_Preview_Uploaded_Documents 			= can_Preview_Uploaded_Documents 			AND
+			Can_Remove_Uploaded_Documents 			= can_Remove_Uploaded_Documents 			AND
+			Can_Send_Documents 						= can_Send_Documents 						AND
+			Can_Preview_Received_Documents 			= can_Preview_Received_Documents 			AND
+			Can_Preview_Specific_Received_Document	= can_Preview_Specific_Received_Document	AND
+			Can_Remove_Received_Documents 			= can_Remove_Received_Documents 			AND
+			Can_Download_Documents 					= can_Download_Documents 					AND
+			Can_Add_Roles 							= can_Add_Roles 							AND
+			Can_Remove_Roles 						= can_Remove_Roles 							AND
+			Can_Modify_Roles 						= can_Modify_Roles 							AND
+			Can_Assign_Roles 						= can_Assign_Roles 							AND
+			Can_Deassign_Roles 						= can_Deassign_Roles
+	);
+	IF @institution_rights_row_count > 0 THEN
+		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The requested institution right row already exists';
+	END IF;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS t_Institution_Rights_Before_Insert;
+DELIMITER //
+CREATE TRIGGER t_Institution_Rights_Before_Insert BEFORE INSERT ON Institution_Rights
+FOR EACH ROW
+BEGIN
+	CALL sp_Institution_Rights_Row_Validation(
+		NEW.Can_Modify_Institution,
+		NEW.Can_Delete_Institution,
+		NEW.Can_Add_Members,
+		NEW.Can_Remove_Members,
+		NEW.Can_Upload_Documents,
+		NEW.Can_Preview_Uploaded_Documents,
+		NEW.Can_Remove_Uploaded_Documents,
+		NEW.Can_Send_Documents,
+		NEW.Can_Preview_Received_Documents,
+		NEW.Can_Preview_Specific_Received_Document,
+		NEW.Can_Remove_Received_Documents,
+		NEW.Can_Download_Documents,
+		NEW.Can_Add_Roles,
+		NEW.Can_Remove_Roles,
+		NEW.Can_Modify_Roles,
+		NEW.Can_Assign_Roles,
+		NEW.Can_Deassign_Roles
+	);
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS t_Institution_Rights_Before_Update;
+DELIMITER //
+CREATE TRIGGER t_Institution_Rights_Before_Update BEFORE UPDATE ON Institution_Rights
+FOR EACH ROW
+BEGIN
+	CALL sp_Institution_Rights_Row_Validation(
+		NEW.Can_Modify_Institution,
+		NEW.Can_Delete_Institution,
+		NEW.Can_Add_Members,
+		NEW.Can_Remove_Members,
+		NEW.Can_Upload_Documents,
+		NEW.Can_Preview_Uploaded_Documents,
+		NEW.Can_Remove_Uploaded_Documents,
+		NEW.Can_Send_Documents,
+		NEW.Can_Preview_Received_Documents,
+		NEW.Can_Preview_Specific_Received_Document,
+		NEW.Can_Remove_Received_Documents,
+		NEW.Can_Download_Documents,
+		NEW.Can_Add_Roles,
+		NEW.Can_Remove_Roles,
+		NEW.Can_Modify_Roles,
+		NEW.Can_Assign_Roles,
+		NEW.Can_Deassign_Roles
+	);
+END //
+DELIMITER ;
 
 DROP TABLE IF EXISTS Institution_Roles;
 CREATE TABLE Institution_Roles (
