@@ -9,6 +9,9 @@ require_once("InstitutionValidator.php");
  * Class InstitutionRoles
  *
  * Helper class for Institution Operations within the Database
+ *
+ * MUST INCLUDE DATABASEMANAGER, STATUSCODES, COMMONENDPOINTS before this one!!!!!!
+ * (includes not working, relative to includer???! why?)
  */
 class InstitutionRoles{
 
