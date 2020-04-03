@@ -107,7 +107,6 @@ class CommonEndPointLogic {
         content:    string = The email's content
     */
     public static function SendEmail($receiver, $subject, $activationKey) {
-        echo $activationKey, PHP_EOL;
         $url = "https://api.sendgrid.com/api/mail.send.json";
         $emailUser = "azure_0a4e0665ba1ddbf27cff9409f952abb8@azure.com";
         $emailPassword = "FiscalDocsEDI123";
