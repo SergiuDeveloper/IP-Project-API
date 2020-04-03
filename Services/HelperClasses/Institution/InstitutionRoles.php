@@ -5,8 +5,27 @@ require_once("Exceptions/InstitutionRolesInvalidAction.php");
 require_once("InstitutionActions.php");
 require_once("InstitutionValidator.php");
 
+/**
+ * Class InstitutionRoles
+ *
+ * Helper class for Institution Operations within the Database
+ */
 class InstitutionRoles{
 
+    /**
+     * Function isUserAuthorized
+     *
+     * Checks whether a user is allowed to do an action in a given institution
+     *
+     * Possible Errors :
+     *      INST_NOT_FOUND : if given an institution that does not exist
+     *
+     * @param $username         String              Username of the caller
+     * @param $institutionName  String              Name of the institution
+     * @param $action           InstitutionActions  Action which is to be taken
+     * @return                  bool                true if user is authorized, false otherwise
+     * @throws                  InstitutionRolesInvalidAction
+     */
     public static function isUserAuthorized($username, $institutionName, $action){
 
         InstitutionValidator::validateInstitution($institutionName);
@@ -41,6 +60,37 @@ class InstitutionRoles{
 
     }
 
+    /**
+     * Function which returns a given user's rights dictionary in a given institution
+     *
+     * Rights dictionary example : [
+     *       "Can_Modify_Institution"                    => true,
+     *       "Can_Delete_Institution"                    => true,
+     *       "Can_Add_Members"                           => true,
+     *       "Can_Remove_Members"                        => false,
+     *       "Can_Upload_Documents"                      => false,
+     *       "Can_Preview_Uploaded_Documents"            => true,
+     *       "Can_Remove_Uploaded_Documents"             => false,
+     *       "Can_Send_Documents"                        => true,
+     *       "Can_Preview_Received_Documents"            => false,
+     *       "Can_Preview_Specific_Received_Document"    => true,
+     *       "Can_Remove_Received_Documents"             => false,
+     *       "Can_Download_Documents"                    => true,
+     *       "Can_Add_Roles"                             => false,
+     *       "Can_Remove_Roles"                          => false,
+     *       "Can_Modify_Roles"                          => true,
+     *       "Can_Assign_Roles"                          => true,
+     *       "Can_Deassign_Roles"                        => true
+     *       ]
+     *
+     * Possible Errors:
+     *      INST_NOT_FOUND : if given an institution that does not exist
+     *      DB_EXCEPT      : database exception
+     *
+     * @param $username             String      username whose rights are being returned
+     * @param $institutionName      String      name of the institution
+     * @return                      array<bool> dictionary of the user's rights in the given institution
+     */
     public static function fetchUserRightsDictionary($username, $institutionName){
 
         InstitutionValidator::validateInstitution($institutionName);
@@ -70,6 +120,17 @@ class InstitutionRoles{
         }
     }
 
+    /**
+     * Function that returns a given role's ID in a given institution in the Database
+     *
+     * Possible Errors:
+     *      INST_NOT_FOUND : if given an institution that does not exist
+     *      DB_EXCEPT :      if database triggers an exception
+     *
+     * @param $roleName
+     * @param $institutionName
+     * @return |null
+     */
     public static function getRoleID($roleName, $institutionName){
 
         InstitutionValidator::validateInstitution($institutionName);
@@ -106,6 +167,20 @@ class InstitutionRoles{
         }
     }
 
+    /**
+     * Function that creates a role with a given name for a given institution with given rights
+     *
+     * Possible Errors :
+     *      INST_NOT_FOUND              : if given an institution that does not exist
+     *      DUPLICATE_ROLE              : if given a role that already exists
+     *      DUPLICATE_ROLE_SAME_RIGHTS  : if given a role with set of rights S, there is already
+     *          a role in given institution with the same S set of rights
+     *      DB_EXCEPT                   :
+     *
+     * @param $roleName                 String      name of the role to be added
+     * @param $institutionName          String      name of the given institution
+     * @param $newRoleRightsDictionary  array<bool> dictionary of rights to be administered to the role
+     */
     public static function createRole($roleName, $institutionName, $newRoleRightsDictionary){
 
         InstitutionValidator::validateInstitution($institutionName);
@@ -154,6 +229,15 @@ class InstitutionRoles{
 
     }
 
+    /**
+     * Function that returns the ID of the given rights dictionary in the Database
+     *
+     * Possible Errors :
+     *      DB_EXCEPT : if database triggers an exception
+     *
+     * @param $rightsDictionary array<bool> rights which are being looked up
+     * @return                  int         id of the rights in the database
+     */
     public static function fetchRightsID($rightsDictionary){
 
         DatabaseManager::Connect();
@@ -192,6 +276,18 @@ class InstitutionRoles{
         return $ID;
     }
 
+    /**
+     * Internal function used to minimize code
+     * Returns an SQL Prepared Statement for a certain Rights action with parameters attached
+     *
+     * Possible Errors :
+     *      None
+     *
+     * @param $statementType    InstitutionRoles    constant defining the Statement to be given
+     * @param $rightsDictionary array<bool>         dictionary of rights assigned to params
+     * @return                  Object              SQL Prepared Statement that was requested
+     * @throws                  InstitutionRolesInvalidStatement
+     */
     private static function generateRightsStatement($statementType, $rightsDictionary){
         switch($statementType) {
             case self::GENERATE_RIGHTS_FETCH_ID_STATEMENT :

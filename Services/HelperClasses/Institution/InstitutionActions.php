@@ -1,6 +1,10 @@
 <?php
 
-
+/**
+ * Class InstitutionActions
+ *
+ * Helper Class Component defining Actions that can be taken by an user within an institution
+ */
 class InstitutionActions
 {
     const ADD_ROLE = 0;
