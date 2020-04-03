@@ -90,12 +90,12 @@ CREATE TABLE Institution_Addresses_List (
 DROP PROCEDURE IF EXISTS sp_Unique_Institution_Main_Address_Validation;
 DELIMITER //
 CREATE PROCEDURE sp_Unique_Institution_Main_Address_Validation(
-	new_row_is_main_address	BOOLEAN,
-    new_row_institution_id	INT
+	is_main_address	BOOLEAN,
+    institution_id	INT
 )
 BEGIN
 	IF new_row_is_main_address = TRUE THEN
-		SET @institution_main_addresses_count = (SELECT COUNT(*) FROM Institution_Addresses_List WHERE Institution_ID = new_row_institution_id AND Is_Main_Address = TRUE);
+		SET @institution_main_addresses_count = (SELECT COUNT(*) FROM Institution_Addresses_List WHERE Institution_Addresses_List.Institution_ID = institution_id AND Institution_Addresses_List.Is_Main_Address = TRUE);
         IF @institution_main_addresses_count > 0 THEN
 			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'An institution cannot have two main addresses';
 		END IF;
@@ -167,23 +167,23 @@ CREATE PROCEDURE sp_Institution_Rights_Row_Validation(
 BEGIN
 	SET @institution_rights_row_count = (
 		SELECT COUNT(*) FROM Institution_Rights WHERE
-			Can_Modify_Institution 					= can_Modify_Institution 					AND
-			Can_Delete_Institution 					= can_Delete_Institution 					AND
-			Can_Add_Members 						= can_Add_Members							AND
-			Can_Remove_Members 						= can_Remove_Members 						AND
-			Can_Upload_Documents 					= can_Upload_Documents 						AND
-			Can_Preview_Uploaded_Documents 			= can_Preview_Uploaded_Documents 			AND
-			Can_Remove_Uploaded_Documents 			= can_Remove_Uploaded_Documents 			AND
-			Can_Send_Documents 						= can_Send_Documents 						AND
-			Can_Preview_Received_Documents 			= can_Preview_Received_Documents 			AND
-			Can_Preview_Specific_Received_Document	= can_Preview_Specific_Received_Document	AND
-			Can_Remove_Received_Documents 			= can_Remove_Received_Documents 			AND
-			Can_Download_Documents 					= can_Download_Documents 					AND
-			Can_Add_Roles 							= can_Add_Roles 							AND
-			Can_Remove_Roles 						= can_Remove_Roles 							AND
-			Can_Modify_Roles 						= can_Modify_Roles 							AND
-			Can_Assign_Roles 						= can_Assign_Roles 							AND
-			Can_Deassign_Roles 						= can_Deassign_Roles
+			Institution_Rights.Can_Modify_Institution 					= can_Modify_Institution 					AND
+			Institution_Rights.Can_Delete_Institution 					= can_Delete_Institution 					AND
+			Institution_Rights.Can_Add_Members 							= can_Add_Members							AND
+			Institution_Rights.Can_Remove_Members 						= can_Remove_Members 						AND
+			Institution_Rights.Can_Upload_Documents 					= can_Upload_Documents 						AND
+			Institution_Rights.Can_Preview_Uploaded_Documents 			= can_Preview_Uploaded_Documents 			AND
+			Institution_Rights.Can_Remove_Uploaded_Documents 			= can_Remove_Uploaded_Documents 			AND
+			Institution_Rights.Can_Send_Documents 						= can_Send_Documents 						AND
+			Institution_Rights.Can_Preview_Received_Documents 			= can_Preview_Received_Documents 			AND
+			Institution_Rights.Can_Preview_Specific_Received_Document	= can_Preview_Specific_Received_Document	AND
+			Institution_Rights.Can_Remove_Received_Documents 			= can_Remove_Received_Documents 			AND
+			Institution_Rights.Can_Download_Documents 					= can_Download_Documents 					AND
+			Institution_Rights.Can_Add_Roles 							= can_Add_Roles 							AND
+			Institution_Rights.Can_Remove_Roles 						= can_Remove_Roles 							AND
+			Institution_Rights.Can_Modify_Roles 						= can_Modify_Roles 							AND
+			Institution_Rights.Can_Assign_Roles 						= can_Assign_Roles 							AND
+			Institution_Rights.Can_Deassign_Roles 						= can_Deassign_Roles
 	);
 	IF @institution_rights_row_count > 0 THEN
 		SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'The requested institution right row already exists';
