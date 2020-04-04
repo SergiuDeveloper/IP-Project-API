@@ -203,6 +203,14 @@ class InstitutionRoles{
             die();
         }
 
+        if(self::roleIsAssignedToMembers($roleID) == true){
+            $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_ASSIGNED_TO_MEMBER");
+
+            echo json_encode($response), PHP_EOL;
+            http_response_code(StatusCodes::OK);
+            die();
+        }
+
         try {
             DatabaseManager::Connect();
 
@@ -599,9 +607,38 @@ class InstitutionRoles{
         return $SQLStatement;
     }
 
+    private static function roleIsAssignedToMembers($roleID){
+
+        try{
+            DatabaseManager::Connect();
+
+            $SQLStatement = DatabaseManager::PrepareStatement(self::$fetchMembersWithRoleID);
+            $SQLStatement->bindParam(":ID", $roleID);
+
+            $SQLStatement->execute();
+
+            DatabaseManager::Disconnect();
+
+            return $SQLStatement->rowCount() > 0;
+        }
+        catch (Exception $exception){
+            $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
+
+            echo json_encode($response), PHP_EOL, $exception->getMessage(), PHP_EOL;
+            http_response_code(StatusCodes::OK);
+
+            die();
+        }
+
+    }
+
     const GENERATE_RIGHTS_FETCH_ID_STATEMENT = 0;
     const GENERATE_RIGHTS_INSERT_NEW_ROW_STATEMENT = 1;
     const GENERATE_RIGHTS_UPDATE_ROW_STATEMENT = 2;
+
+    private static $fetchMembersWithRoleID = "
+        SELECT ID FROM institution_members WHERE Institution_Roles_ID = :ID
+    ";
 
     private static $insertIntoInstitutionMembersStatement = "
         INSERT INTO institution_members (Institution_ID, User_ID, Institution_Roles_ID, DateTime_Added, DateTime_Modified_Rights)

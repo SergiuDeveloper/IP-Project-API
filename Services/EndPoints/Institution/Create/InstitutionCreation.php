@@ -49,7 +49,7 @@ class InstitutionCreation
             $SQLStatement->execute();
 
             if($SQLStatement->rowCount() == 0){
-                $response = CommonEndPointLogic::GetFailureResponseStatus("DUPLICATE_ADDRESS");
+                $response = CommonEndPointLogic::GetFailureResponseStatus("DUPLICATE_INST");
 
                 echo json_encode($response), PHP_EOL;
                 http_response_code(StatusCodes::OK);
