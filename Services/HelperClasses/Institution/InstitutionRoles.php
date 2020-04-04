@@ -63,6 +63,10 @@ class InstitutionRoles{
     }
 
     /** Function that checks whether a role can be deleted/modified or not
+     * 
+     * Possible Errors : 
+     *      DB_EXCEPT : caused by an exception triggered by the database
+     * 
      * @param $roleID   int     ID of the role to be modified/deleted
      * @return          bool    True if it can be modified/deleted, false otherwise
      */
@@ -113,6 +117,10 @@ class InstitutionRoles{
 
     /**
      * Function which deletes a given role name in an institution
+     * 
+     * Possible Errors : 
+     *      ROLE_NOT_FOUND : if a role does not exist in the database
+     *      ROLE_CANNOT_BE_DELETED : caused by attempting to delete an institute's crucial role (i.e. Manager)
      *
      * @param $roleName             String the name of the role
      * @param $institutionName      String the name of the institution
@@ -240,6 +248,9 @@ class InstitutionRoles{
 
     /**
      * Function called to update a role's name (by id)
+     * 
+     * Possible Errors : 
+     *      DB_EXCEPT : caused by an exception triggered by the database
      *
      * @param $roleID       int     id of the role
      * @param $newRoleName  String  new role's name

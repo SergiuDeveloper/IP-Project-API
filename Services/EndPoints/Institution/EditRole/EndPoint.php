@@ -9,18 +9,18 @@
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
-    $username = $_POST['username'];
-    $hashedPassword = $_POST['hashedPassword'];
-    $institutionName = $_POST['institutionName'];
-    $roleName = $_POST['roleName'];
-    $newRoleName = $_POST['newRoleName'];
-    $newRoleRights = json_decode($_POST['newRoleRights'], true);
+    $username           = $_POST['username'];
+    $hashedPassword     = $_POST['hashedPassword'];
+    $institutionName    = $_POST['institutionName'];
+    $roleName           = $_POST['roleName'];
+    $newRoleName        = $_POST['newRoleName'];
+    $newRoleRights      = json_decode($_POST['newRoleRights'], true);
 
-    if( $username == null
-        || $hashedPassword == null
+    if( $username           == null
+        || $hashedPassword  == null
         || $institutionName == null
-        || $roleName == null
-        || $newRoleRights == null
+        || $roleName        == null
+        || $newRoleRights   == null
     ){
         $response = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
         echo json_encode($response), PHP_EOL;

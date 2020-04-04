@@ -9,15 +9,15 @@
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
-    $username = $_POST['username'];
-    $hashedPassword = $_POST['hashedPassword'];
-    $institutionName = $_POST['institutionName'];
-    $roleName = $_POST['roleName'];
+    $username           = $_POST['username'];
+    $hashedPassword     = $_POST['hashedPassword'];
+    $institutionName    = $_POST['institutionName'];
+    $roleName           = $_POST['roleName'];
 
-    if( $username == null
-        || $hashedPassword == null
+    if( $username           == null
+        || $hashedPassword  == null
         || $institutionName == null
-        || $roleName == null
+        || $roleName        == null
     ){
         $response = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
         echo json_encode($response), PHP_EOL;

@@ -1,9 +1,9 @@
 <?php
 
-require_once("../../HelperClasses/CommonEndPointLogic.php");
-require_once("../../HelperClasses/ValidationHelper.php");
-require_once("../../HelperClasses/SuccessStates.php");
-require_once("../../HelperClasses/DatabaseManager.php");
+require_once("../../../HelperClasses/CommonEndPointLogic.php");
+require_once("../../../HelperClasses/ValidationHelper.php");
+require_once("../../../HelperClasses/SuccessStates.php");
+require_once("../../../HelperClasses/DatabaseManager.php");
 
 CommonEndPointLogic::ValidateHTTPGETRequest();
 
