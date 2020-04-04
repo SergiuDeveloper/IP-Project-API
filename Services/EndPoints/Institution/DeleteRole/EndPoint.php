@@ -13,14 +13,11 @@
     $hashedPassword = $_POST['hashedPassword'];
     $institutionName = $_POST['institutionName'];
     $roleName = $_POST['roleName'];
-    $newRoleName = $_POST['newRoleName'];
-    $newRoleRights = json_decode($_POST['newRoleRights'], true);
 
     if( $username == null
         || $hashedPassword == null
         || $institutionName == null
         || $roleName == null
-        || $newRoleRights == null
     ){
         $response = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
         echo json_encode($response), PHP_EOL;
@@ -31,7 +28,7 @@
     CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
 
     try{
-        if (InstitutionRoles::isUserAuthorized($username, $institutionName, InstitutionActions::MODIFY_ROLE) == false) {
+        if (InstitutionRoles::isUserAuthorized($username, $institutionName, InstitutionActions::DELETE_ROLE) == false) {
             $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION");
 
             echo json_encode($failureResponseStatus), PHP_EOL;
@@ -47,7 +44,7 @@
         die();
     }
 
-    InstitutionRoles::updateRole($roleName, $institutionName, $newRoleName, $newRoleRights);
+    InstitutionRoles::deleteRole($roleName, $institutionName);
 
     $response = CommonEndPointLogic::GetSuccessResponseStatus();
 

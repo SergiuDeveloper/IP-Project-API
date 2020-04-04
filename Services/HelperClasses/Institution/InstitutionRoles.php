@@ -62,6 +62,99 @@ class InstitutionRoles{
         }
     }
 
+    /** Function that checks whether a role can be deleted/modified or not
+     * @param $roleID   int     ID of the role to be modified/deleted
+     * @return          bool    True if it can be modified/deleted, false otherwise
+     */
+    public static function canModifyOrDeleteRole($roleID){
+        $fullRoleRights = [
+            "Can_Modify_Institution"                    => true,
+            "Can_Delete_Institution"                    => true,
+            "Can_Add_Members"                           => true,
+            "Can_Remove_Members"                        => true,
+            "Can_Upload_Documents"                      => true,
+            "Can_Preview_Uploaded_Documents"            => true,
+            "Can_Remove_Uploaded_Documents"             => true,
+            "Can_Send_Documents"                        => true,
+            "Can_Preview_Received_Documents"            => true,
+            "Can_Preview_Specific_Received_Document"    => true,
+            "Can_Remove_Received_Documents"             => true,
+            "Can_Download_Documents"                    => true,
+            "Can_Add_Roles"                             => true,
+            "Can_Remove_Roles"                          => true,
+            "Can_Modify_Roles"                          => true,
+            "Can_Assign_Roles"                          => true,
+            "Can_Deassign_Roles"                        => true
+        ];
+
+        $rightsID = self::fetchRightsID($fullRoleRights);
+
+        try {
+            DatabaseManager::Connect();
+
+            $SQLStatement = DatabaseManager::PrepareStatement(self::$getRoleRightsStatement);
+            $SQLStatement->bindParam(":ID", $roleID);
+            $SQLStatement->execute();
+
+            $rightsIDRow = $SQLStatement->fetch(PDO::FETCH_OBJ);
+
+            DatabaseManager::Disconnect();
+        }
+        catch(Exception $exception){
+            $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
+
+            echo json_encode($response), PHP_EOL;
+            http_response_code(StatusCodes::OK);
+            die();
+        }
+
+        return !($rightsID == $rightsIDRow->Institution_Rights_ID);
+    }
+
+    /**
+     * Function which deletes a given role name in an institution
+     *
+     * @param $roleName             String the name of the role
+     * @param $institutionName      String the name of the institution
+     */
+    public static function deleteRole($roleName, $institutionName){
+
+        $roleID = self::getRoleID($roleName, $institutionName);
+        if ($roleID == null) {
+            $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_NOT_FOUND");
+
+            echo json_encode($response), PHP_EOL;
+            http_response_code(StatusCodes::OK);
+            die();
+        }
+
+        if(self::canModifyOrDeleteRole($roleID) == false){
+            $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_CANNOT_BE_DELETED");
+
+            echo json_encode($response), PHP_EOL;
+            http_response_code(StatusCodes::OK);
+            die();
+        }
+
+        try {
+            DatabaseManager::Connect();
+
+            $SQLStatement = DatabaseManager::PrepareStatement(self::$deleteRoleStatement);
+            $SQLStatement->bindParam(":ID", $roleID);
+
+            $SQLStatement->execute();
+
+            DatabaseManager::Disconnect();
+        }
+        catch(Exception $databaseException){
+            $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
+
+            echo json_encode($response), PHP_EOL;
+            http_response_code(StatusCodes::OK);
+            die();
+        }
+    }
+
     /**
      * Function called to update a given role in a given institution
      *
@@ -84,8 +177,17 @@ class InstitutionRoles{
             die();
         }
 
-        self::updateRoleRights($roleID, $newRoleRights);
         self::updateRoleName($roleID, $newRoleName);
+
+        if(self::canModifyOrDeleteRole($roleID) == true)
+            self::updateRoleRights($roleID, $newRoleRights);
+        else{
+            $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_RIGHTS_UNMODIFIABLE");
+
+            echo json_encode($response), PHP_EOL;
+            http_response_code(StatusCodes::OK);
+            die();
+        }
 
     }
 
@@ -123,8 +225,6 @@ class InstitutionRoles{
                 http_response_code(StatusCodes::OK);
                 die();
             }
-
-            $SQLStatement->debugDumpParams();
 
             DatabaseManager::Disconnect();
         }
@@ -432,6 +532,10 @@ class InstitutionRoles{
     const GENERATE_RIGHTS_FETCH_ID_STATEMENT = 0;
     const GENERATE_RIGHTS_INSERT_NEW_ROW_STATEMENT = 1;
     const GENERATE_RIGHTS_UPDATE_ROW_STATEMENT = 2;
+
+    private static $deleteRoleStatement = "
+        DELETE FROM institution_roles WHERE ID = :ID
+    ";
 
     private static $getRoleRightsStatement = "
         SELECT Institution_Rights_ID FROM institution_roles WHERE ID = :ID
