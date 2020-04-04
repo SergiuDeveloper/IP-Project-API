@@ -105,7 +105,7 @@ CREATE PROCEDURE sp_Unique_Institution_Main_Address_Validation(
     institution_id	INT
 )
 BEGIN
-	IF new_row_is_main_address = TRUE THEN
+	IF is_main_address = TRUE THEN
 		SET @institution_main_addresses_count = (SELECT COUNT(*) FROM Institution_Addresses_List WHERE Institution_Addresses_List.Institution_ID = institution_id AND Institution_Addresses_List.Is_Main_Address = TRUE);
         IF @institution_main_addresses_count > 0 THEN
 			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'An institution cannot have two main addresses';
