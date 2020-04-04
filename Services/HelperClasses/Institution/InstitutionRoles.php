@@ -62,6 +62,65 @@ class InstitutionRoles{
         }
     }
 
+    public static function addAndAssignMemberToInstitution($username, $institutionName, $roleName){
+
+        InstitutionValidator::validateInstitution($institutionName);
+
+        try{
+            DatabaseManager::Connect();
+
+            $institutionID = InstitutionValidator::getLastValidatedInstitution()->getID();
+
+            $SQLStatement = DatabaseManager::PrepareStatement(self::$getRoleIDStatement);
+            $SQLStatement->bindParam(":title", $roleName);
+            $SQLStatement->bindParam(":institutionID", $institutionID);
+
+            $SQLStatement->execute();
+
+            $role = $SQLStatement->fetch(PDO::FETCH_OBJ);
+
+            if($role == null){
+                $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_NOT_FOUND");
+
+                echo json_encode($response), PHP_EOL;
+                http_response_code(StatusCodes::OK);
+                die();
+            }
+
+            $SQLStatement = DatabaseManager::PrepareStatement(self::$getUserIDStatement);
+            $SQLStatement->bindParam(":username", $username);
+
+            $SQLStatement->execute();
+
+            $user = $SQLStatement->fetch(PDO::FETCH_OBJ);
+
+            $SQLStatement = DatabaseManager::PrepareStatement(self::$insertIntoInstitutionMembersStatement);
+            $SQLStatement->bindParam(":institutionID", $institutionID);
+            $SQLStatement->bindParam(":userID", $user->ID);
+            $SQLStatement->bindParam(":roleID", $role->ID);
+
+            $SQLStatement->execute();
+
+            if($SQLStatement->rowCount() == 0){
+                $response = CommonEndPointLogic::GetFailureResponseStatus("MEMBER_DUPLICATE");
+
+                echo json_encode($response), PHP_EOL;
+                http_response_code(StatusCodes::OK);
+                die();
+            }
+
+            DatabaseManager::Disconnect();
+        }
+        catch (Exception $exception){
+            $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
+
+            echo json_encode($response), PHP_EOL;
+            http_response_code(StatusCodes::OK);
+            die();
+        }
+
+    }
+
     /** Function that checks whether a role can be deleted/modified or not
      * 
      * Possible Errors : 
@@ -544,6 +603,16 @@ class InstitutionRoles{
     const GENERATE_RIGHTS_INSERT_NEW_ROW_STATEMENT = 1;
     const GENERATE_RIGHTS_UPDATE_ROW_STATEMENT = 2;
 
+    private static $insertIntoInstitutionMembersStatement = "
+        INSERT INTO institution_members (Institution_ID, User_ID, Institution_Roles_ID, DateTime_Added, DateTime_Modified_Rights)
+            VALUE
+        (:institutionID, :userID, :roleID, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    ";
+
+    private static $getUserIDStatement = "
+        SELECT ID FROM users WHERE Username = :username
+    ";
+
     private static $deleteRoleStatement = "
         DELETE FROM institution_roles WHERE ID = :ID
     ";
@@ -601,44 +670,44 @@ class InstitutionRoles{
 
     private static $fetchRightsIDStatement = "
         SELECT ID FROM institution_rights where
-            Can_Modify_Institution = :canModifyInstitution AND
-            Can_Delete_Institution = :canDeleteInstitution AND
-            Can_Add_Members = :canAddMembers AND
-            Can_Remove_Members = :canRemoveMembers AND 
-            Can_Upload_Documents = :canUploadDocuments AND
-            Can_Preview_Uploaded_Documents = :canPreviewUploadedDocuments AND
-            Can_Remove_Uploaded_Documents = :canRemoveUploadedDocuments AND
-            Can_Send_Documents = :canSendDocuments AND
-            Can_Preview_Received_Documents = :canPreviewReceivedDocuments AND
-            Can_Preview_Specific_Received_Document = :canPreviewSpecificReceivedDocument AND
-            Can_Remove_Received_Documents = :canRemoveReceivedDocuments AND
-            Can_Download_Documents = :canDownloadDocuments AND
-            Can_Add_Roles = :canAddRoles AND
-            Can_Remove_Roles = :canRemoveRoles AND
-            Can_Modify_Roles = :canModifyRoles AND
-            Can_Assign_Roles = :canAssignRoles AND
-            Can_Deassign_Roles = :canDeassignRoles
+            Can_Modify_Institution =                    :canModifyInstitution               AND
+            Can_Delete_Institution =                    :canDeleteInstitution               AND
+            Can_Add_Members =                           :canAddMembers                      AND
+            Can_Remove_Members =                        :canRemoveMembers                   AND 
+            Can_Upload_Documents =                      :canUploadDocuments                 AND
+            Can_Preview_Uploaded_Documents =            :canPreviewUploadedDocuments        AND
+            Can_Remove_Uploaded_Documents =             :canRemoveUploadedDocuments         AND
+            Can_Send_Documents =                        :canSendDocuments                   AND
+            Can_Preview_Received_Documents =            :canPreviewReceivedDocuments        AND
+            Can_Preview_Specific_Received_Document =    :canPreviewSpecificReceivedDocument AND
+            Can_Remove_Received_Documents =             :canRemoveReceivedDocuments         AND
+            Can_Download_Documents =                    :canDownloadDocuments               AND
+            Can_Add_Roles =                             :canAddRoles                        AND
+            Can_Remove_Roles =                          :canRemoveRoles                     AND
+            Can_Modify_Roles =                          :canModifyRoles                     AND
+            Can_Assign_Roles =                          :canAssignRoles                     AND
+            Can_Deassign_Roles =                        :canDeassignRoles
         ";
 
     private static $updateRightsStatement = "
         UPDATE institution_rights SET 
-            Can_Modify_Institution = :canModifyInstitution,
-            Can_Delete_Institution = :canDeleteInstitution,
-            Can_Add_Members = :canAddMembers,
-            Can_Remove_Members = :canRemoveMembers,
-            Can_Upload_Documents = :canUploadDocuments,
-            Can_Preview_Uploaded_Documents = :canPreviewUploadedDocuments,
-            Can_Remove_Uploaded_Documents = :canRemoveUploadedDocuments,
-            Can_Send_Documents = :canSendDocuments,
-            Can_Preview_Received_Documents = :canPreviewReceivedDocuments,
-            Can_Preview_Specific_Received_Document = :canPreviewSpecificReceivedDocument,
-            Can_Remove_Received_Documents = :canRemoveReceivedDocuments,
-            Can_Download_Documents = :canDownloadDocuments,
-            Can_Add_Roles = :canAddRoles,
-            Can_Remove_Roles = :canRemoveRoles,
-            Can_Modify_Roles = :canModifyRoles,
-            Can_Assign_Roles = :canAssignRoles,
-            Can_Deassign_Roles = :canDeassignRoles
+            Can_Modify_Institution                  = :canModifyInstitution,
+            Can_Delete_Institution                  = :canDeleteInstitution,
+            Can_Add_Members                         = :canAddMembers,
+            Can_Remove_Members                      = :canRemoveMembers,
+            Can_Upload_Documents                    = :canUploadDocuments,
+            Can_Preview_Uploaded_Documents          = :canPreviewUploadedDocuments,
+            Can_Remove_Uploaded_Documents           = :canRemoveUploadedDocuments,
+            Can_Send_Documents                      = :canSendDocuments,
+            Can_Preview_Received_Documents          = :canPreviewReceivedDocuments,
+            Can_Preview_Specific_Received_Document  = :canPreviewSpecificReceivedDocument,
+            Can_Remove_Received_Documents           = :canRemoveReceivedDocuments,
+            Can_Download_Documents                  = :canDownloadDocuments,
+            Can_Add_Roles                           = :canAddRoles,
+            Can_Remove_Roles                        = :canRemoveRoles,
+            Can_Modify_Roles                        = :canModifyRoles,
+            Can_Assign_Roles                        = :canAssignRoles,
+            Can_Deassign_Roles                      = :canDeassignRoles
         WHERE
             ID = :ID
     ";
