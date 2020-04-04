@@ -25,7 +25,7 @@ class InstitutionRoles{
      *
      * @param $username         String              Username of the caller
      * @param $institutionName  String              Name of the institution
-     * @param $action           int                 Action which is to be taken
+     * @param $action           int                 Action which is to be taken   (Taken from InstitutionActions)
      * @return                  bool                true if user is authorized, false otherwise
      * @throws                  InstitutionRolesInvalidAction
      */
