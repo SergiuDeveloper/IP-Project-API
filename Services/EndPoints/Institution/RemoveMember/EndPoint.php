@@ -59,6 +59,8 @@ try {
     $getCaller->bindParam(":institutionID", $institutionRow["ID"]);
     $getCaller->execute();
 
+   /// InstitutionRoles::isUserAuthorized($username, $institutionName, InstitutionActions::DEASSIGN_ROLE);
+
     $callerRow = $getCaller->fetch(PDO::FETCH_ASSOC);
 
     if($callerRow == null || $callerRow["Can_Remove_Members"] != 1){

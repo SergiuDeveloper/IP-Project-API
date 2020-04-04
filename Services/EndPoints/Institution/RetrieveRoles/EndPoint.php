@@ -1,9 +1,9 @@
 <?php
 
-require_once("../../HelperClasses/CommonEndPointLogic.php");
-require_once("../../HelperClasses/ValidationHelper.php");
-require_once("../../HelperClasses/SuccessStates.php");
-require_once("../../HelperClasses/DatabaseManager.php");
+require_once("../../../HelperClasses/CommonEndPointLogic.php");
+require_once("../../../HelperClasses/ValidationHelper.php");
+require_once("../../../HelperClasses/SuccessStates.php");
+require_once("../../../HelperClasses/DatabaseManager.php");
 
 CommonEndPointLogic::ValidateHTTPGETRequest();
 
@@ -26,7 +26,12 @@ $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName
 $queryInstitutionManager = "SELECT r.title FROM Institution_Members i JOIN Users u ON i.User_ID = u.ID
 JOIN Institution_Roles r ON i.Institution_Roles_ID = r.ID
 WHERE u.username = :callerUsername AND i.Institution_ID = :institutionID;";
- 
+
+
+/*
+ * Toate rolurile, nu numai cele asignate
+ */
+
 $queryGetRoles = "SELECT DISTINCT r.title FROM Institution_Members i
 JOIN Institution_Roles r ON i.Institution_Roles_ID = r.ID
 WHERE i.Institution_ID = :institutionID;";
@@ -49,6 +54,8 @@ try {
         echo json_encode($response), PHP_EOL;
         die();
     }
+
+    //InstitutionRoles::isUserAuthorized($username, $institutionName, InstitutionActions::ASSIGN_ROLE);
 
     $getCallerUser = DatabaseManager::PrepareStatement($queryInstitutionManager);
     $getCallerUser->bindParam(":callerUsername", $username);
