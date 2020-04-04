@@ -25,7 +25,7 @@ class InstitutionRoles{
      *
      * @param $username         String              Username of the caller
      * @param $institutionName  String              Name of the institution
-     * @param $action           InstitutionActions  Action which is to be taken
+     * @param $action           int                 Action which is to be taken
      * @return                  bool                true if user is authorized, false otherwise
      * @throws                  InstitutionRolesInvalidAction
      */
@@ -60,7 +60,110 @@ class InstitutionRoles{
 
             default : throw new InstitutionRolesInvalidAction("Invalid Action");
         }
+    }
 
+    /**
+     * Function called to update a given role in a given institution
+     *
+     * Possible Errors :
+     *      ROLE_NOT_FOUND : given role does not exist
+     *
+     * @param $roleName         String      name of the role to be changed
+     * @param $institutionName  String      institution's name
+     * @param $newRoleName      String      new role's name. Can be null
+     * @param $newRoleRights    array<bool> new role rights dictionary
+     */
+    public static function updateRole($roleName, $institutionName, $newRoleName, $newRoleRights){
+
+        $roleID = self::getRoleID($roleName, $institutionName);
+        if($roleID == null){
+            $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_NOT_FOUND");
+
+            echo json_encode($response), PHP_EOL;
+            http_response_code(StatusCodes::OK);
+            die();
+        }
+
+        self::updateRoleRights($roleID, $newRoleRights);
+        self::updateRoleName($roleID, $newRoleName);
+
+    }
+
+    /**
+     * Function called to update a given role's rights
+     *
+     * Possible Errors :
+     *      DUPLICATE_RIGHTS : if, by updating the rights, you get the rights another role has
+     *      DB_EXCEPT        : exception triggered by the database
+     *
+     * @param $roleID                   int         id of the role
+     * @param $newRoleRightsDictionary  array<bool> new dictionary of the role's right
+     */
+    private static function updateRoleRights($roleID, $newRoleRightsDictionary){
+
+        try{
+            DatabaseManager::Connect();
+
+            $SQLStatement = DatabaseManager::PrepareStatement(self::$getRoleRightsStatement);
+            $SQLStatement->bindParam(":ID", $roleID);
+
+            $SQLStatement->execute();
+
+            $rightsID = $SQLStatement->fetch(PDO::FETCH_OBJ);
+
+            $SQLStatement = self::generateRightsStatement(self::GENERATE_RIGHTS_UPDATE_ROW_STATEMENT, $newRoleRightsDictionary);
+            $SQLStatement->bindParam(":ID", $rightsID->Institution_Rights_ID);
+
+            $SQLStatement->execute();
+
+            if($SQLStatement->rowCount() == 0){
+                $response = CommonEndPointLogic::GetFailureResponseStatus("DUPLICATE_RIGHTS");
+
+                echo json_encode($response), PHP_EOL;
+                http_response_code(StatusCodes::OK);
+                die();
+            }
+
+            $SQLStatement->debugDumpParams();
+
+            DatabaseManager::Disconnect();
+        }
+        catch(Exception $exception){
+            $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
+
+            echo json_encode($response), PHP_EOL;
+            http_response_code(StatusCodes::OK);
+            die();
+        }
+
+    }
+
+    /**
+     * Function called to update a role's name (by id)
+     *
+     * @param $roleID       int     id of the role
+     * @param $newRoleName  String  new role's name
+     */
+    private static function updateRoleName($roleID, $newRoleName){
+
+        try {
+            DatabaseManager::Connect();
+
+            $SQLStatement = DatabaseManager::PrepareStatement(self::$updateRoleNameStatement);
+            $SQLStatement->bindParam(":newName", $newRoleName);
+            $SQLStatement->bindParam(":ID", $roleID);
+
+            $SQLStatement->execute();
+
+            DatabaseManager::Disconnect();
+        }
+        catch(Exception $exception){
+            $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
+
+            echo json_encode($response), PHP_EOL;
+            http_response_code(StatusCodes::OK);
+            die();
+        }
     }
 
     /**
@@ -152,8 +255,6 @@ class InstitutionRoles{
             $row = $SQLStatement->fetch(PDO::FETCH_OBJ);
 
             DatabaseManager::Disconnect();
-
-            print_r($row);
 
             if($row == null)
                 return null;
@@ -286,7 +387,7 @@ class InstitutionRoles{
      * Possible Errors :
      *      None
      *
-     * @param $statementType    InstitutionRoles    constant defining the Statement to be given
+     * @param $statementType    int                 constant defining the Statement to be given
      * @param $rightsDictionary array<bool>         dictionary of rights assigned to params
      * @return                  Object              SQL Prepared Statement that was requested
      * @throws                  InstitutionRolesInvalidStatement
@@ -299,6 +400,10 @@ class InstitutionRoles{
 
             case self::GENERATE_RIGHTS_INSERT_NEW_ROW_STATEMENT :
                 $SQLStatement = DatabaseManager::PrepareStatement(self::$insertRightsStatement);
+                break;
+
+            case self::GENERATE_RIGHTS_UPDATE_ROW_STATEMENT :
+                $SQLStatement = DatabaseManager::PrepareStatement(self::$updateRightsStatement);
                 break;
 
             default: throw new InstitutionRolesInvalidStatement("Incorrect Statement");
@@ -326,6 +431,15 @@ class InstitutionRoles{
 
     const GENERATE_RIGHTS_FETCH_ID_STATEMENT = 0;
     const GENERATE_RIGHTS_INSERT_NEW_ROW_STATEMENT = 1;
+    const GENERATE_RIGHTS_UPDATE_ROW_STATEMENT = 2;
+
+    private static $getRoleRightsStatement = "
+        SELECT Institution_Rights_ID FROM institution_roles WHERE ID = :ID
+    ";
+
+    private static $updateRoleNameStatement = "
+        UPDATE institution_roles SET Title = :newName WHERE ID = :ID
+    ";
 
     private static $getRoleIDStatement = "
         SELECT ID FROM institution_roles WHERE Institution_ID = :institutionID AND Title = :title
@@ -390,6 +504,29 @@ class InstitutionRoles{
             Can_Assign_Roles = :canAssignRoles AND
             Can_Deassign_Roles = :canDeassignRoles
         ";
+
+    private static $updateRightsStatement = "
+        UPDATE institution_rights SET 
+            Can_Modify_Institution = :canModifyInstitution,
+            Can_Delete_Institution = :canDeleteInstitution,
+            Can_Add_Members = :canAddMembers,
+            Can_Remove_Members = :canRemoveMembers,
+            Can_Upload_Documents = :canUploadDocuments,
+            Can_Preview_Uploaded_Documents = :canPreviewUploadedDocuments,
+            Can_Remove_Uploaded_Documents = :canRemoveUploadedDocuments,
+            Can_Send_Documents = :canSendDocuments,
+            Can_Preview_Received_Documents = :canPreviewReceivedDocuments,
+            Can_Preview_Specific_Received_Document = :canPreviewSpecificReceivedDocument,
+            Can_Remove_Received_Documents = :canRemoveReceivedDocuments,
+            Can_Download_Documents = :canDownloadDocuments,
+            Can_Add_Roles = :canAddRoles,
+            Can_Remove_Roles = :canRemoveRoles,
+            Can_Modify_Roles = :canModifyRoles,
+            Can_Assign_Roles = :canAssignRoles,
+            Can_Deassign_Roles = :canDeassignRoles
+        WHERE
+            ID = :ID
+    ";
 
     private static $insertRightsStatement = "
         INSERT INTO institution_rights (
