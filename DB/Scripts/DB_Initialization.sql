@@ -43,9 +43,9 @@ CREATE TABLE Newsfeed_Tags (
 
 DROP TABLE IF EXISTS Newsfeed_Posts_Tags_Assignations;
 CREATE TABLE Newsfeed_Posts_Tags_Assignations (
-	ID 					INT 			PRIMARY KEY		AUTO_INCREMENT,
-	Newsfeed_Post_ID	INT	NOT NULL					REFERENCES Newsfeed_Posts.ID,
-    Newsfeed_Tag_ID		INT	NOT NULL					REFERENCES Newsfeed_Tags.ID,
+	ID 					INT 				PRIMARY KEY		AUTO_INCREMENT,
+	Newsfeed_Post_ID	INT		NOT NULL					REFERENCES Newsfeed_Posts.ID,
+    Newsfeed_Tag_ID		INT		NOT NULL					REFERENCES Newsfeed_Tags.ID,
     
     UNIQUE KEY (
 		Newsfeed_Post_ID,
@@ -63,15 +63,26 @@ CREATE TABLE Institutions (
 
 DROP TABLE IF EXISTS Addresses;
 CREATE TABLE Addresses (
-	ID					INT							PRIMARY KEY		AUTO_INCREMENT,
-	Country				VARCHAR(64)			NULL,
-	Region				VARCHAR(64)			NULL,
-	City				VARCHAR(64)			NULL,
-	Street				VARCHAR(64)			NULL,
-	Number				INT					NULL,
-	Building			VARCHAR(64)			NULL,
-	Floor				INT					NULL,
-	Apartment			INT					NULL
+	ID					INT								PRIMARY KEY		AUTO_INCREMENT,
+	Country				VARCHAR(64)			NOT NULL,
+	Region				VARCHAR(64)			NOT NULL,
+	City				VARCHAR(64)			NOT NULL,
+	Street				VARCHAR(64)			NOT NULL,
+	Number				INT					NOT NULL,
+	Building			VARCHAR(64)				NULL,
+	Floor				INT						NULL,
+	Apartment			INT						NULL,
+    
+    UNIQUE KEY (
+		Country,
+        Region,
+        City,
+        Street,
+        Number,
+        Building,
+        Floor,
+        Apartment
+	)
 );
 
 DROP TABLE IF EXISTS Institution_Addresses_List;
@@ -247,10 +258,10 @@ DELIMITER ;
 
 DROP TABLE IF EXISTS Institution_Roles;
 CREATE TABLE Institution_Roles (
-	ID						INT					PRIMARY KEY		AUTO_INCREMENT,
-    Institution_ID			INT 	NOT NULL					REFERENCES Institutions.ID,
-    Institution_Rights_ID 	INT 	NOT NULL					REFERENCES Institution_Rights.ID,
-    Title					VARCHAR(64),
+	ID						INT							PRIMARY KEY		AUTO_INCREMENT,
+    Institution_ID			INT 			NOT NULL					REFERENCES Institutions.ID,
+    Institution_Rights_ID 	INT 			NOT NULL					REFERENCES Institution_Rights.ID,
+    Title					VARCHAR(64)		NOT NULL,
     
     UNIQUE KEY (
 		Institution_ID,
