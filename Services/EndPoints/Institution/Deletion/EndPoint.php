@@ -24,11 +24,28 @@ $responseStatus = CommonEndPointLogic::ValidateUserCredentials($username, $hashe
 
 $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName;";
 
-$queryDeleteRoles = "DELETE FROM Institutions_Roles Where Institution_ID = :institutionID;";
-$queryDeleteMembers = "DELETE FROM Institutions_Members Where Institution_ID = :institutionID;";
+$queryDeleteRoles = "DELETE FROM Institution_Roles Where Institution_ID = :institutionID;";
+$queryDeleteMembers = "DELETE FROM Institution_Members Where Institution_ID = :institutionID;";
 $queryDeleteAdresses = "DELETE FROM institution_addresses_list Where Institution_ID = :institutionID;";
 $queryDeleteInstitution = "DELETE FROM Institutions Where ID = :institutionID;";
 
+
+try {
+    if( false == InstitutionRoles::isUserAuthorized($username, $institutionName, InstitutionActions::DELETE_INSTITUTION) ){
+        $response = CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION");
+
+        http_response_code(StatusCodes::OK);
+        echo json_encode($response), PHP_EOL;
+        die();
+    }
+}
+catch (InstitutionRolesInvalidAction $e) {
+    $response = CommonEndPointLogic::GetFailureResponseStatus("INVALID_ACTION");
+
+    http_response_code(StatusCodes::OK);
+    echo json_encode($response), PHP_EOL;
+    die();
+}
 
 try {
     DatabaseManager::Connect();
@@ -47,8 +64,6 @@ try {
         echo json_encode($response), PHP_EOL;
         die();
     }
-
-    InstitutionRoles::isUserAuthorized($username, $institutionName, InstitutionActions::DELETE_INSTITUTION);
 
     DatabaseManager::Connect();
     

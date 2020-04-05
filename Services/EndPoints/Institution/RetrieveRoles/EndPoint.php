@@ -47,7 +47,12 @@ try {
         die();
     }
 
-    InstitutionRoles::isUserAuthorized($username, $institutionName, InstitutionActions::ASSIGN_ROLE);
+    if( false == InstitutionRoles::isUserAuthorized($username, $institutionName, InstitutionActions::ASSIGN_ROLE)) {
+        $response = CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION");
+        echo json_encode($response), PHP_EOL;
+        http_response_code(StatusCodes::OK);
+        die();
+    }
 
     DatabaseManager::Connect();
     $getRoles = DatabaseManager::PrepareStatement($queryGetRoles);
