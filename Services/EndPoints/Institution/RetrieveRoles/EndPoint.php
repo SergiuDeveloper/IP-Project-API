@@ -23,18 +23,8 @@ $responseStatus = CommonEndPointLogic::ValidateUserCredentials($username, $hashe
 
 $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName;";
 
-$queryInstitutionManager = "SELECT r.title FROM Institution_Members i JOIN Users u ON i.User_ID = u.ID
-JOIN Institution_Roles r ON i.Institution_Roles_ID = r.ID
-WHERE u.username = :callerUsername AND i.Institution_ID = :institutionID;";
-
-
-/*
- * Toate rolurile, nu numai cele asignate
- */
-
-$queryGetRoles = "SELECT DISTINCT r.title FROM Institution_Members i
-JOIN Institution_Roles r ON i.Institution_Roles_ID = r.ID
-WHERE i.Institution_ID = :institutionID;";
+$queryGetRoles = "SELECT DISTINCT title FROM Institution_Roles
+WHERE Institution_ID = :institutionID;";
 
 $institutionRoles = array();
 try {
@@ -55,16 +45,9 @@ try {
         die();
     }
 
-    //InstitutionRoles::isUserAuthorized($username, $institutionName, InstitutionActions::ASSIGN_ROLE);
+    $Can_Assign_Roles = InstitutionRoles::isUserAuthorized($username, $institutionName, InstitutionActions::ASSIGN_ROLE);
 
-    $getCallerUser = DatabaseManager::PrepareStatement($queryInstitutionManager);
-    $getCallerUser->bindParam(":callerUsername", $username);
-    $getCallerUser->bindParam(":institutionID", $institutionRow["ID"]);
-    $getCallerUser->execute();
-
-    $callerUserRow = $getCallerUser->fetch(PDO::FETCH_ASSOC);
-
-    if($callerUserRow == null || $callerUserRow["title"] != 'Manager'){
+    if($Can_Assign_Roles != 'Can_Assign_Roles'){
         DatabaseManager::Disconnect();
         $response = CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION");
 
