@@ -3,14 +3,18 @@
 const APIUnitTestHelper = require("./../../HelperClasses/APIUnitTestHelper.js");
 
 var websitePath = "fiscaldocumentseditest.azurewebsites.net";
-var pagePath = "/EndPoints/Login/EndPoint.php";
+var pagePath = "/EndPoints/CreateNewsfeedPost/EndPoint.php";
 var requestParameters = {
-	username: "mama",
-	hashedPassword: "mea"
+	username:"testuser3",
+	hashedPassword:"OParolaObisnuita",
+	nameOfPost:"Titlu3",
+	contentOfPost:"Continut",
+	linkOfPost:"www.google.com",
+	tagsOfPost:['tag1','tag2']
 };
 
 function RequestSuccess(responseObject) {
-	const testCondition = (responseObject.status == "FAILURE" && responseObject.error == "USER_INACTIVE");
+	const testCondition = (responseObject.status == "FAILURE" && responseObject.error == "WRONG_PASSWORD");
 	APIUnitTestHelper.Test(testCondition, null, responseObject);
 }
 

@@ -5,8 +5,12 @@ const APIUnitTestHelper = require("./../../HelperClasses/APIUnitTestHelper.js");
 var websitePath = "fiscaldocumentseditest.azurewebsites.net";
 var pagePath = "/EndPoints/AccountCreation/EndPoint.php";
 var requestParameters = {
-	username: "mama",
-	hashedPassword: "mea"
+	username: "Logheqwin",
+	hashedPassword: "parola",
+	email:"vlad.loghin00@gmail.com",
+	firstName:"dsas",
+	lastName:"dasd"
+
 };
 
 function RequestSuccess(responseObject) {

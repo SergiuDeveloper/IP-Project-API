@@ -2,12 +2,15 @@
 
 const APIUnitTestHelper = require("./../../HelperClasses/APIUnitTestHelper.js");
 
-var webpagePath = "http://fiscaldocumentseditest.azurewebsite.net/EndPoints/AccountCreation/EndPoint.php
-";
+var webpagePath = "http://fiscaldocumentseditest.azurewebsites.net/EndPoints/NewsfeedPostNotification/EndPoint.php";
 var requestParameters = {
-	username: "testuser3",
-	hashedPassword: "OParolaObisnuita",
-	email:"diana@gmail.com"
+	username : "Loghin",
+	hashedPassword : "parola",
+	newsfeedPostID : "2",
+	newsfeedPostTitle : "TITLE",
+	newsfeedPostContent :"CONTENT",
+	newsfeedPostURL:"URL",
+	newsfeedPostTags : ['tag1','tag2'] 
 };
 
 function RequestSuccess(responseObject) {
