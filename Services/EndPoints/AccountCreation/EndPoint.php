@@ -20,6 +20,28 @@ if ($username == null || $hashedPassword == null || $email == null ||  $firstNam
     die();
 }
 
+/**
+ * caz particular : username cu caractere ilegle
+ * adaugat la 6/4/2020
+ * motiv : la adaugarea unui user in institutie, se verifica existenta unui '@' in input pentru a diferentia intre adaugare prin eMail sau prin username
+ */
+
+$usernameIllegalCharacters = "@\\/,'\"?><:;[]{}()=+`~!#\$%^&*\033 \t\n\r";
+
+$illegalCharacters = str_split($usernameIllegalCharacters);
+
+foreach($illegalCharacters as $character){
+    if(strstr($username, $character)){
+        $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("USERNAME_CONTAINS_ILLEGAL_CHAR");
+
+        DatabaseManager::Disconnect();
+
+        echo json_encode($failureResponseStatus), PHP_EOL;
+        http_response_code(StatusCodes::OK);
+        die();
+    }
+}
+
 /*
 
     UPDATE : Instruction is pointless. 
