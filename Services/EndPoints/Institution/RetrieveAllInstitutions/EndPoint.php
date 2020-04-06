@@ -8,14 +8,16 @@ require_once("./../../../HelperClasses/Institution/InstitutionActions.php");
 
     CommonEndPointLogic::ValidateHTTPGETRequest();
 
-    $username           = $_GET['username'];
-    $hashedPassword     = $_GET['hashedPassword'];
-    $institutionCount   = $_GET['institutionsCount'];
+    $username               = $_GET['username'];
+    $hashedPassword         = $_GET['hashedPassword'];
+    $institutionsPerPage    = $_GET['institutionsPerPage'];
+    $pageNumber             = $_GET['pageNumber'] - 1;
+    $orderByAsc             = $_GET['orderByAsc'];
 
     if(
         $username == null ||
         $hashedPassword == null ||
-        $institutionCount == null
+        $institutionsPerPage == null
     ){
         $response = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
 
@@ -24,9 +26,28 @@ require_once("./../../../HelperClasses/Institution/InstitutionActions.php");
         die();
     }
 
+    if($orderByAsc == 0 || $orderByAsc == false || $orderByAsc == '0' || $orderByAsc == 'false'){
+        $ascendant = 'desc';
+    }
+    else{
+        $ascendant = 'asc';
+    }
+
+    if($orderByAsc == null)
+        $ascendant = 'asc';
+
+    if($pageNumber == null){
+        $pageNumber = 0;
+    }
+
     CommonEndPointLogic::ValidateUserCredentials($username, $hashedPassword);
 
-    $fetchAllInstitutionsStatement = "SELECT Name FROM institutions LIMIT $institutionCount";
+    $offset = $pageNumber * $institutionsPerPage;
+
+    if($offset < 0)
+        $offset = 0;
+
+    $fetchAllInstitutionsStatement = "SELECT Name FROM institutions ORDER BY Name $ascendant LIMIT $institutionsPerPage OFFSET $offset" ;
 
     $institutionsArray = array();
 
@@ -35,6 +56,8 @@ require_once("./../../../HelperClasses/Institution/InstitutionActions.php");
 
         $SQLStatement = DatabaseManager::PrepareStatement($fetchAllInstitutionsStatement);
         $SQLStatement->execute();
+
+        $SQLStatement->debugDumpParams();
 
         while($row = $SQLStatement->fetch(PDO::FETCH_OBJ)){
             array_push($institutionsArray, $row->Name);
