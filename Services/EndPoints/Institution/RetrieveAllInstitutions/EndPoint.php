@@ -57,8 +57,6 @@ require_once("./../../../HelperClasses/Institution/InstitutionActions.php");
         $SQLStatement = DatabaseManager::PrepareStatement($fetchAllInstitutionsStatement);
         $SQLStatement->execute();
 
-        $SQLStatement->debugDumpParams();
-
         while($row = $SQLStatement->fetch(PDO::FETCH_OBJ)){
             array_push($institutionsArray, $row->Name);
         }
