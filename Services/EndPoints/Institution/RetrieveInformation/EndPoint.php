@@ -72,9 +72,13 @@ require_once ("../../../HelperClasses/Institution/InstitutionValidator.php");
 
     $response = CommonEndPointLogic::GetSuccessResponseStatus();
 
+    $institutionInfo = new array(
+        "institutionName"   => $institutionName,
+        "addresses"         => $addresses
+    );
+
     echo json_encode($response), PHP_EOL;
-    echo json_encode($institutionName), PHP_EOL;
-    echo json_encode($addresses), PHP_EOL;
+    echo json_encode($institutionInfo), PHP_EOL;
 
     class InstitutionAddress{
         public $country;
