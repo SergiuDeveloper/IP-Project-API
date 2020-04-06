@@ -33,13 +33,13 @@ if (!$userCanAddMembers) {
     die();
 }
 
-$isUserIdentifierEmail = (strpos($a, "@") !== false);
+$isUserIdentifierEmail = (strpos($userIdentifier, "@") !== false);
 
 if ($isUserIdentifierEmail) {
     DatabaseManager::Connect();
 
     $getUsernameStatement = DatabaseManager::PrepareStatement("SELECT Username FROM Users WHERE Email = :email");
-    $getUsernameStatement->bindParam(":email". $userIdentifier);
+    $getUsernameStatement->bindParam(":email", $userIdentifier);
     $getUsernameStatement->execute();
     $userRow = $getUsernameStatement->fetch(PDO::FETCH_OBJ);
 
@@ -60,6 +60,6 @@ InstitutionRoles::addAndAssignMemberToInstitution($userIdentifier, $institutionN
 
 $successResponse = CommonEndPointLogic::GetSuccessResponseStatus();
 echo json_encode($successResponse);
-http_response_code(StatusCode::OK);
+http_response_code(StatusCodes::OK);
 
 ?>
