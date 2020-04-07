@@ -8,7 +8,7 @@ var requestParameters = {
 };
 
 function RequestSuccess(responseObject) {
-	const testCondition = (responseObject.status == "FAILURE" && responseObject.error == "NULL_CREDENTIAL");
+	const testCondition = (responseObject.status == "FAILURE" && responseObject.error == "BAD_USERNAME_PASSWORD");
 	APIUnitTestHelper.Test(testCondition, null, responseObject);
 }
 

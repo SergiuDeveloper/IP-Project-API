@@ -5,11 +5,15 @@ const APIUnitTestHelper = require("./../../HelperClasses/APIUnitTestHelper.js");
 var websitePath = "fiscaldocumentseditest.azurewebsites.net";
 var pagePath = "/EndPoints/ModifyAccountData/EndPoint.php";
 var requestParameters = {
-	username: "testuser3"
+	username: "Loghin",
+	currentHashedPassword : "paroldsadsaa",
+	newHashedPassword : "",
+	newFirstName : "",
+	newLastName :" "
 };
 
 function RequestSuccess(responseObject) {
-	const testCondition = (responseObject.status == "FAILURE" && responseObject.error == "NULL_CREDENTIAL");
+	const testCondition = (responseObject.status == "FAILURE" && responseObject.error == "WRONG_PASSWORD");
 	APIUnitTestHelper.Test(testCondition, null, responseObject);
 }
 

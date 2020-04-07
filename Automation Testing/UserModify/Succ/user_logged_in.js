@@ -4,12 +4,16 @@ const APIUnitTestHelper = require("./../../HelperClasses/APIUnitTestHelper.js");
 
 var websitePath = "fiscaldocumentseditest.azurewebsites.net";
 var pagePath = "/EndPoints/ModifyAccountData/EndPoint.php";
-var requestParameters = {
-	username: "testuser1",
-	currentHashedPassword: "parola",
-	newLastName:"Vlad"
 
+var requestParameters = {
+	username: "Loghin",
+	currentHashedPassword : "parola",
+	newHashedPassword : "",
+	newFirstName : "",
+	newLastName :" "
 };
+
+
 
 function RequestSuccess(responseObject) {
 	const testCondition = (responseObject.status == "SUCCESS" && responseObject.error == "");
