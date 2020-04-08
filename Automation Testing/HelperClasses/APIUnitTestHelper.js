@@ -107,7 +107,7 @@ class APIUnitTestHelper {
                             successCallback(responseData);
                         }
                         catch (thrownException) {
-                            errorCallback(thrownException);    
+                            errorCallback(thrownException);	
                         }
                     });
                 }).on("error", (thrownError) => {
@@ -140,6 +140,8 @@ class APIUnitTestHelper {
 					var requestParametersJSONEncoded = querystring.stringify(requestParameters);
 					requestParametersByteLength = Buffer.byteLength(requestParametersJSONEncoded);
 				}
+				
+				console.log(requestParametersJSONEncoded);
 
                 var requestOptions = {
                     hostname: websiteURL,
@@ -165,6 +167,7 @@ class APIUnitTestHelper {
                             successCallback(returnedObject);
                         }
                         catch (thrownException) {
+							console.log(thrownException);
                             errorCallback(thrownException);    
                         }
                     });

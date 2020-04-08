@@ -1,5 +1,4 @@
 "use strict"
-
 const APIUnitTestHelper = require("./../../HelperClasses/APIUnitTestHelper.js");
 
 var websitePath = "fiscaldocumentseditest.azurewebsites.net";
@@ -7,10 +6,10 @@ var pagePath = "/EndPoints/CreateNewsfeedPost/EndPoint.php";
 var requestParameters = {
 	username:"Loghin",
 	hashedPassword:"parola",
-	nameOfPost:"motoeretardat",
+	nameOfPost:"motoeretardat4",
 	contentOfPost:"Continutpulaetare",
-	linkOfPost:"www.pornhub.com",
-	tagsOfPost:["tDAS1","taADSFg2"]
+	linkOfPost:"www.google.com",
+	tagsOfPost: JSON.stringify(JSON.parse('{"0":"tag1","1":"tag2"}'))
 };
 
 function RequestSuccess(responseObject) {
