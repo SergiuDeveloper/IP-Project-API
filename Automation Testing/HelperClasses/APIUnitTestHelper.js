@@ -137,11 +137,9 @@ class APIUnitTestHelper {
 				
 				var requestParametersByteLength = 0;
 				if (requestParameters !== null) {
-					var requestParametersJSONEncoded = querystring.stringify(requestParameters);
+                    var requestParametersJSONEncoded = querystring.stringify(requestParameters);
 					requestParametersByteLength = Buffer.byteLength(requestParametersJSONEncoded);
-				}
-				
-				console.log(requestParametersJSONEncoded);
+                }
 
                 var requestOptions = {
                     hostname: websiteURL,
@@ -167,7 +165,6 @@ class APIUnitTestHelper {
                             successCallback(returnedObject);
                         }
                         catch (thrownException) {
-							console.log(thrownException);
                             errorCallback(thrownException);    
                         }
                     });
