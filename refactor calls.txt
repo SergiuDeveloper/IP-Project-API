@@ -1,0 +1,125 @@
+rootpath = http://localhost/build-noUsername
+
+Login (POST)  : 
+	link  : rootpath/Account/Login.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test
+
+Activate Account (GET) :
+	link  : rootpath/Account/Activate.php?uniqueKey=34173cb38f07f89ddbebc2ac9128303f
+
+Create Account (POST) :
+	link  : rootpath/Account/Create.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&firstName=Loghin&lastName=Logout
+
+Modify Account (POST) :
+	link  : rootpath/Account/Modify.php
+	param : email=nihiwo9844@mailboxt.com&currentHashedPassword=test&newHashedPassword=TEST&newFirstName=Oldghin&newLastName=Oldgout
+
+Newsfeed Post Create (POST) : 
+	link  : rootpath/Newsfeed/Create.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&nameOfPost=RefTest1&contentOfPost=RefCont1&linkOfPost=RefLink1&tagsOfPost=["reftest1","reftest2"]
+
+Newsfeed Post Modify (POST) :
+	link  : rootpath/Newsfeed/Modify.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&newsfeedPostTitle=RefTest1&newsfeedPostNewTitle=RefTestModified&newsfeedPostContent=RefContModified&newsfeedPostURL=RefLinkModified&newsfeedPostTags=["reftest2","reftest3"]
+
+Newsfeed Post Delete (POST) :
+	link  : rootpath/Newsfeed/Delete.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&postName=RefTestModified
+
+Newsfeed Posts Retrieval (GET) :
+	link  : rootpath/Newsfeed/Retrieve.php?email=nihiwo9844@mailboxt.com&hashedPassword=test&postsCount=20
+
+Institution Create (POST) :
+	link  : rootpath/Institution/Create.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionName=TestInst1&institutionAddress={
+			"Country":"Romania",
+			"Region":"Iasi",
+			"City":"Iasi",
+			"Street":"Strapungere Silvestru",
+			"Number":33,
+			"Building":"T6",
+			"Apartment":20
+		}
+
+Institution Create Role (POST) :
+	link  : rootpath/Institution/Role/Create.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionName=TestInst1&roleName=TestRole1
+
+Institution Modify Role (POST) :
+	link  : rootpath/Institution/Role/Modify.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionName=TestInst1&roleName=TestRole1&newRoleName=TestRoleModified&newRoleRights={
+		"Can_Modify_Institution":0,
+		"Can_Delete_Institution":0,
+		"Can_Add_Members":0,
+		"Can_Remove_Members":0,
+		"Can_Upload_Documents":0,
+		"Can_Preview_Uploaded_Documents":0,
+		"Can_Remove_Uploaded_Documents":0,
+		"Can_Send_Documents":0,
+		"Can_Preview_Received_Documents":1,
+		"Can_Preview_Specific_Received_Document":0,
+		"Can_Remove_Received_Documents":0,
+		"Can_Download_Documents":0,
+		"Can_Add_Roles":0,
+		"Can_Remove_Roles":0,
+		"Can_Modify_Roles":0,
+		"Can_Assign_Roles":0,
+		"Can_Deassign_Roles":0
+	}
+
+Institution Retrieve Roles (GET) : 
+	link  : rootpath/Institution/Role/Retrieve.php?email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionName=TestInst1
+
+Institution Delete Role (POST) :
+	link  : rootpath/Institution/Role/Delete.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionName=TestInst1&roleName=TestRoleModified
+
+Institution Modify (POST)
+	link  : rootpath/Institution/Modify.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionName=TestInst1&newInstitutionName=TestInstModified&newInstitutionAddresses=[
+		{
+			"Country":"Romania",
+			"Region":"Iasi",
+			"City":"Iasi",
+			"Street":"Strapungere Silvestru",
+			"Number":33,
+			"Building":"T6",
+			"Floor":4,
+			"Apartment":20,
+			"isMainAddress":0
+		},
+		{
+			"Country":"Romania",
+			"Region":"Iasi",
+			"City":"Iasi",
+			"Street":"Strapungere Silvestru",
+			"Number":33,
+			"Building":"T6",
+			"Floor":5,
+			"Apartment":25,
+			"isMainAddress":1
+		}
+	]
+
+Institution Add Member (POST) :
+	link  : rootpath/Institution/Member/Add.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionName=TestInstModified&userIdentifier=vlad.loghin00@gmail.com&roleName=Manager
+
+Get all institutions (GET) :
+	link  : rootpath/Institution/RetrieveAll.php?email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionsPerPage=20&pageNumber=1&orderByAsc=1
+
+Get all institution's members (GET) :
+	link  : rootpath/Institution/Member/Retrieve.php?email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionName=TestInstModified
+
+Get institution's information (GET) :
+ 	link  : rootpath/Institution/Retrieve.php?email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionName=TestInstModified
+
+Remove member from institution (POST) :
+	link  : rootpath/Institution/Member/Remove.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionName=TestInstModified&memberEmail=vlad.loghin00@gmail.com
+
+Institution Delete (POST) :
+	link  : rootpath/Institution/Delete.php
+	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionName=TestInstModified
+
