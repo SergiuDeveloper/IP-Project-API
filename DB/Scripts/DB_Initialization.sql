@@ -309,7 +309,7 @@ CREATE TABLE Receipts (
 	ID				INT							PRIMARY KEY		AUTO_INCREMENT,
 	Title			VARCHAR(64)			NULL,
 	Value			INT				NOT NULL,
-	Cloud_File_ID	INT				NOT NULL					REFERENCES Cloud_Files.ID
+	Cloud_File_ID	INT					NULL					REFERENCES Cloud_Files.ID
 );
 
 DROP TABLE IF EXISTS Invoices;
@@ -317,5 +317,5 @@ CREATE TABLE Invoices (
 	ID				INT							PRIMARY KEY		AUTO_INCREMENT,
 	Title			VARCHAR(64)			NULL,
 	Value			INT				NOT NULL,
-	Cloud_File_ID	INT				NOT NULL					REFERENCES Cloud_Files.ID
+	Cloud_File_ID	INT					NULL					REFERENCES Cloud_Files.ID
 );
