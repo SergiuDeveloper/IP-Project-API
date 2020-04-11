@@ -94,12 +94,9 @@
 
     $hashedPassword = password_hash($hashedPassword, PASSWORD_BCRYPT);
 
-    $insertUserStatement = DatabaseManager::PrepareStatement("INSERT INTO Users(username, hashed_password, email, first_name, last_name, is_active, datetime_created, datetime_modified) VALUES 
-    (':deprecated_hash', :hashedPassword, :email, :firstName, :lastName, false, sysdate(), sysdate())");
+    $insertUserStatement = DatabaseManager::PrepareStatement("INSERT INTO Users(hashed_password, email, first_name, last_name, is_active, datetime_created, datetime_modified) VALUES 
+    (:hashedPassword, :email, :firstName, :lastName, false, sysdate(), sysdate())");
 
-    $_deprecatedHash = hash("md5", $email, false);
-
-    $insertUserStatement->bindParam(":deprecated_hash", $_deprecatedHash);
     $insertUserStatement->bindParam(":hashedPassword", $hashedPassword);
     $insertUserStatement->bindParam(":email", $email);
     $insertUserStatement->bindParam(":firstName", $firstName);
