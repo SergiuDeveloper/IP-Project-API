@@ -50,7 +50,7 @@ class ResponseHandler
         if(array_key_exists($label, $this->responseArray))
             throw new ResponseHandlerDuplicateLabel();
 
-        $this->responseArray[$label] = $object;
+        $this->responseArray["returnedObject"][$label] = $object;
 
         return $this;
     }
@@ -62,8 +62,8 @@ class ResponseHandler
      * @return          ResponseHandler Reference to current object for linked calls
      */
     public function setResponseHeader($response){
-        $this->responseArray["status"] = $response["status"];
-        $this->responseArray["error"]  = $response["error"];
+        $this->responseArray["responseStatus"]["status"] = $response["status"];
+        $this->responseArray["responseStatus"]["error"]  = $response["error"];
 
         $this->hasHeader = true;
 
