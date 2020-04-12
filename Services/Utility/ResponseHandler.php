@@ -5,6 +5,7 @@ if(!defined('ROOT')){
 }
 
 require_once (ROOT . "/Utility/Exceptions/ResponseHandlerDuplicateLabel.php");
+require_once (ROOT . "/Utility/Exceptions/ResponseHandlerNoHeader.php");
 
 /**
  * Class ResponseHandler. Use this to handle all outgoing responses
