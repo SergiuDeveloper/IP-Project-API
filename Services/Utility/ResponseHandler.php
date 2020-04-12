@@ -30,6 +30,8 @@ class ResponseHandler
      */
     private function __construct(){
         $this->responseArray = array();
+        $this->responseArray["responseStatus"] = array();
+        $this->responseArray["returnedObject"] = array();
 
         $this->hasHeader = false;
     }
@@ -47,7 +49,7 @@ class ResponseHandler
         if(!$this->hasHeader)
             throw new ResponseHandlerNoHeader();
 
-        if(array_key_exists($label, $this->responseArray))
+        if(array_key_exists($label, $this->responseArray["returnedObject"]))
             throw new ResponseHandlerDuplicateLabel();
 
         $this->responseArray["returnedObject"][$label] = $object;
