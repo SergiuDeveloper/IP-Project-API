@@ -6,6 +6,7 @@ if( !defined('ROOT') ){
 
 require_once(ROOT . "/Utility/DatabaseManager.php");
 require_once(ROOT . "/Utility/SuccessStates.php");
+require_once(ROOT . "/Utility/ResponseHandler.php");
 
 /**
     Validation class for user-related actions

@@ -8,6 +8,7 @@ require_once(ROOT . "/Utility/StatusCodes.php");
 require_once(ROOT . "/Utility/CommonEndPointLogic.php");
 require_once(ROOT . "/Utility/DatabaseManager.php");
 require_once(ROOT . "/Utility/UserValidation.php");
+require_once(ROOT . "/Utility/ResponseHandler.php");
 
 require_once("Exceptions/InstitutionRolesInvalidStatement.php");
 require_once("Exceptions/InstitutionRolesInvalidAction.php");
@@ -97,11 +98,17 @@ class InstitutionRoles{
             $role = $SQLStatement->fetch(PDO::FETCH_OBJ);
 
             if($role == null){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_NOT_FOUND"))
+                    ->send();
+
+                /*
                 $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_NOT_FOUND");
 
                 echo json_encode($response), PHP_EOL;
                 http_response_code(StatusCodes::OK);
                 die();
+                */
             }
 
             $SQLStatement = DatabaseManager::PrepareStatement(self::$getUserIDStatement);
@@ -119,21 +126,32 @@ class InstitutionRoles{
             $SQLStatement->execute();
 
             if($SQLStatement->rowCount() == 0){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("MEMBER_DUPLICATE"))
+                    ->send();
+                /*
                 $response = CommonEndPointLogic::GetFailureResponseStatus("MEMBER_DUPLICATE");
 
                 echo json_encode($response), PHP_EOL;
                 http_response_code(StatusCodes::OK);
                 die();
+                */
             }
 
             DatabaseManager::Disconnect();
         }
         catch (Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
         }
 
     }
@@ -180,11 +198,17 @@ class InstitutionRoles{
 
             DatabaseManager::Disconnect();
         }
-        catch(Exception $exception){
+        catch(Exception $exception) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
+            die();
+            */
             die();
         }
 
@@ -205,27 +229,42 @@ class InstitutionRoles{
 
         $roleID = self::getRoleID($roleName, $institutionName);
         if ($roleID == null) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_NOT_FOUND"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_NOT_FOUND");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
         }
 
         if(self::canModifyOrDeleteRole($roleID) == false){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_CANNOT_BE_DELETED"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_CANNOT_BE_DELETED");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
         }
 
         if(self::roleIsAssignedToMembers($roleID) == true){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_ASSIGNED_TO_MEMBER"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_ASSIGNED_TO_MEMBER");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
         }
 
         try {
@@ -239,11 +278,16 @@ class InstitutionRoles{
             DatabaseManager::Disconnect();
         }
         catch(Exception $databaseException){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
         }
     }
 
@@ -262,11 +306,16 @@ class InstitutionRoles{
 
         $roleID = self::getRoleID($roleName, $institutionName);
         if($roleID == null){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_NOT_FOUND"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_NOT_FOUND");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
         }
 
         self::updateRoleName($roleID, $newRoleName);
@@ -287,30 +336,45 @@ class InstitutionRoles{
                     $SQLStatement->execute();
 
                     if($SQLStatement->rowCount() == 0){
+                        ResponseHandler::getInstance()
+                            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS"))
+                            ->send();
+                        /*
                         $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS");
 
                         echo json_encode($response), PHP_EOL;
                         http_response_code(StatusCodes::OK);
                         die();
+                        */
                     }
 
                     DatabaseManager::Disconnect();
                }
                catch(Exception $exception){
+                   ResponseHandler::getInstance()
+                       ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                       ->send();
+                   /*
                    $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
                    echo json_encode($response), PHP_EOL;
                    http_response_code(StatusCodes::OK);
                    die();
+                   */
                }
            }
         }
         else{
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_RIGHTS_UNMODIFIABLE"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_RIGHTS_UNMODIFIABLE");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
         }
 
     }
@@ -327,21 +391,31 @@ class InstitutionRoles{
             $SQLStatement->execute();
 
             if ($SQLStatement->rowCount() == 0) {
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS"))
+                    ->send();
+                /*
                 $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS");
 
                 echo json_encode($response), PHP_EOL;
                 http_response_code(StatusCodes::OK);
                 die();
+                */
             }
 
             DatabaseManager::Disconnect();
         }
         catch(Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
         }
     }
 
@@ -396,10 +470,16 @@ class InstitutionRoles{
             return $status;
         }
         catch(Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
+            die();
+            */
             die();
         }
 
@@ -428,11 +508,16 @@ class InstitutionRoles{
             DatabaseManager::Disconnect();
         }
         catch(Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
         }
     }
 
@@ -488,10 +573,16 @@ class InstitutionRoles{
             return $rightsDictionary;
         }
         catch(Exception $databaseException){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
+            die();
+            */
             die();
         }
     }
@@ -532,11 +623,17 @@ class InstitutionRoles{
             return $row->ID;
         }
         catch(Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
 
+            die();
+            */
             die();
         }
     }
@@ -560,12 +657,17 @@ class InstitutionRoles{
         InstitutionValidator::validateInstitution($institutionName);
 
         if(self::getRoleID($roleName,$institutionName) != null){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DUPLICATE_ROLE"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DUPLICATE_ROLE");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
 
             die();
+            */
         }
 
         $rightsID = self::fetchRightsID($newRoleRightsDictionary);
@@ -608,11 +710,17 @@ class InstitutionRoles{
             }
         }
         catch(InstitutionRolesInvalidStatement $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL, $exception->getMessage(), PHP_EOL;
             http_response_code(StatusCodes::OK);
 
+            die();
+            */
             die();
         }
 
@@ -691,14 +799,19 @@ class InstitutionRoles{
             return $SQLStatement->rowCount() > 0;
         }
         catch (Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL, $exception->getMessage(), PHP_EOL;
             http_response_code(StatusCodes::OK);
 
             die();
+            */
+            die();
         }
-
     }
 
     const GENERATE_RIGHTS_FETCH_ID_STATEMENT = 0;
@@ -775,7 +888,7 @@ class InstitutionRoles{
                 )
                 AND Institution_ID = :institutionID
             )
-)
+        )
     ";
 
     private static $fetchRightsIDStatement = "

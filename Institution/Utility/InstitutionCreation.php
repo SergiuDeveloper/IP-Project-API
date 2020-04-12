@@ -20,6 +20,7 @@ require_once(ROOT . "/Utility/StatusCodes.php");
 require_once(ROOT . "/Utility/CommonEndPointLogic.php");
 require_once(ROOT . "/Utility/DatabaseManager.php");
 require_once(ROOT . "/Utility/UserValidation.php");
+require_once(ROOT . "/Utility/ResponseHandler.php");
 
 /**
  * Class InstitutionCreation
@@ -59,21 +60,31 @@ class InstitutionCreation
             $SQLStatement->execute();
 
             if($SQLStatement->rowCount() == 0){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("MAIN_ADDRESS_DUPLICATE"))
+                    ->send();
+                /*
                 $response = CommonEndPointLogic::GetFailureResponseStatus("MAIN_ADDRESS_DUPLICATE");
 
                 echo json_encode($response), PHP_EOL;
                 http_response_code(StatusCodes::OK);
                 die();
+                */
             }
 
             DatabaseManager::Disconnect();
         }
         catch(Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
         }
     }
 
@@ -94,11 +105,16 @@ class InstitutionCreation
             $SQLStatement->execute();
 
             if($SQLStatement->rowCount() == 0){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DUPLICATE_INST"))
+                    ->send();
+                /*
                 $response = CommonEndPointLogic::GetFailureResponseStatus("DUPLICATE_INST");
 
                 echo json_encode($response), PHP_EOL;
                 http_response_code(StatusCodes::OK);
                 die();
+                */
             }
 
             $SQLStatement = DatabaseManager::PrepareStatement(self::$getInstitutionStatement);
@@ -113,13 +129,18 @@ class InstitutionCreation
             return $row->ID;
         }
         catch(Exception $exception) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
+            die();
         }
-
     }
 
     /**
@@ -157,18 +178,21 @@ class InstitutionCreation
             return $row->ID;
         }
         catch(Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
+            die();
         }
-
     }
 
     /**
-     * TODO : TEST THIS SHIT
-     *
      * @param $SQLStatement PDOStatement    Statement for which the parameters will be bound
      * @param $address      array [mixed]   Address Array (refer class declaration)
      */
@@ -229,10 +253,16 @@ class InstitutionCreation
             return $row == null;
         }
         catch(Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
+            die();
+            */
             die();
         }
 

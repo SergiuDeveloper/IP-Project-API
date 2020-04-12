@@ -8,6 +8,7 @@
     require_once(ROOT . "/Utility/UserValidation.php");
     require_once(ROOT . "/Utility/StatusCodes.php");
     require_once(ROOT . "/Utility/SuccessStates.php");
+    require_once(ROOT . "/Utility/ResponseHandler.php");
 
     require_once("Role/Utility/InstitutionRoles.php");
     require_once("Utility/InstitutionCreation.php ");
@@ -19,11 +20,16 @@
     $institutionName = $_POST["institutionName"];
 
     if ($email == null || $hashedPassword == null || $institutionName == null) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+            ->send(StatusCodes::BAD_REQUEST);
+        /*
         $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
 
         echo json_encode($failureResponseStatus), PHP_EOL;
         http_response_code(StatusCodes::BAD_REQUEST);
         die();
+        */
     }
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
@@ -38,19 +44,29 @@
 
     try {
         if( false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::DELETE_INSTITUTION) ){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION");
 
             http_response_code(StatusCodes::OK);
             echo json_encode($response), PHP_EOL;
             die();
+            */
         }
     }
     catch (InstitutionRolesInvalidAction $e) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_ACTION"))
+            ->send();
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("INVALID_ACTION");
 
         http_response_code(StatusCodes::OK);
         echo json_encode($response), PHP_EOL;
         die();
+        */
     }
 
     try {
@@ -64,11 +80,17 @@
 
         if($institutionRow == null){
             DatabaseManager::Disconnect();
+
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND");
 
             http_response_code(StatusCodes::OK);
             echo json_encode($response), PHP_EOL;
             die();
+            */
         }
 
         DatabaseManager::Connect();
@@ -89,16 +111,26 @@
         $deleteInstitution->bindParam(":institutionID", $institutionRow["ID"]);
         $deleteInstitution->execute();
 
-
         DatabaseManager::Disconnect();
     }
     catch (Exception $databaseException) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+            ->send();
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
         echo json_encode($response), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
+    ResponseHandler::getInstance()
+        ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+        ->send();
+
+    /*
     $responseSuccess = CommonEndPointLogic::GetSuccessResponseStatus();
     echo json_encode($responseSuccess), PHP_EOL;
     http_response_code(StatusCodes::OK);
+    */

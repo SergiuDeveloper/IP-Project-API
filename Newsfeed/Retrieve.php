@@ -9,6 +9,7 @@
     require_once(ROOT . "/Utility/StatusCodes.php");
     require_once(ROOT . "/Utility/SuccessStates.php");
     require_once(ROOT . "/Utility/DatabaseManager.php");
+    require_once(ROOT . "/Utility/ResponseHandler.php");
 
     CommonEndPointLogic::ValidateHTTPGETRequest();
 
@@ -17,11 +18,16 @@
     $postsCount     = $_GET["postsCount"];
 
     if ($email == null || $hashedPassword == null || $postsCount == null) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+            ->send(StatusCodes::BAD_REQUEST);
+        /*
         $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL");
 
         echo json_encode($failureResponseStatus), PHP_EOL;
         http_response_code(StatusCodes::BAD_REQUEST);
         die();
+        */
     }
 
     CommonEndPointLogic::ValidateAdministrator($email, $hashedPassword);
@@ -63,17 +69,35 @@
         DatabaseManager::Disconnect();
     }
     catch (Exception $databaseException) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+            ->send();
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
         echo json_encode($response);
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
+    try{
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+            ->addResponseData("posts", $postsArray)
+            ->send();
+    }
+    catch (Exception $exception){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
+            ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+    }
 
+    /*
     $responseSuccess = CommonEndPointLogic::GetSuccessResponseStatus();
     echo json_encode($responseSuccess), PHP_EOL;
     echo json_encode($postsArray), PHP_EOL;
     http_response_code(StatusCodes::OK);
+    */
 
     class Posts {
         public $title;

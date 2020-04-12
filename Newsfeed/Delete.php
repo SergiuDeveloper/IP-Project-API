@@ -8,6 +8,7 @@
     require_once(ROOT . "/Utility/UserValidation.php");
     require_once(ROOT . "/Utility/StatusCodes.php");
     require_once(ROOT . "/Utility/SuccessStates.php");
+    require_once(ROOT . "/Utility/ResponseHandler.php");
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
@@ -20,11 +21,16 @@
         $password   == null ||
         $postTitle  == null
     ){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
+            ->send(StatusCodes::BAD_REQUEST);
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
 
         http_response_code(StatusCodes::BAD_REQUEST);
         echo json_encode($response);
         die();
+        */
     }
 
     CommonEndPointLogic::ValidateAdministrator($email, $password);
@@ -39,11 +45,16 @@
     $postRow = $SQLStatement->fetch(PDO::FETCH_OBJ);
 
     if($postRow == null){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("POST_NOT_IN_DATABASE"))
+            ->send();
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("POST_NOT_IN_DATABASE");
 
         http_response_code(StatusCodes::OK);
         echo json_encode($response);
         die();
+        */
     }
 
     try{
@@ -56,16 +67,27 @@
         $SQLStatement->execute();
     }
     catch(Exception $except){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+            ->send();
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
         http_response_code(StatusCodes::OK);
         echo json_encode($response);
-        die(); 
+        die();
+        */
     }
 
     DatabaseManager::Disconnect();
 
+    ResponseHandler::getInstance()
+        ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+        ->send();
+
+    /*
     $response = CommonEndPointLogic::GetSuccessResponseStatus();
 
     http_response_code(StatusCodes::OK);
-    echo json_encode($response);    
+    echo json_encode($response);
+    */

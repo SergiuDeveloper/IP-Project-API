@@ -8,6 +8,7 @@ require_once(ROOT . "/Utility/StatusCodes.php");
 require_once(ROOT . "/Utility/CommonEndPointLogic.php");
 require_once(ROOT . "/Utility/DatabaseManager.php");
 require_once(ROOT . "/Utility/UserValidation.php");
+require_once(ROOT . "/Utility/ResponseHandler.php");
 
 /**
  * Class InstitutionValidator
@@ -46,11 +47,16 @@ class InstitutionValidator{
             $row = $SQLStatement->fetch(PDO::FETCH_OBJ);
 
             if($row == null){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INST_NOT_FOUND"))
+                    ->send();
+                /*
                 $response = CommonEndPointLogic::GetFailureResponseStatus("INST_NOT_FOUND");
 
                 echo json_encode($response), PHP_EOL;
                 http_response_code(StatusCodes::OK);
                 die();
+                */
             }
 
             self::getLastValidatedInstitution()->institutionID = $row->ID;
@@ -58,11 +64,16 @@ class InstitutionValidator{
             DatabaseManager::Disconnect();
         }
         catch(Exception $databaseException){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            /*
             $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
             echo json_encode($response), PHP_EOL;
             http_response_code(StatusCodes::OK);
             die();
+            */
         }
     }
 
@@ -109,5 +120,3 @@ class InstitutionValidator{
     ";
 
 }
-
-?>

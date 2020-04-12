@@ -10,6 +10,7 @@
     require_once(ROOT . "/Utility/StatusCodes.php");
     require_once(ROOT . "/Utility/SuccessStates.php");
     require_once(ROOT . "/Utility/DatabaseManager.php");
+    require_once(ROOT . "/Utility/ResponseHandler.php");
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
@@ -24,11 +25,16 @@
     $newsfeedPostTags = json_decode($newsfeedPostTagsJSON);
 
     if ($email == null || $hashedPassword == null) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+            ->send(StatusCodes::BAD_REQUEST);
+        /*
         $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL");
 
         echo json_encode($failureResponseStatus), PHP_EOL;
         http_response_code(StatusCodes::BAD_REQUEST);
         die();
+        */
     }
 
     CommonEndPointLogic::ValidateAdministrator($email, $hashedPassword);
@@ -41,6 +47,10 @@
 
     $newsfeedPostRow = $getPostStatement->fetch(PDO::FETCH_OBJ);
     if ($newsfeedPostRow == null) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("POST_NOT_FOUND"))
+            ->send();
+        /*
         $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("POST_NOT_FOUND");
 
         DatabaseManager::Disconnect();
@@ -48,6 +58,7 @@
         echo json_encode($failureResponseStatus), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
     $newsfeedPostID = $newsfeedPostRow->ID;
@@ -80,13 +91,18 @@
     }
 
     if ($newsfeedPostTags == null) {
+        DatabaseManager::Disconnect();
+
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+            ->send();
+        /*
         $successResponseStatus = CommonEndPointLogic::GetSuccessResponseStatus();
 
-        DatabaseManager::Disconnect();
 
         echo json_encode($successResponseStatus), PHP_EOL;
         http_response_code(StatusCodes::OK);
-        die();
+        die();*/
     }
 
     DatabaseManager::Disconnect();
@@ -97,8 +113,15 @@
 
     NewsfeedTagLinker::AssociatePostWithTags($newsfeedPostID, $newsfeedPostTags, $newsfeedPostTagsID);
 
+
+    ResponseHandler::getInstance()
+        ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+        ->send();
+
+    /*
     $successResponseStatus = CommonEndPointLogic::GetSuccessResponseStatus();
 
     echo json_encode($successResponseStatus), PHP_EOL;
     http_response_code(StatusCodes::OK);
+    */
 

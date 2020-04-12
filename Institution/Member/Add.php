@@ -8,6 +8,7 @@
     require_once(ROOT . "/Utility/UserValidation.php");
     require_once(ROOT . "/Utility/StatusCodes.php");
     require_once(ROOT . "/Utility/SuccessStates.php");
+    require_once(ROOT . "/Utility/ResponseHandler.php");
 
     require_once(ROOT . "/Institution/Role/Utility/InstitutionActions.php");
     require_once(ROOT . "/Institution/Role/Utility/InstitutionRoles.php");
@@ -21,11 +22,16 @@
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
     if ($email == null || $hashedPassword == null || $institutionName == null || $userIdentifier == null || $roleName == null) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
+            ->send(StatusCodes::BAD_REQUEST);
+        /*
         $failureResponse = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
 
         echo json_encode($failureResponse), PHP_EOL;
         http_response_code(StatusCodes::BAD_REQUEST);
         die();
+        */
     }
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
@@ -34,19 +40,29 @@
         $userCanAddMembers = InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::ADD_MEMBERS);
     }
     catch (InstitutionRolesInvalidAction $e) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_ACTION"))
+            ->send();
+        /*
         $failureResponse = CommonEndPointLogic::GetFailureResponseStatus("INVALID_ACTION");
 
         echo json_encode($failureResponse), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
     if (!$userCanAddMembers) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION"))
+            ->send();
+        /*
         $failureResponse = CommonEndPointLogic::GetFailureResponseStatus("NOT_ENOUGH_RIGHTS");
 
         echo json_encode($failureResponse), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
     /**
@@ -95,6 +111,12 @@
 
     InstitutionRoles::addAndAssignMemberToInstitution($userIdentifier, $institutionName, $roleName);
 
+    ResponseHandler::getInstance()
+        ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+        ->send();
+
+    /*
     $successResponse = CommonEndPointLogic::GetSuccessResponseStatus();
     echo json_encode($successResponse);
     http_response_code(StatusCodes::OK);
+    */

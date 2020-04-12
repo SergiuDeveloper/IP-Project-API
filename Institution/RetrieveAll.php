@@ -8,6 +8,7 @@
     require_once(ROOT . "/Utility/UserValidation.php");
     require_once(ROOT . "/Utility/StatusCodes.php");
     require_once(ROOT . "/Utility/SuccessStates.php");
+    require_once(ROOT . "/Utility/ResponseHandler.php");
 
     require_once("Role/Utility/InstitutionRoles.php");
     require_once("Utility/InstitutionCreation.php");
@@ -26,11 +27,16 @@
         $hashedPassword         == null ||
         $institutionsPerPage    == null
     ){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
+            ->send(StatusCodes::BAD_REQUEST);
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
 
         echo json_encode($response), PHP_EOL;
         http_response_code(StatusCodes::BAD_REQUEST);
         die();
+        */
     }
 
     if($orderByAsc == 0 || $orderByAsc == false || $orderByAsc == '0' || $orderByAsc == 'false'){
@@ -71,15 +77,31 @@
         DatabaseManager::Disconnect();
     }
     catch(Exception $exception){
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
         echo json_encode($response), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
+    try {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+            ->addResponseData("institutions", $institutionsArray)
+            ->send();
+    }
+    catch (Exception $exception) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
+            ->send(500);
+    }
+
+/*
     $response = CommonEndPointLogic::GetSuccessResponseStatus();
 
     echo json_encode($response), PHP_EOL;
     echo json_encode($institutionsArray), PHP_EOL;
     http_response_code(StatusCodes::OK);
+*/

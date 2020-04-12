@@ -7,6 +7,7 @@
     require_once(ROOT . "/Utility/DatabaseManager.php");
     require_once(ROOT . "/Utility/CommonEndPointLogic.php");
     require_once(ROOT . "/Utility/StatusCodes.php");
+    require_once(ROOT . "/Utility/ResponseHandler.php");
 
     class NewsfeedTagLinker{
         
@@ -43,11 +44,17 @@
                 return $tagsIDArray;
             }
             catch(Exception $exception){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                    ->send();
+                /*
                     $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
                     echo json_encode($response), PHP_EOL;
                     http_response_code(StatusCodes::OK);
                     die();
+                */
+                die();
             }
         }
 
@@ -67,11 +74,16 @@
                 DatabaseManager::Disconnect();
             }
             catch(Exception $exception){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                    ->send();
+                /*
                 $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
                 echo json_encode($response), PHP_EOL;
                 http_response_code(StatusCodes::OK);
                 die();
+                */
             }
         }
 
@@ -86,11 +98,16 @@
                 DatabaseManager::Disconnect();
             }
             catch(Exception $exception){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                    ->send();
+                /*
                 $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
                 echo json_encode($response), PHP_EOL;
                 http_response_code(StatusCodes::OK);
                 die();
+                 */
             }
         }
 

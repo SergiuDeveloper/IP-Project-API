@@ -8,6 +8,7 @@
     require_once(ROOT . "/Utility/DatabaseManager.php");
     require_once(ROOT . "/Utility/CommonEndPointLogic.php");
     require_once(ROOT . "/Utility/StatusCodes.php");
+    require_once(ROOT . "/Utility/ResponseHandler.php");
 
     class NewsfeedCreation{
         
@@ -22,6 +23,10 @@
                 $newsfeedIDsRow = $SQLStatement->fetch(PDO::FETCH_OBJ);
 
                 if ($newsfeedIDsRow != null) {
+                    ResponseHandler::getInstance()
+                        ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("POST_DUPLICATE"))
+                        ->send();
+                    /*
                     $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("POST_DUPLICATE");
 
                     DatabaseManager::Disconnect();
@@ -29,6 +34,7 @@
                     echo json_encode($failureResponseStatus);
                     http_response_code(StatusCodes::OK);
                     die();
+                    */
                 }
 
                 DatabaseManager::Disconnect();
@@ -36,41 +42,73 @@
                 return NewsfeedTagLinker::createMissingTagsAndGetPostTagsID($tagsArray);
             }
             catch (Exception $exception){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                    ->send();
+                /*
                 $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
                 echo json_encode($response), PHP_EOL;
                 http_response_code(StatusCodes::OK);
                 die();
+                */
+                die();
             }
         }
 
         public static function CreatePostIntoDatabase($postTitle, $postURL, $postContent){
+            try {
+                DatabaseManager::Connect();
 
-            DatabaseManager::Connect();
+                $SQLStatement = DatabaseManager::PrepareStatement(NewsfeedCreation::$insertPostIntoDatabase);
+                $SQLStatement->bindParam(":title", $postTitle);
+                $SQLStatement->bindParam(":content", $postContent);
+                $SQLStatement->bindParam(":url", $postURL);
+                $SQLStatement->execute();
 
-            $SQLStatement = DatabaseManager::PrepareStatement(NewsfeedCreation::$insertPostIntoDatabase);
-            $SQLStatement->bindParam(":title", $postTitle);
-            $SQLStatement->bindParam(":content", $postContent);
-            $SQLStatement->bindParam(":url", $postURL);
-            $SQLStatement->execute();
+                DatabaseManager::Disconnect();
+            }
+            catch (Exception $exception){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                    ->send();
+                /*
+                $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
-            DatabaseManager::Disconnect();
-
+                echo json_encode($response), PHP_EOL;
+                http_response_code(StatusCodes::OK);
+                die();
+                */
+                die();
+            }
         }
 
         public static function AssociatePostWithTags($postTitle, $postTagsArray, $postTagsArrayID){
-            
-            DatabaseManager::Connect();
+            try {
+                DatabaseManager::Connect();
 
-            $SQLStatement = DatabaseManager::PrepareStatement(NewsfeedCreation::$getPostByNameFromDatabaseStatement);
-            $SQLStatement->bindParam(":title", $postTitle);
-            $SQLStatement->execute();
-            $postIDRow = $SQLStatement->fetch(PDO::FETCH_OBJ);
+                $SQLStatement = DatabaseManager::PrepareStatement(NewsfeedCreation::$getPostByNameFromDatabaseStatement);
+                $SQLStatement->bindParam(":title", $postTitle);
+                $SQLStatement->execute();
+                $postIDRow = $SQLStatement->fetch(PDO::FETCH_OBJ);
 
-            DatabaseManager::Disconnect();
+                DatabaseManager::Disconnect();
 
-            NewsfeedTagLinker::AssociatePostWithTags($postIDRow->ID, $postTagsArray, $postTagsArrayID);
+                NewsfeedTagLinker::AssociatePostWithTags($postIDRow->ID, $postTagsArray, $postTagsArrayID);
+            }
+            catch (Exception $exception){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                    ->send();
+                /*
+                $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
+                echo json_encode($response), PHP_EOL;
+                http_response_code(StatusCodes::OK);
+                die();
+                */
+                die();
+            }
         }
 
         private static $insertPostIntoDatabase = "

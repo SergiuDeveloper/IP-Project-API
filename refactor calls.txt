@@ -1,9 +1,5 @@
 rootpath = http://localhost/build-noUsername
 
-OR
-
-rootpath = https://fiscaldocumentseditest.azurewebsites.net
-
 Login (POST)  : 
 	link  : rootpath/Account/Login.php
 	param : email=nihiwo9844@mailboxt.com&hashedPassword=test

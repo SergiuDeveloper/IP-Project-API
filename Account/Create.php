@@ -8,6 +8,7 @@
     require_once(ROOT . "/Utility/UserValidation.php");
     require_once(ROOT . "/Utility/StatusCodes.php");
     require_once(ROOT . "/Utility/SuccessStates.php");
+    require_once(ROOT . "/Utility/ResponseHandler.php");
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
@@ -17,11 +18,16 @@
     $lastName       = $_POST["lastName"];
 
     if ($hashedPassword == null || $email == null ||  $firstName == null || $lastName == null) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+            ->send(StatusCodes::BAD_REQUEST);
+        /*
         $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDETIAL");
 
         echo json_encode($failureResponseStatus), PHP_EOL;
         http_response_code(StatusCodes::BAD_REQUEST);
         die();
+        */
     }
 
     /**
@@ -83,6 +89,10 @@
     $userRow = $getEmailStatement->fetch();
 
     if($userRow != null) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("EMAIL_ALREADY_EXISTS"))
+            ->send();
+        /*
         $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("EMAIL_ALREADY_EXISTS");
 
         DatabaseManager::Disconnect();
@@ -90,12 +100,17 @@
         echo json_encode($failureResponseStatus), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
     $hashedPassword = password_hash($hashedPassword, PASSWORD_BCRYPT);
 
-    $insertUserStatement = DatabaseManager::PrepareStatement("INSERT INTO Users(hashed_password, email, first_name, last_name, is_active, datetime_created, datetime_modified) VALUES 
-    (:hashedPassword, :email, :firstName, :lastName, false, sysdate(), sysdate())");
+    $insertUserStatement = DatabaseManager::PrepareStatement("
+        INSERT INTO Users
+            (hashed_password, email, first_name, last_name, is_active, datetime_created, datetime_modified) 
+        VALUES 
+            (:hashedPassword, :email, :firstName, :lastName, false, sysdate(), sysdate()
+    ");
 
     $insertUserStatement->bindParam(":hashedPassword", $hashedPassword);
     $insertUserStatement->bindParam(":email", $email);
@@ -109,6 +124,10 @@
     $userRow = $getIDStatement->fetch(PDO::FETCH_OBJ);
 
     if($userRow == null) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSERT_FAILURE"))
+            ->send();
+        /*
         $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("INSERT_FAILURE");
 
         DatabaseManager::Disconnect();
@@ -116,6 +135,7 @@
         echo json_encode($failureResponseStatus), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
     $userID = $userRow->ID;
@@ -129,6 +149,10 @@
         $insertKeyStatement->execute();
     }
     catch(Exception $exception){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSERT_FAILURE"))
+            ->send();
+        /*
         $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("KEY_INSERT_FAILURE");
 
         DatabaseManager::Disconnect();
@@ -136,13 +160,20 @@
         echo json_encode($failureResponseStatus), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
     CommonEndPointLogic::SendEmail($email, "Fiscal Documents EDI Activation Key", $userActivationKey);
 
-    $successResponseStatus = CommonEndPointLogic::GetSuccessResponseStatus();
-
     DatabaseManager::Disconnect();
+
+    ResponseHandler::getInstance()
+        ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+        ->send();
+
+    /*
+    $successResponseStatus = CommonEndPointLogic::GetSuccessResponseStatus();
 
     echo json_encode($successResponseStatus), PHP_EOL;
     http_response_code(StatusCodes::OK);
+    */

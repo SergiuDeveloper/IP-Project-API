@@ -8,6 +8,7 @@ require_once (ROOT . '/Utility/DatabaseManager.php');
 require_once (ROOT . '/Utility/StatusCodes.php');
 require_once (ROOT . '/Utility/SuccessStates.php');
 require_once (ROOT . '/Utility/UserValidation.php');
+require_once(ROOT . "/Utility/ResponseHandler.php");
 
 /**
  * Class containing common operations used in the API endpoints
@@ -36,11 +37,17 @@ class CommonEndPointLogic {
         if ($_SERVER["REQUEST_METHOD"] == $requestType)
             return;
 
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("BAD_REQUEST_TYPE"))
+            ->send(StatusCodes::BAD_REQUEST);
+
+        /*
         $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("BAD_REQUEST_TYPE");
 
         echo json_encode($failureResponseStatus), PHP_EOL;
         http_response_code(StatusCodes::BAD_REQUEST);
         die();
+        */
     }
 
     /**
@@ -78,9 +85,15 @@ class CommonEndPointLogic {
         if (!$stopExecution)
             return;
 
+        ResponseHandler::getInstance()
+            ->setResponseHeader($responseStatus)
+            ->send();
+
+        /*
         echo json_encode($responseStatus), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
     /**
@@ -104,10 +117,15 @@ class CommonEndPointLogic {
         if ($administratorRow != null)
             return;
 
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NOT_ADMIN"))
+            ->send();
+        /*
         $responseStatus = CommonEndPointLogic::GetFailureResponseStatus("NOT_ADMIN");
         echo json_encode($responseStatus), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
     /**
@@ -150,10 +168,15 @@ class CommonEndPointLogic {
         if ($azureEmailAPIResponse->message == "success")
             return;
 
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("CONFIRMATION_EMAIL_SEND_FAILURE"))
+            ->send();
+        /*
         $responseStatus = CommonEndPointLogic::GetFailureResponseStatus("CONFIRMATION_EMAIL_SEND_FAILURE");
         echo json_encode($responseStatus), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
     /**
@@ -200,5 +223,3 @@ class CommonEndPointLogic {
         SELECT * FROM Administrators WHERE Users_ID = (SELECT ID FROM Users WHERE Email = :email)
     ";
 }
-
-?>

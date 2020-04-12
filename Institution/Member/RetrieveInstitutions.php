@@ -8,6 +8,7 @@
     require_once(ROOT . "/Utility/UserValidation.php");
     require_once(ROOT . "/Utility/StatusCodes.php");
     require_once(ROOT . "/Utility/SuccessStates.php");
+    require_once(ROOT . "/Utility/ResponseHandler.php");
 
     require_once(ROOT . "/Institution/Role/Utility/InstitutionActions.php");
     require_once(ROOT . "/Institution/Role/Utility/InstitutionRoles.php");
@@ -21,11 +22,16 @@
         $email       == null ||
         $hashedPassword == null
     ){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
+            ->send(StatusCodes::BAD_REQUEST);
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
 
         echo json_encode($response), PHP_EOL;
         http_response_code(StatusCodes::BAD_REQUEST);
         die();
+        */
     }
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
@@ -57,17 +63,36 @@
         DatabaseManager::Disconnect();
     }
     catch(Exception $exception){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+            ->send();
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
 
         echo json_encode($response), PHP_EOL;
         http_response_code(StatusCodes::BAD_REQUEST);
         die();
+        */
     }
 
+    try {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+            ->addResponseData("institution", $institutionRolesArray)
+            ->send();
+    }
+    catch (Exception $exception){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
+            ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+    }
+
+    /*
     $response = CommonEndPointLogic::GetSuccessResponseStatus();
     echo json_encode($response),PHP_EOL;
     echo json_encode($institutionRolesArray), PHP_EOL;
     http_response_code(StatusCodes::OK);
+    */
 
     class InstitutionRole {
         public $institutionName;

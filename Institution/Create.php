@@ -8,6 +8,7 @@
     require_once(ROOT . "/Utility/UserValidation.php");
     require_once(ROOT . "/Utility/StatusCodes.php");
     require_once(ROOT . "/Utility/SuccessStates.php");
+    require_once(ROOT . "/Utility/ResponseHandler.php");
 
     require_once("Role/Utility/InstitutionRoles.php");
     require_once("Utility/InstitutionCreation.php ");
@@ -25,29 +26,44 @@
         $institutionName    == null ||
         $institutionAddress == null
     ){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
+            ->send(StatusCodes::BAD_REQUEST);
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
 
         echo json_encode($response), PHP_EOL;
         http_response_code(StatusCodes::BAD_REQUEST);
         die();
+        */
     }
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
     if( InstitutionCreation::checkForInstitutionDuplicate($institutionName) == false ){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DUPLICATE_INSTITUTION"))
+            ->send();
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("DUPLICATE_INSTITUTION");
 
         echo json_encode($response), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
     if( InstitutionCreation::checkAddressValidity($institutionAddress) == false ){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ADDRESS_INVALID"))
+            ->send();
+        /*
         $response = CommonEndPointLogic::GetFailureResponseStatus("ADDRESS_INVALID");
 
         echo json_encode($response), PHP_EOL;
         http_response_code(StatusCodes::OK);
         die();
+        */
     }
 
     $addressID = InstitutionCreation::insertAddressIntoDatabase($institutionAddress);
@@ -80,9 +96,13 @@
 
     InstitutionRoles::addAndAssignMemberToInstitution($email, $institutionName, 'Manager');
 
+    ResponseHandler::getInstance()
+        ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+        ->send();
+
+    /*
     $response = CommonEndPointLogic::GetSuccessResponseStatus();
 
     echo json_encode($response), PHP_EOL;
     http_response_code(StatusCodes::OK);
-
-?>
+    */
