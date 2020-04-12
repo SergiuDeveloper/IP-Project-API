@@ -319,3 +319,45 @@ CREATE TABLE Invoices (
 	Value			INT				NOT NULL,
 	Cloud_File_ID	INT					NULL					REFERENCES Cloud_Files.ID
 );
+
+DROP TABLE IF EXISTS Notification_Types;
+CREATE TABLE Notification_Types (
+	ID				INT							PRIMARY KEY		AUTO_INCREMENT,
+    Name			VARCHAR(64)		NOT NULL,
+    Default_Title	VARCHAR(64)			NULL,
+    Default_Content	VARCHAR(256)		NULL,
+    
+    UNIQUE KEY (
+		Name,
+        Default_Title,
+        Default_Content
+	)
+);
+
+DROP TABLE IF EXISTS Notifications;
+CREATE TABLE Notifications (
+	ID						INT							PRIMARY KEY		AUTO_INCREMENT,
+    Institution_ID			INT				NOT NULL					REFERENCES Institutions.ID,
+    Notification_Types_ID	INT 			NOT NULL					REFERENCES Notification_Types.ID,
+    Title					VARCHAR(64)			NULL,
+    Content					VARCHAR(256)		NULL,
+    
+    UNIQUE KEY (
+		Institution_ID,
+        Notification_Types_ID,
+        Title,
+        Content
+    )
+);
+
+DROP TABLE IF EXISTS Notification_Subscriptions;
+CREATE TABLE Notification_Subscriptions (
+	ID					INT		PRIMARY KEY		AUTO_INCREMENT,
+    User_ID				INT		NOT NULL		REFERENCES Users.ID,
+    Notification_ID		INT		NOT NULL		REFERENCES Notifications.ID,
+    
+    UNIQUE KEY (
+		User_ID,
+        Notification_ID
+    )
+);
