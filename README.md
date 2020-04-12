@@ -1,11 +1,7 @@
-## refactor
+# Call examples are in 'refactor calls.txt'
 
-## username removal
+## Removed Username
 
-### Review Required
-### Teams Notify Required
-### Teams Approval Required
-### Deployment
-### Delete Username from DB
+## Services Deployed
 
-Call examples are in 'refactor calls.txt'
+## ResponseHandler!
