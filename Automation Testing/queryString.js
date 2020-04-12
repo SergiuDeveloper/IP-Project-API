@@ -1,0 +1,1 @@
+querystring.stringify({ foo: 'bar', baz: ['qux', 'quux'], corge: '' });
