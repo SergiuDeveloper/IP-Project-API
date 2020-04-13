@@ -4,10 +4,13 @@
     Database management class(connection, disconnection, statement preparing)
 */
 class DatabaseManager {
-    private static $ServerName = "sergiu-mysql-server.mysql.database.azure.com";
-    private static $SchemaName = "Fiscal_Documents_EDI_Test";
-    private static $Username = "Fiscal_Documents_EDI_User@sergiu-mysql-server";
-    private static $Password = "Fiscal_Documents_EDI_Password";
+    private static $URL;
+    private static $Username;
+    private static $Password;
+    private static $Schema;
+
+    private static $credentialsJSONFilePath = "./../Sensitive/Database.json";
+    private static $credentialsBinded = false;
 
     /**
      * Used by PhpStorm to identify PDO methods
@@ -23,10 +26,13 @@ class DatabaseManager {
         if (DatabaseManager::$connectionActive)
             return false;
 
+        if (!DatabaseManager::$credentialsBinded)
+            DatabaseManager::BindCredentials();
+
         $connectionString = sprintf(
             "mysql:host=%s;dbname=%s;",
-            DatabaseManager::$ServerName,
-            DatabaseManager::$SchemaName
+            DatabaseManager::$URL,
+            DatabaseManager::$Schema
         );
 
         try {
@@ -66,5 +72,31 @@ class DatabaseManager {
             return null;
 
         return DatabaseManager::$pdoDatabaseConnection->prepare($preparedStatementQuery);
+    }
+
+    /**
+     *  Binds the database credentials from the JSON file
+     */
+    private static function BindCredentials() {
+        $jsonFileContent = file_get_contents(DatabaseManager::$credentialsJSONFilePath);
+
+        if ($jsonFileContent === false)
+            throw new Exception("Could not get Database Credentials JSON file content!");
+
+        $dbCredentialsJSON = json_decode($jsonFileContent, true);
+        if ($dbCredentialsJSON === null)
+            throw new Exception("Database Credentials JSON syntax error!");
+
+        $dbCredentialsJSON = $dbCredentialsJSON["Connection"];
+        if ($dbCredentialsJSON === null)
+            throw new Exception("Bad Database Credentials JSON object format");
+        DatabaseManager::$URL =         $dbCredentialsJSON["URL"];
+        DatabaseManager::$Username =    $dbCredentialsJSON["Username"];
+        DatabaseManager::$Password =    $dbCredentialsJSON["Password"];
+        DatabaseManager::$Schema =      $dbCredentialsJSON["Schema"];
+        if (DatabaseManager::$URL === null || DatabaseManager::$Username === null || DatabaseManager::$Password === null || DatabaseManager::$Schema === null)
+            throw new Exception("Bad Database Credentials JSON object format");
+
+        DatabaseManager::$credentialsBinded = true;
     }
 }

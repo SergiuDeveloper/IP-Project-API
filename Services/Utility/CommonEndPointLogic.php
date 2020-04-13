@@ -135,23 +135,23 @@ class CommonEndPointLogic {
      * @return                  void    Sends an email. On failure, stop execution and log
      */
     public static function SendEmail($receiver, $subject, $activationKey) {
-        $url = "https://api.sendgrid.com/api/mail.send.json";
-        $emailUser = "azure_0a4e0665ba1ddbf27cff9409f952abb8@azure.com";
-        $emailPassword = "FiscalDocsEDI123";
+        if (!CommonEndPointLogic::$sendGridCredentialsBinded)
+            CommonEndPointLogic::BindSendGridCredentials();
+
         $content = CommonEndPointLogic::composeEmailBody($activationKey);
 
         $requestParameters = array(
-            "api_user" => $emailUser,
-            "api_key"  => $emailPassword,
+            "api_user" => CommonEndPointLogic::$sendGridURL,
+            "api_key"  => CommonEndPointLogic::$sendGridPassword,
             "to"       => $receiver,
             "subject"  => $subject,
             "html"     => $content,
             "text"     => $content,
-            "from"     => "azure_0a4e0665ba1ddbf27cff9409f952abb8@azure.com",
-            "fromname" => "Fiscal Documents EDI"
+            "from"     => CommonEndPointLogic::$sendGridUsername,
+            "fromname" => CommonEndPointLogic::$sendGridNickname
         );
        
-        $curlSession = curl_init($url);
+        $curlSession = curl_init(CommonEndPointLogic::$sendGridURL);
        
         curl_setopt($curlSession, CURLOPT_POST, true);
         curl_setopt($curlSession, CURLOPT_POSTFIELDS, $requestParameters);
@@ -206,6 +206,29 @@ class CommonEndPointLogic {
         ];
     }
 
+    private static function BindSendGridCredentials() {
+        $jsonFileContent = file_get_contents(CommonEndPointLogic::$sendGridJSONFilePath);
+
+        if ($jsonFileContent === false)
+            throw new Exception("Could not get SendGrid Credentials JSON file content!");
+
+        $dbCredentialsJSON = json_decode($jsonFileContent, true);
+        if ($dbCredentialsJSON === null)
+            throw new Exception("SendGrid Credentials JSON syntax error!");
+
+        $dbCredentialsJSON = $dbCredentialsJSON["EmailCredentials"];
+        if ($dbCredentialsJSON === null)
+            throw new Exception("Bad SendGrid Credentials JSON object format");
+        CommonEndPointLogic::$sendGridURL =         $dbCredentialsJSON["URL"];
+        CommonEndPointLogic::$sendGridUsername =    $dbCredentialsJSON["Username"];
+        CommonEndPointLogic::$sendGridPassword =    $dbCredentialsJSON["Password"];
+        CommonEndPointLogic::$sendGridNickname =    $dbCredentialsJSON["Nickname"];
+        if (CommonEndPointLogic::$sendGridURL === null || CommonEndPointLogic::$sendGridUsername === null || CommonEndPointLogic::$sendGridPassword === null || CommonEndPointLogic::$sendGridNickname === null)
+            throw new Exception("Bad SendGrid Credentials JSON object format");
+
+        CommonEndPointLogic::$sendGridCredentialsBinded = true;
+    }
+
     /**
      * @param $activationKey    string  The key to be inserted into the email link
      * @return                  string  The full email content string, with markdown encoding
@@ -222,4 +245,11 @@ class CommonEndPointLogic {
     private static $getAllAdministratorInfoStatement = "
         SELECT * FROM Administrators WHERE Users_ID = (SELECT ID FROM Users WHERE Email = :email)
     ";
+
+    private static $sendGridURL;
+    private static $sendGridUsername;
+    private static $sendGridPassword;
+    private static $sendGridNickname;
+    private static $sendGridJSONFilePath = "./../Sensitive/SendGrid.json";
+    private static $sendGridCredentialsBinded = false;
 }
