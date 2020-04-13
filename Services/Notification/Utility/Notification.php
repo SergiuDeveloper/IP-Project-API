@@ -97,6 +97,97 @@ class Notification
 
         $insertStatement->execute();
     }
+
+    public function changeSubscriptionStatusForUser($receiveMemberID, $isActive)
+    {
+        DatabaseManager::Connect();
+
+        if ($isActive == false)
+        {
+            $unsubscribeStatement = DatabaseManager::PrepareStatement(
+                "DELETE FROM notification_subscriptions WHERE User_ID = :receiveMemberID"
+            );
+
+            $unsubscribeStatement->bindParam(":receiveMemberID", $receiveMemberID);
+
+            $unsubscribeStatement->execute();
+        }
+        else if ($isActive == true)
+        {
+            $insertStatement = DatabaseManager::PrepareStatement(
+                "INSERT INTO notification_subscriptions (User_ID, Notification_ID)
+                 VALUES
+                 (:userID, :notificationID)"
+            );
+
+            $insertStatement->bindParam(":userID", $receiveMemberID);
+            $insertStatement->bindParam(":notificationID", $this->notificationID);
+
+            $insertStatement->execute();
+        }
+
+        DatabaseManager::Disconnect();
+    }
+
+    public static function findNotificationsByReceiver($receiveMemberID)
+    {
+        $notificationList = array();
+
+        DatabaseManager::Connect();
+
+        $getNotificationsStatement = DatabaseManager::PrepareStatement(
+            "SELECT * FROM notifications n JOIN notification_subscriptions m WHERE m.User_ID = :receiveMember AND n.ID = m.Notification_ID"
+        );
+
+        $getNotificationsStatement->bindParam(":receiveMember", $receiveMemberID);
+
+        $getNotificationsStatement->execute();
+
+        $notificationFromSql = $getNotificationsStatement->fetch(PDO_OBJECT);
+
+        foreach ($notificationFromSql as $notification)
+        {
+            array_push($notificationList, new Notification().__construct($notification["Notification_Types_ID"],
+                                                                                       $notification["Institution_ID"], $notification["Title"],
+                                                                                        $notification["Content"], $notification["Sender_User_ID"]));
+        }
+
+        DatabaseManager::Disconnect();
+
+        return $notificationList;
+    }
+
+    public static function findNotificationsByReceivers($receiveMembersID)
+    {
+        $notificationList = array();
+
+        DatabaseManager::Connect();
+
+        foreach ($receiveMembersID as $receiveMemberID)
+        {
+            $getNotificationsStatement = DatabaseManager::PrepareStatement(
+                "SELECT * FROM notifications n JOIN notification_subscriptions m WHERE m.User_ID = :receiveMember AND n.ID = m.Notification_ID"
+            );
+
+            $getNotificationsStatement->bindParam(":receiveMember", $receiveMemberID);
+
+            $getNotificationsStatement->execute();
+
+            $notificationFromSql = $getNotificationsStatement->fetch(PDO_OBJECT);
+
+            foreach ($notificationFromSql as $notification)
+            {
+                array_push($notificationList, new Notification().__construct($notification["Notification_Types_ID"],
+                        $notification["Institution_ID"], $notification["Title"],
+                        $notification["Content"], $notification["Sender_User_ID"]));
+            }
+        }
+
+        DatabaseManager::Disconnect();
+
+        return $notificationList;
+    }
+
 }
 
 
