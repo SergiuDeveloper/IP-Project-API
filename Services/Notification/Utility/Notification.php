@@ -3,13 +3,19 @@
 
 class Notification
 {
+
+    private $notificationID;
+    private $notificationTypeID;
     private $notificationType;
     private $institutionID;
     private $title;
     private $content;
     private $senderID;
     private $receiverMembers;
-    private $notificationTypeID;
+
+    public static function getNotificationTypeID($notificationType){
+
+    }
 
     public function __construct($notificationType, $institutionID, $title = null, $content = null, $senderID = null, $receiverMembers = null) {
         $this->notificationType = $notificationType;
