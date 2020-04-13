@@ -341,6 +341,7 @@ CREATE TABLE Notifications (
     Notification_Types_ID	INT 			NOT NULL					REFERENCES Notification_Types.ID,
     Title					VARCHAR(64)			NULL,
     Content					VARCHAR(256)		NULL,
+    Sender_User_ID			INT					NULL					REFERENCES Users.ID,
     
     UNIQUE KEY (
 		Institution_ID,
