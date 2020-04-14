@@ -1,5 +1,13 @@
 <?php
 
+if(!defined('ROOT')){
+    define('ROOT', dirname(__FILE__) . "/../..");
+}
+
+require_once (ROOT . "/Utility/DatabaseManager.php");
+require_once (ROOT . "/Utility/ResponseHandler.php");
+require_once (ROOT . "/Utility/StatusCodes.php");
+require_once (ROOT . "/Utility/CommonEndPointLogic.php");
 
 class Notification
 {
@@ -12,21 +20,10 @@ class Notification
     private $senderID;
     private $receiverMembers;
 
-    public static function getNotificationTypeID($notificationType){
-
-    }
-
-    public function __construct($notificationType, $institutionID, $title = null, $content = null, $senderID = null, $receiverMembers = null) {
-        $this->notificationType = $notificationType;
-        $this->institutionID = $institutionID;
-        $this->title = $title;
-        $this->content = $content;
-        $this->senderID = $senderID;
-        $this->receiverMembers = $receiverMembers;
-    }
-
     public function setNotificationType($notificationType) {
         $this->notificationType = $notificationType;
+
+        $this->notificationTypeID = self::getNotificationTypeID($this->notificationType);
     }
 
     public function setInstitutionID($institutionID) {
@@ -81,111 +78,201 @@ class Notification
         return $this->receiverMembers;
     }
 
-    public function insertIntoDB() {
-        DatabaseManager::Connect();
+    public static function getNotificationTypeID($notificationType){
+        try{
+            DatabaseManager::Connect();
 
-        $insertStatement = DatabaseManager::PrepareStatement(
-            "INSERT INTO notifications (Institution_ID, Notification_Types_ID, Title, Content) 
+            $statement = DatabaseManager::PrepareStatement(self::$insertIntoNotificationTypesStatement);
+            $statement->bindParam(":name", $notificationType);
+            $statement->execute();
+
+            $statement = DatabaseManager::PrepareStatement(self::$getNotificationTypeIDByNameStatement);
+            $statement->bindParam(":name", $notificationType);
+            $statement->execute();
+
+            $IDRow = $statement->fetch(PDO::FETCH_OBJ);
+
+            DatabaseManager::Disconnect();
+
+            return $IDRow->ID;
+        }
+        catch(Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+
+            die();
+        }
+    }
+
+    public function __construct($notificationType, $institutionID, $title = null, $content = null, $senderID = null, $receiverMembers = null) {
+        $this->notificationType = $notificationType;
+        $this->institutionID = $institutionID;
+        $this->title = $title;
+        $this->content = $content;
+        $this->senderID = $senderID;
+        $this->receiverMembers = $receiverMembers;
+    }
+
+    public function insertIntoDB() {
+
+        if ($this->notificationTypeID == null) {
+            $this->notificationTypeID = self::getNotificationTypeID($this->notificationType);
+        }
+
+        try {
+            DatabaseManager::Connect();
+
+            $insertStatement = DatabaseManager::PrepareStatement(
+                "INSERT INTO notifications (Institution_ID, Notification_Types_ID, Title, Content) 
             VALUES 
             (:institutionID, :notification_types_ID, :title, :content)");
 
-        $insertStatement->bindParam(":institutionID", $this->institutionID);
-        $insertStatement->bindParam(":notification_types_ID", $this->notificationTypeID);
-        $insertStatement->bindParam(":title", $this->title);
-        $insertStatement->bindParam(":content", $this->content);
+            $insertStatement->bindParam(":institutionID", $this->institutionID);
+            $insertStatement->bindParam(":notification_types_ID", $this->notificationTypeID);
+            $insertStatement->bindParam(":title", $this->title);
+            $insertStatement->bindParam(":content", $this->content);
 
-        $insertStatement->execute();
+            $insertStatement->execute();
+
+            DatabaseManager::Disconnect();
+        }
+        catch (Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+        }
     }
 
     public function changeSubscriptionStatusForUser($receiveMemberID, $isActive)
     {
-        DatabaseManager::Connect();
+        try {
+            DatabaseManager::Connect();
 
-        if ($isActive == false)
-        {
-            $unsubscribeStatement = DatabaseManager::PrepareStatement(
-                "DELETE FROM notification_subscriptions WHERE User_ID = :receiveMemberID"
-            );
+            if ($isActive == false) {
+                $unsubscribeStatement = DatabaseManager::PrepareStatement(
+                    "DELETE FROM notification_subscriptions WHERE User_ID = :receiveMemberID AND Notification_ID = :notificationID"
+                );
 
-            $unsubscribeStatement->bindParam(":receiveMemberID", $receiveMemberID);
+                $unsubscribeStatement->bindParam(":receiveMemberID", $receiveMemberID);
+                $unsubscribeStatement->bindParam(":notificationID", $this->notificationID);
 
-            $unsubscribeStatement->execute();
+                $unsubscribeStatement->execute();
+            } else if ($isActive == true) {
+                $insertStatement = DatabaseManager::PrepareStatement(
+                    "INSERT INTO notification_subscriptions (User_ID, Notification_ID)
+                                             VALUES
+                                             (:userID, :notificationID)"
+                );
+
+                $insertStatement->bindParam(":userID", $receiveMemberID);
+                $insertStatement->bindParam(":notificationID", $this->notificationID);
+
+                $insertStatement->execute();
+            }
+
+            DatabaseManager::Disconnect();
         }
-        else if ($isActive == true)
-        {
-            $insertStatement = DatabaseManager::PrepareStatement(
-                "INSERT INTO notification_subscriptions (User_ID, Notification_ID)
-                 VALUES
-                 (:userID, :notificationID)"
-            );
-
-            $insertStatement->bindParam(":userID", $receiveMemberID);
-            $insertStatement->bindParam(":notificationID", $this->notificationID);
-
-            $insertStatement->execute();
+        catch (Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
         }
-
-        DatabaseManager::Disconnect();
     }
 
-    public static function findNotificationsByReceiver($receiveMemberID)
+    public static function findNotificationsByReceiver($receiverMemberID)
     {
-        $notificationList = array();
+        try {
+            DatabaseManager::Connect();
 
-        DatabaseManager::Connect();
+            $notificationList = array();
 
-        $getNotificationsStatement = DatabaseManager::PrepareStatement(
-            "SELECT * FROM notifications n JOIN notification_subscriptions m WHERE m.User_ID = :receiveMember AND n.ID = m.Notification_ID"
-        );
+            $getNotificationsStatement = DatabaseManager::PrepareStatement(
+                "SELECT * FROM notifications n JOIN notification_subscriptions m
+                                            ON n.ID = m.Notification_ID
+                                            WHERE m.User_ID = :receiverMember"
+            );
 
-        $getNotificationsStatement->bindParam(":receiveMember", $receiveMemberID);
+            $getNotificationsStatement->bindParam(":receiverMember", $receiverMemberID);
 
-        $getNotificationsStatement->execute();
+            $getNotificationsStatement->execute();
 
-        $notificationFromSql = $getNotificationsStatement->fetch(PDO_OBJECT);
+            while ($notificationFromSql = $getNotificationsStatement->fetch(PDO::FETCH_OBJ)) {
+                array_push($notificationList, new Notification(
+                        $notificationFromSql->Name,
+                        $notificationFromSql->InstitutionID,
+                        $notificationFromSql->Title,
+                        $notificationFromSql->Content,
+                        $notificationFromSql->Sender_User_ID
+                    )
+                );
+            }
 
-        foreach ($notificationFromSql as $notification)
-        {
-            array_push($notificationList, new Notification().__construct($notification["Notification_Types_ID"],
-                                                                                       $notification["Institution_ID"], $notification["Title"],
-                                                                                        $notification["Content"], $notification["Sender_User_ID"]));
+            DatabaseManager::Disconnect();
+
+            return $notificationList;
         }
+        catch (Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
 
-        DatabaseManager::Disconnect();
-
-        return $notificationList;
+            die();
+        }
     }
 
     public static function findNotificationsByReceivers($receiveMembersID)
     {
-        $notificationList = array();
+        try {
+            DatabaseManager::Connect();
 
-        DatabaseManager::Connect();
+            $notificationList = array();
 
-        foreach ($receiveMembersID as $receiveMemberID)
-        {
-            $getNotificationsStatement = DatabaseManager::PrepareStatement(
-                "SELECT * FROM notifications n JOIN notification_subscriptions m WHERE m.User_ID = :receiveMember AND n.ID = m.Notification_ID"
-            );
+            foreach ($receiveMembersID as $receiveMemberID) {
+                $getNotificationsStatement = DatabaseManager::PrepareStatement(
+                    "SELECT * FROM notifications n JOIN notification_subscriptions m
+                                            ON n.ID = m.Notification_ID
+                                            WHERE m.User_ID = :receiveMember
+                                     "
+                );
 
-            $getNotificationsStatement->bindParam(":receiveMember", $receiveMemberID);
+                $getNotificationsStatement->bindParam(":receiveMember", $receiveMemberID);
 
-            $getNotificationsStatement->execute();
+                $getNotificationsStatement->execute();
 
-            $notificationFromSql = $getNotificationsStatement->fetch(PDO_OBJECT);
-
-            foreach ($notificationFromSql as $notification)
-            {
-                array_push($notificationList, new Notification().__construct($notification["Notification_Types_ID"],
-                        $notification["Institution_ID"], $notification["Title"],
-                        $notification["Content"], $notification["Sender_User_ID"]));
+                while ($notification = $getNotificationsStatement->fetch(PDO::FETCH_OBJ)) {
+                    array_push(
+                        $notificationList,
+                        new Notification(
+                            $notification->Name,
+                            $notification->Institution_ID,
+                            $notification->Title,
+                            $notification->Content,
+                            $notification->Sender_User_ID
+                        )
+                    );
+                }
             }
+
+            DatabaseManager::Disconnect();
+
+            return $notificationList;
         }
-
-        DatabaseManager::Disconnect();
-
-        return $notificationList;
+        catch (Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            die();
+        }
     }
+
+    private static $insertIntoNotificationTypesStatement = "
+        INSERT INTO notification_types (Name) VALUE (:name)
+    ";
+
+    private static $getNotificationTypeIDByNameStatement = "
+        SELECT ID FROM notification_types WHERE Name = :name
+    ";
 
 }
 
