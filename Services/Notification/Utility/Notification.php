@@ -3,7 +3,6 @@
 
 class Notification
 {
-
     private $notificationID;
     private $notificationTypeID;
     private $notificationType;

@@ -109,7 +109,7 @@
         INSERT INTO Users
             (hashed_password, email, first_name, last_name, is_active, datetime_created, datetime_modified) 
         VALUES 
-            (:hashedPassword, :email, :firstName, :lastName, false, sysdate(), sysdate()
+            (:hashedPassword, :email, :firstName, :lastName, false, sysdate(), sysdate())
     ");
 
     $insertUserStatement->bindParam(":hashedPassword", $hashedPassword);
