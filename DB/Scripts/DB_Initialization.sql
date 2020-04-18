@@ -15,7 +15,7 @@ CREATE TABLE Administrators (
 	ID			INT					PRIMARY KEY		AUTO_INCREMENT,
     Users_ID	INT 	NOT NULL 	UNIQUE KEY,
     
-    CONSTRAINT fk_Users_ID FOREIGN KEY (Users_ID) REFERENCES Users(ID)
+    CONSTRAINT fk_Users_ID FOREIGN KEY (Users_ID) REFERENCES Users(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS User_Activation_Keys;
@@ -26,7 +26,7 @@ CREATE TABLE User_Activation_Keys (
 	DateTime_Created	DATETIME			NULL,
 	DateTime_Used		DATETIME			NULL,
     
-    CONSTRAINT fk_User_ID FOREIGN KEY (User_ID) REFERENCES Users(ID)
+    CONSTRAINT fk_User_ID FOREIGN KEY (User_ID) REFERENCES Users(ID) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS Newsfeed_Posts;
@@ -50,8 +50,8 @@ CREATE TABLE Newsfeed_Posts_Tags_Assignations (
 	Newsfeed_Post_ID	INT		NOT NULL,
     Newsfeed_Tag_ID		INT		NOT NULL,
     
-    CONSTRAINT fk_Newsfeed_Post_ID FOREIGN KEY (Newsfeed_Post_ID) REFERENCES Newsfeed_Posts(ID),
-    CONSTRAINT fk_Newsfeed_Tag_ID FOREIGN KEY (Newsfeed_Tag_ID) REFERENCES Newsfeed_Tags(ID),
+    CONSTRAINT fk_Newsfeed_Post_ID FOREIGN KEY (Newsfeed_Post_ID) REFERENCES Newsfeed_Posts(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Newsfeed_Tag_ID FOREIGN KEY (Newsfeed_Tag_ID) REFERENCES Newsfeed_Tags(ID) ON DELETE CASCADE,
     
     UNIQUE KEY (
 		Newsfeed_Post_ID,
@@ -98,8 +98,8 @@ CREATE TABLE Institution_Addresses_List (
 	Address_ID			INT				NOT NULL,
 	Is_Main_Address		BOOLEAN			NOT NULL,
     
-    CONSTRAINT fk_Institution_ID FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID),
-    CONSTRAINT fk_Address_ID FOREIGN KEY (Address_ID) REFERENCES Addresses(ID),
+    CONSTRAINT fk_Institution_ID FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Address_ID FOREIGN KEY (Address_ID) REFERENCES Addresses(ID) ON DELETE CASCADE,
     
 	UNIQUE KEY (
 		Institution_ID,
@@ -272,8 +272,8 @@ CREATE TABLE Institution_Roles (
     Institution_Rights_ID 	INT 			NOT NULL,
     Title					VARCHAR(64)		NOT NULL,
     
-    CONSTRAINT fk_Institution_ID_Roles FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID),
-    CONSTRAINT fk_Institution_Rights_ID FOREIGN KEY (Institution_Rights_ID) REFERENCES Institution_Rights(ID),
+    CONSTRAINT fk_Institution_ID_Roles FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Institution_Rights_ID FOREIGN KEY (Institution_Rights_ID) REFERENCES Institution_Rights(ID) ON DELETE CASCADE,
     
     UNIQUE KEY (
 		Institution_ID,
@@ -294,9 +294,9 @@ CREATE TABLE Institution_Members (
 	DateTime_Added				DATETIME				NULL,
 	DateTime_Modified_Rights	DATETIME				NULL,
     
-    CONSTRAINT fk_Institution_ID_Members FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID),
-    CONSTRAINT fk_User_ID_Members FOREIGN KEY (User_ID) REFERENCES Users(ID),
-    CONSTRAINT fk_Institution_Roles_ID FOREIGN KEY (Institution_Roles_ID) REFERENCES Institution_Roles(ID),
+    CONSTRAINT fk_Institution_ID_Members FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_User_ID_Members FOREIGN KEY (User_ID) REFERENCES Users(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Institution_Roles_ID FOREIGN KEY (Institution_Roles_ID) REFERENCES Institution_Roles(ID) ON DELETE CASCADE,
 	
 	UNIQUE KEY (
 		Institution_ID,
@@ -320,30 +320,107 @@ CREATE TABLE Cloud_Files (
 	DateTime_Receiver_Previewed				DATETIME				NULL,
 	DateTime_Receiver_Downloaded			DATETIME				NULL,
     
-    CONSTRAINT fk_Sender_Institution_ID FOREIGN KEY (Sender_Institution_ID) REFERENCES Institutions(ID),
-    CONSTRAINT fk_Receiver_Institution_ID FOREIGN KEY (Receiver_Institution_ID) REFERENCES Institutions(ID),
-    CONSTRAINT fk_Sender_User_ID FOREIGN KEY (Sender_User_ID) REFERENCES Users(ID),
-    CONSTRAINT fk_Receiver_User_ID FOREIGN KEY (Receiver_User_ID) REFERENCES Users(ID)
+    CONSTRAINT fk_Sender_Institution_ID FOREIGN KEY (Sender_Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Receiver_Institution_ID FOREIGN KEY (Receiver_Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Sender_User_ID FOREIGN KEY (Sender_User_ID) REFERENCES Users(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Receiver_User_ID FOREIGN KEY (Receiver_User_ID) REFERENCES Users(ID) ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS Documents;
+CREATE TABLE Documents (
+	ID 							INT						PRIMARY KEY		AUTO_INCREMENT,
+    Sender_User_ID 				INT 			NULL,
+    Sender_Institution_ID 		INT 		NOT NULL,
+    Sender_Address_ID 			INT 			NULL,
+    Date_Sent 					DATETIME 	NOT NULL,
+    Is_Sent 					BOOLEAN 	NOT NULL,
+    Receiver_User_ID 			INT 			NULL,
+    Receiver_Institution_ID 	INT 		NOT NULL,
+    Receiver_Address_ID 		INT 			NULL,
+    
+    CONSTRAINT fk_Sender_User_ID FOREIGN KEY (Sender_User_ID) REFERENCES Users(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Sender_Institution_ID FOREIGN KEY (Sender_Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Sender_Address_ID FOREIGN KEY (Sender_Address_ID) REFERENCES Addresses(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Receiver_User_ID FOREIGN KEY (Receiver_User_ID) REFERENCES Users(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Receiver_Institution_ID FOREIGN KEY (Receiver_Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Receiver_Address_ID FOREIGN KEY (Receiver_Address_ID) REFERENCES Addresses(ID) ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS Payment_Methods;
+CREATE TABLE Payment_Methods (
+	ID		INT							PRIMARY KEY		AUTO_INCREMENT,
+    Title	VARCHAR(64)		NOT NULL,
+    
+    UNIQUE KEY (
+		Title
+	)
 );
 
 DROP TABLE IF EXISTS Receipts;
 CREATE TABLE Receipts (
-	ID				INT							PRIMARY KEY		AUTO_INCREMENT,
-	Title			VARCHAR(64)			NULL,
-	Value			INT				NOT NULL,
-	Cloud_File_ID	INT					NULL					REFERENCES Cloud_Files.ID,
+	ID					INT							PRIMARY KEY		AUTO_INCREMENT,
+    Documents_ID		INT 			NOT NULL,
+    Invoices_ID			INT					NULL,
+    Payment_Number		VARCHAR(64)			NULL,
+    Payment_Methods_ID 	INT 				NULL,
+    
+	CONSTRAINT fk_Documents_ID FOREIGN KEY (Documents_ID) REFERENCES Documents(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Payment_Methods_ID FOREIGN KEY (Payment_Methods_ID) REFERENCES Payment_Methods(ID) ON DELETE CASCADE,
 	
-    CONSTRAINT fk_Cloud_File_ID FOREIGN KEY (Cloud_File_ID) REFERENCES Cloud_Files(ID)
+    UNIQUE KEY (
+		Documents_ID
+	),
+    UNIQUE KEY (
+		Payment_Number
+    )
 );
 
 DROP TABLE IF EXISTS Invoices;
 CREATE TABLE Invoices (
-	ID				INT							PRIMARY KEY		AUTO_INCREMENT,
-	Title			VARCHAR(64)			NULL,
-	Value			INT				NOT NULL,
-	Cloud_File_ID	INT					NULL					REFERENCES Cloud_Files.ID,
+	ID				INT					PRIMARY KEY		AUTO_INCREMENT,
+	Documents_ID	INT 	NOT NULL,
+    Receipts_ID		INT			NULL,
     
-    CONSTRAINT fk_Cloud_File_ID_Invoices FOREIGN KEY (Cloud_File_ID) REFERENCES Cloud_Files(ID)
+	CONSTRAINT fk_Documents_ID_Invoices FOREIGN KEY (Documents_ID) REFERENCES Documents(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Receipts_ID FOREIGN KEY (Receipts_ID) REFERENCES Receipts(ID) ON DELETE CASCADE,
+    
+    UNIQUE KEY (
+		Documents_ID
+	)
+);
+
+ALTER TABLE Receipts ADD CONSTRAINT fk_Invoices_ID FOREIGN KEY (Invoices_ID) REFERENCES Invoices(ID) ON DELETE CASCADE;
+
+DROP TABLE IF EXISTS Items;
+CREATE TABLE Items (
+	ID 				INT 						PRIMARY KEY 	AUTO_INCREMENT,
+    Title 			VARCHAR(64) 		NULL,
+    Description 	VARCHAR(128) 		NULL,
+    Value 			INT 			NOT NULL,
+    
+    UNIQUE KEY (
+		Title,
+        Description,
+        Value
+    )
+);
+
+DROP TABLE IF EXISTS Document_Items;
+CREATE TABLE Document_Items (
+	ID 				INT 				PRIMARY KEY AUTO_INCREMENT,
+    Documents_ID 	INT 	NOT NULL,
+    Items_ID 		INT 	NOT NULL,
+    Quantity 		INT 	NOT NULL,
+    Tax 			INT 	NOT NULL,
+    Cost 			INT 	NOT NULL,
+    
+    CONSTRAINT fk_Documents_ID_Document_Items FOREIGN KEY (Documents_ID) REFERENCES Documents(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Items_ID FOREIGN KEY (Items_ID) REFERENCES Items(ID) ON DELETE CASCADE,
+    
+    UNIQUE KEY (
+		Documents_ID,
+        Items_ID
+	)
 );
 
 DROP TABLE IF EXISTS Notification_Types;
@@ -369,9 +446,9 @@ CREATE TABLE Notifications (
     Content					VARCHAR(256)		NULL,
     Sender_User_ID			INT					NULL,
     
-    CONSTRAINT fk_Institution_ID_Notifications FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID),
-    CONSTRAINT fk_Notification_Types_ID FOREIGN KEY (Notification_Types_ID) REFERENCES Notification_Types(ID),
-    CONSTRAINT fk_Sender_User_ID_Notifications FOREIGN KEY (Sender_User_ID) REFERENCES Users(ID),
+    CONSTRAINT fk_Institution_ID_Notifications FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Notification_Types_ID FOREIGN KEY (Notification_Types_ID) REFERENCES Notification_Types(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Sender_User_ID_Notifications FOREIGN KEY (Sender_User_ID) REFERENCES Users(ID) ON DELETE CASCADE,
     
     UNIQUE KEY (
 		Institution_ID,
@@ -387,8 +464,8 @@ CREATE TABLE Notification_Subscriptions (
     User_ID				INT		NOT NULL,
     Notification_ID		INT		NOT NULL,
     
-    CONSTRAINT fk_User_ID_Subscriptions FOREIGN KEY (User_ID) REFERENCES Users(ID),
-    CONSTRAINT fk_Notification_ID FOREIGN KEY (Notification_ID) REFERENCES Notifications(ID),
+    CONSTRAINT fk_User_ID_Subscriptions FOREIGN KEY (User_ID) REFERENCES Users(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Notification_ID FOREIGN KEY (Notification_ID) REFERENCES Notifications(ID) ON DELETE CASCADE,
     
     UNIQUE KEY (
 		User_ID,
