@@ -133,9 +133,10 @@ class CommonEndPointLogic {
      * @param $subject          string  The email's subject
      * @param $activationKey    string  The email's content
      * @return                  void    Sends an email. On failure, stop execution and log
+     * @throws Exception
      */
     public static function SendEmail($receiver, $subject, $activationKey) {
-        if (!CommonEndPointLogic::$sendGridCredentialsBinded)
+        if (!CommonEndPointLogic::$sendGridCredentialsBound)
             CommonEndPointLogic::BindSendGridCredentials();
 
         $content = CommonEndPointLogic::composeEmailBody($activationKey);
@@ -206,6 +207,9 @@ class CommonEndPointLogic {
         ];
     }
 
+    /**
+     * @throws Exception
+     */
     private static function BindSendGridCredentials() {
         $jsonFileContent = file_get_contents(CommonEndPointLogic::$sendGridJSONFilePath);
 
@@ -226,7 +230,7 @@ class CommonEndPointLogic {
         if (CommonEndPointLogic::$sendGridURL === null || CommonEndPointLogic::$sendGridUsername === null || CommonEndPointLogic::$sendGridPassword === null || CommonEndPointLogic::$sendGridNickname === null)
             throw new Exception("Bad SendGrid Credentials JSON object format");
 
-        CommonEndPointLogic::$sendGridCredentialsBinded = true;
+        CommonEndPointLogic::$sendGridCredentialsBound = true;
     }
 
     /**
@@ -251,5 +255,5 @@ class CommonEndPointLogic {
     private static $sendGridPassword;
     private static $sendGridNickname;
     private static $sendGridJSONFilePath = "./../Sensitive/SendGrid.json";
-    private static $sendGridCredentialsBinded = false;
+    private static $sendGridCredentialsBound = false;
 }

@@ -163,9 +163,16 @@
         */
     }
 
-    CommonEndPointLogic::SendEmail($email, "Fiscal Documents EDI Activation Key", $userActivationKey);
+    try {
+        CommonEndPointLogic::SendEmail($email, "Fiscal Documents EDI Activation Key", $userActivationKey);
+    }
+    catch (Exception $e) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("EMAIL_FAILURE"))
+            ->send();
+    }
 
-    DatabaseManager::Disconnect();
+DatabaseManager::Disconnect();
 
     ResponseHandler::getInstance()
         ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())

@@ -10,7 +10,6 @@ abstract class Document
 
     /**
      * @var integer holds the creator / sender employee id. NOT NULL.
-     * TODO: add creator id as separate attribute?
      */
     protected $senderID;
     /**
@@ -36,6 +35,11 @@ abstract class Document
      */
     protected $receiverAddressID;
 
+    /**
+     * @var integer holds the creator ID;
+     */
+    protected $creatorID;
+
     protected function __construct($ID, $senderID, $senderInstitutionID, $senderAddressID){
         $this->ID                       = $ID;
         $this->senderID                 = $senderID;
@@ -44,6 +48,10 @@ abstract class Document
         $this->receiverID               = null;
         $this->receiverInstitutionID    = null;
         $this->receiverAddressID        = null;
+
+        if(defined('CALLER_USER_ID')){
+            $this->creatorID = CALLER_USER_ID;
+        }
     }
 
     public abstract function addIntoDatabase();
@@ -55,57 +63,57 @@ abstract class Document
     /**
      * @return integer
      */
-    public function getID()
-    {
+    public function getID(){
         return $this->ID;
     }
 
     /**
      * @return string
      */
-    public function getReceiverAddressID()
-    {
+    public function getReceiverAddressID(){
         return $this->receiverAddressID;
     }
 
     /**
      * @return integer|null
      */
-    public function getReceiverID()
-    {
+    public function getReceiverID(){
         return $this->receiverID;
     }
 
     /**
      * @return integer|null
      */
-    public function getReceiverInstitutionID()
-    {
+    public function getReceiverInstitutionID(){
         return $this->receiverInstitutionID;
     }
 
     /**
      * @return string
      */
-    public function getSenderAddressID()
-    {
+    public function getSenderAddressID(){
         return $this->senderAddressID;
     }
 
     /**
      * @return integer
      */
-    public function getSenderID()
-    {
+    public function getSenderID(){
         return $this->senderID;
     }
 
     /**
      * @return integer
      */
-    public function getSenderInstitutionID()
-    {
+    public function getSenderInstitutionID(){
         return $this->senderInstitutionID;
+    }
+
+    /**
+     * @return int
+     */
+    public function getCreatorID(){
+        return $this->creatorID;
     }
 
     /**
@@ -121,8 +129,7 @@ abstract class Document
      * @param string $receiverAddressID
      * @return Document
      */
-    public function setReceiverAddressID($receiverAddressID)
-    {
+    public function setReceiverAddressID($receiverAddressID){
         $this->receiverAddressID = $receiverAddressID;
         return $this;
     }
@@ -131,8 +138,7 @@ abstract class Document
      * @param integer $receiverID
      * @return Document
      */
-    public function setReceiverID($receiverID)
-    {
+    public function setReceiverID($receiverID){
         $this->receiverID = $receiverID;
         return $this;
     }
@@ -141,8 +147,7 @@ abstract class Document
      * @param integer $receiverInstitutionID
      * @return Document
      */
-    public function setReceiverInstitutionID($receiverInstitutionID)
-    {
+    public function setReceiverInstitutionID($receiverInstitutionID){
         $this->receiverInstitutionID = $receiverInstitutionID;
         return $this;
     }
@@ -151,8 +156,7 @@ abstract class Document
      * @param string $senderAddressID
      * @return Document
      */
-    public function setSenderAddressID($senderAddressID)
-    {
+    public function setSenderAddressID($senderAddressID){
         $this->senderAddressID = $senderAddressID;
         return $this;
     }
@@ -161,8 +165,7 @@ abstract class Document
      * @param integer $senderID
      * @return Document
      */
-    public function setSenderID($senderID)
-    {
+    public function setSenderID($senderID){
         $this->senderID = $senderID;
         return $this;
     }
@@ -171,9 +174,17 @@ abstract class Document
      * @param integer $senderInstitutionID
      * @return Document
      */
-    public function setSenderInstitutionID($senderInstitutionID)
-    {
+    public function setSenderInstitutionID($senderInstitutionID){
         $this->senderInstitutionID = $senderInstitutionID;
+        return $this;
+    }
+
+    /**
+     * @param int $creatorID
+     * @return Document
+     */
+    public function setCreatorID($creatorID){
+        $this->creatorID = $creatorID;
         return $this;
     }
 }
