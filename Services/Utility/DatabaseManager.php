@@ -10,7 +10,7 @@ class DatabaseManager {
     private static $Schema;
 
     private static $credentialsJSONFilePath = "./../Sensitive/Database.json";
-    private static $credentialsBinded = false;
+    private static $credentialsBound = false;
 
     /**
      * Used by PhpStorm to identify PDO methods
@@ -26,8 +26,14 @@ class DatabaseManager {
         if (DatabaseManager::$connectionActive)
             return false;
 
-        if (!DatabaseManager::$credentialsBinded)
-            DatabaseManager::BindCredentials();
+        if (!DatabaseManager::$credentialsBound)
+            try {
+                DatabaseManager::BindCredentials();
+            }
+            catch (Exception $e) {
+                echo $e, PHP_EOL;
+                return false;
+            }
 
         $connectionString = sprintf(
             "mysql:host=%s;dbname=%s;",
@@ -76,6 +82,7 @@ class DatabaseManager {
 
     /**
      *  Binds the database credentials from the JSON file
+     * @throws Exception
      */
     private static function BindCredentials() {
         $jsonFileContent = file_get_contents(DatabaseManager::$credentialsJSONFilePath);
@@ -97,6 +104,6 @@ class DatabaseManager {
         if (DatabaseManager::$URL === null || DatabaseManager::$Username === null || DatabaseManager::$Password === null || DatabaseManager::$Schema === null)
             throw new Exception("Bad Database Credentials JSON object format");
 
-        DatabaseManager::$credentialsBinded = true;
+        DatabaseManager::$credentialsBound = true;
     }
 }
