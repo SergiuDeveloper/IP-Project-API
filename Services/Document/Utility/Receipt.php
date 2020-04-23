@@ -28,18 +28,34 @@ class Receipt extends Document
     private $paymentMethodID;
 
     /**
-     * @var array(Item) items mentioned in the receipt
+     * @var DocumentItemContainer items mentioned in the receipt
      */
-    private $itemsList;
+    private $itemsContainer;
 
+    /**
+     * @param DocumentItem $item
+     */
+    public function addItem($item){
+        $this->itemsContainer->addItem($item);
+    }
+
+    /**
+     * TODO : in service or in here
+     */
     public function addIntoDatabase(){
         // TODO: Implement addIntoDatabase() method.
     }
 
+    /**
+     * TODO : in service or in here
+     */
     public function updateIntoDatabase(){
         // TODO: Implement updateIntoDatabase() method.
     }
 
+    /**
+     * TODO : in service or in here
+     */
     public function fetchFromDatabase(){
         // TODO: Implement fetchFromDatabase() method.
     }
@@ -66,10 +82,10 @@ class Receipt extends Document
     }
 
     /**
-     * @return array
+     * @return DocumentItemContainer
      */
-    public function getItemsList(){
-        return $this->itemsList;
+    public function getItemsContainer(){
+        return $this->itemsContainer;
     }
 
     /**
@@ -116,11 +132,11 @@ class Receipt extends Document
     }
 
     /**
-     * @param array $itemsList
+     * @param DocumentItemContainer $itemsContainer
      * @return Receipt
      */
-    public function setItemsList($itemsList){
-        $this->itemsList = $itemsList;
+    public function setItemsList($itemsContainer){
+        $this->itemsContainer = $itemsContainer;
         return $this;
     }
 

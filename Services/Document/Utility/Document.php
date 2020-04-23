@@ -1,6 +1,5 @@
 <?php
 
-
 abstract class Document
 {
     /**
@@ -52,6 +51,27 @@ abstract class Document
         if(defined('CALLER_USER_ID')){
             $this->creatorID = CALLER_USER_ID;
         }
+    }
+
+    /**
+     * TODO : in service or in here
+     */
+    protected function insertIntoDatabaseDocumentBase(){
+
+    }
+
+    /**
+     * TODO : in service or in here
+     */
+    protected function updateIntoDatabaseDocumentBase(){
+
+    }
+
+    /**
+     * TODO : in service or in here
+     */
+    protected function fetchIntoDatabaseDocumentBase(){
+
     }
 
     public abstract function addIntoDatabase();

@@ -1,5 +1,21 @@
 <?php
 
+if( !defined('ROOT') ){
+    define('ROOT', dirname(__FILE__) . "/../..");
+}
+
+if( !defined('DEFAULT_ITEM_VALUE_CURRENCY') ){
+    define('DEFAULT_ITEM_VALUE_CURRENCY', 'RON');
+}
+
+require_once ( ROOT . '/Utility/StatusCodes.php' );
+require_once ( ROOT . '/Utility/CommonEndPointLogic.php' );
+require_once ( ROOT . '/Utility/ResponseHandler.php' );
+require_once ( ROOT . '/Utility/DatabaseManager.php' );
+
+require_once ( ROOT . '/Document/Utility/DocumentItem.php' );
+require_once ( ROOT . '/Document/Utility/Document.php' );
+require_once ( ROOT . '/Document/Utility/DocumentItemContainer.php' );
 
 class Invoice extends Document
 {
@@ -19,9 +35,16 @@ class Invoice extends Document
     private $receiptDocumentID;
 
     /**
-     * @var array(Item) items mentioned in the invoice
+     * @var DocumentItemContainer items mentioned in the invoice
      */
-    private $itemsList;
+    private $itemsContainer;
+
+    /**
+     * @param DocumentItem $item
+     */
+    public function addItem($item){
+        $this->itemsContainer->addItem($item);
+    }
 
     public function addIntoDatabase(){
         // TODO: Implement addIntoDatabase() method.
@@ -57,10 +80,10 @@ class Invoice extends Document
     }
 
     /**
-     * @return array
+     * @return DocumentItemContainer
      */
-    public function getItemsList(){
-        return $this->itemsList;
+    public function getItemsContainer(){
+        return $this->itemsContainer;
     }
 
     /**
@@ -91,11 +114,11 @@ class Invoice extends Document
     }
 
     /**
-     * @param array $itemsList
+     * @param DocumentItemContainer $itemsContainer
      * @return Invoice
      */
-    public function setItemsList($itemsList){
-        $this->itemsList = $itemsList;
+    public function setItemsList($itemsContainer){
+        $this->itemsContainer = $itemsContainer;
         return $this;
     }
 }

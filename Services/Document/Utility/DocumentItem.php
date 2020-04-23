@@ -425,7 +425,7 @@ class DocumentItem
         $this->valueBeforeTax = $valueBeforeTax;
 
         if($this->taxPercentage != null)
-            $this->valueAfterTax = $this->valueBeforeTax * $this->taxPercentage;
+            $this->valueAfterTax = $this->valueBeforeTax + $this->valueBeforeTax * $this->taxPercentage;
         return $this;
     }
 
@@ -437,7 +437,7 @@ class DocumentItem
         $this->taxPercentage = $taxPercentage;
 
         if($this->valueBeforeTax != null)
-            $this->valueAfterTax = $this->valueBeforeTax * $this->taxPercentage;
+            $this->valueAfterTax = $this->valueBeforeTax + $this->valueBeforeTax * $this->taxPercentage;
 
         return $this;
     }
