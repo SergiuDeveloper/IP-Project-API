@@ -11,12 +11,12 @@ class Receipt extends Document
     /**
      * @var integer document ID of the linked invoice of this receipt. SAME as in documents table, not invoices table.
      */
-    private $receiptID;
+    private $invoiceID;
 
     /**
      * @var integer receipt ID of the linked invoice of this receipt. SAME as as in invoices table, not documents table. Not to be shown in document.
      */
-    private $receiptDocumentID;
+    private $invoiceDocumentID;
 
     /**
      * @var double total payment amount
@@ -70,15 +70,15 @@ class Receipt extends Document
     /**
      * @return int
      */
-    public function getReceiptID(){
-        return $this->receiptID;
+    public function getInvoiceID(){
+        return $this->invoiceID;
     }
 
     /**
      * @return int
      */
-    public function getReceiptDocumentID(){
-        return $this->receiptDocumentID;
+    public function getInvoiceDocumentID(){
+        return $this->invoiceDocumentID;
     }
 
     /**
@@ -114,20 +114,20 @@ class Receipt extends Document
     }
 
     /**
-     * @param int $receiptID
+     * @param int $invoiceID
      * @return Receipt
      */
-    public function setReceiptID($receiptID){
-        $this->receiptID = $receiptID;
+    public function setInvoiceID($invoiceID){
+        $this->invoiceID = $invoiceID;
         return $this;
     }
 
     /**
-     * @param int $receiptDocumentID
+     * @param int $invoiceDocumentID
      * @return Receipt
      */
-    public function setReceiptDocumentID($receiptDocumentID){
-        $this->receiptDocumentID = $receiptDocumentID;
+    public function setReceiptDocumentID($invoiceDocumentID){
+        $this->invoiceDocumentID = $invoiceDocumentID;
         return $this;
     }
 

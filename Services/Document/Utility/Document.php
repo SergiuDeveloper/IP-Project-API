@@ -21,7 +21,7 @@ abstract class Document
      */
     protected $senderInstitutionID;
     /**
-     * @var integer|null holds the receiver institution id.
+     * @var integer holds the receiver institution id.
      */
     protected $receiverInstitutionID;
 
