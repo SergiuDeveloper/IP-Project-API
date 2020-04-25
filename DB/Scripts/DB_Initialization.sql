@@ -103,7 +103,7 @@ CREATE TABLE Institution_Addresses_List (
 );
 
 DELIMITER //
-CREATE PROCEDURE sp_Unique_Institution_Main_Address_Validation(
+CREATE PROCEDURE sp_Unique_Institution_Main_Address_Validation (
 	is_main_address	BOOLEAN,
     institution_id	INT
 )
@@ -155,7 +155,7 @@ CREATE TABLE Institution_Rights (
 );
 
 DELIMITER //
-CREATE PROCEDURE sp_Institution_Rights_Row_Validation(
+CREATE PROCEDURE sp_Institution_Rights_Row_Validation (
 	can_Modify_Institution						BOOLEAN,
 	can_Delete_Institution						BOOLEAN,
 	can_Add_Members								BOOLEAN,
@@ -322,6 +322,7 @@ CREATE TABLE Document_Types (
 
 CREATE TABLE Documents (
 	ID 							INT						PRIMARY KEY		AUTO_INCREMENT,
+    Date_Created 				DATETIME 	NOT NULL,
     Creator_User_ID				INT				NULL,
     Sender_User_ID 				INT 			NULL,
     Sender_Institution_ID 		INT 		NOT NULL,
