@@ -311,6 +311,15 @@ CREATE TABLE Cloud_Files (
     CONSTRAINT fk_Receiver_User_ID FOREIGN KEY (Receiver_User_ID) REFERENCES Users(ID) ON DELETE CASCADE
 );
 
+CREATE TABLE Document_Types (
+	ID		INT				PRIMARY KEY		AUTO_INCREMENT,
+    Title 	VARCHAR(64)		NOT NULL,
+    
+    UNIQUE KEY (
+		Title
+    )
+);
+
 CREATE TABLE Documents (
 	ID 							INT						PRIMARY KEY		AUTO_INCREMENT,
     Creator_User_ID				INT				NULL,
@@ -322,6 +331,7 @@ CREATE TABLE Documents (
     Receiver_User_ID 			INT 			NULL,
     Receiver_Institution_ID 	INT 		NOT NULL,
     Receiver_Address_ID 		INT 			NULL,
+	Document_Types_ID			INT			NOT NULL,
     
     CONSTRAINT fk_Creator_User_ID FOREIGN KEY (Creator_User_ID) REFERENCES Users(ID) ON DELETE CASCADE,
     CONSTRAINT fk_Sender_User_ID_Documents FOREIGN KEY (Sender_User_ID) REFERENCES Users(ID) ON DELETE CASCADE,
@@ -329,7 +339,8 @@ CREATE TABLE Documents (
     CONSTRAINT fk_Sender_Address_ID FOREIGN KEY (Sender_Address_ID) REFERENCES Addresses(ID) ON DELETE CASCADE,
     CONSTRAINT fk_Receiver_User_ID_Documents FOREIGN KEY (Receiver_User_ID) REFERENCES Users(ID) ON DELETE CASCADE,
     CONSTRAINT fk_Receiver_Institution_ID_Documents FOREIGN KEY (Receiver_Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE,
-    CONSTRAINT fk_Receiver_Address_ID FOREIGN KEY (Receiver_Address_ID) REFERENCES Addresses(ID) ON DELETE CASCADE
+    CONSTRAINT fk_Receiver_Address_ID FOREIGN KEY (Receiver_Address_ID) REFERENCES Addresses(ID) ON DELETE CASCADE,
+	CONSTRAINT fk_Document_Types_ID FOREIGN KEY (Document_Types_ID) REFERENCES Document_Types(ID) ON DELETE CASCADE
 );
 
 CREATE TABLE Payment_Methods (
@@ -402,18 +413,19 @@ CREATE TABLE Items (
 );
 
 CREATE TABLE Document_Items (
-	ID 				INT 				PRIMARY KEY AUTO_INCREMENT,
-    Documents_ID 	INT 	NOT NULL,
+	ID 				INT 				PRIMARY KEY 	AUTO_INCREMENT,
+    Invoices_ID 	INT 	NOT NULL,
+    Receipts_ID		INT 		NULL,
     Items_ID 		INT 	NOT NULL,
     Quantity 		INT 	NOT NULL,
-    Tax 			INT 	NOT NULL,
-    Cost 			INT 	NOT NULL,
     
-    CONSTRAINT fk_Documents_ID_Document_Items FOREIGN KEY (Documents_ID) REFERENCES Documents(ID) ON DELETE CASCADE,
+    CONSTRAINT fk_Invoices_ID_Document_Items FOREIGN KEY (Invoices_ID) REFERENCES Invoices(ID) ON DELETE CASCADE,
+	CONSTRAINT fk_Receipts_ID_Document_Items FOREIGN KEY (Receipts_ID) REFERENCES Receipts(ID) ON DELETE CASCADE,
     CONSTRAINT fk_Items_ID FOREIGN KEY (Items_ID) REFERENCES Items(ID) ON DELETE CASCADE,
     
     UNIQUE KEY (
-		Documents_ID,
+		Invoices_ID,
+        Receipts_ID,
         Items_ID
 	)
 );
