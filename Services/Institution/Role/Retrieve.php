@@ -115,3 +115,4 @@
     echo json_encode($institutionRoles), PHP_EOL;
     http_response_code(StatusCodes::OK);
     */
+?>
