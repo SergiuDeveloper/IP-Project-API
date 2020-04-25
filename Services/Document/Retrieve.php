@@ -1,7 +1,7 @@
 <?php
 
     if(!defined('ROOT')){
-        define('ROOT', dirname(__FILE__) . '/../..');
+        define('ROOT', dirname(__FILE__) . '/..');
     }
 
     require_once(ROOT . "/Utility/CommonEndPointLogic.php");
@@ -10,12 +10,12 @@
     require_once(ROOT . "/Utility/SuccessStates.php");
     require_once(ROOT . "/Utility/ResponseHandler.php");
 
-    require_once(ROOT . "Institution/Role/Utility/InstitutionActions.php");
-    require_once(ROOT . "Institution/Role/Utility/InstitutionRoles.php");
+    require_once(ROOT . "/Institution/Role/Utility/InstitutionActions.php");
+    require_once(ROOT . "/Institution/Role/Utility/InstitutionRoles.php");
 
-    require_once(ROOT . "/Utility/Document.php");
-    require_once(ROOT . "/Utility/Invoice.php");
-    require_once(ROOT . "/Utility/Receipt.php");
+    require_once("./Utility/Document.php");
+    require_once("./Utility/Invoice.php");
+    require_once("./Utility/Receipt.php");
 
     CommonEndPointLogic::ValidateHTTPGETRequest();
 
@@ -64,7 +64,7 @@
         $getDocument->bindParam(":documentId", $documentId);
         $getDocument->execute();
 
-        $documentRow = $documentRow->fetch(PDO::FETCH_ASSOC);
+        $documentRow = $getDocument->fetch(PDO::FETCH_ASSOC);
 
         if($documentRow == null){
             ResponseHandler::getInstance()
@@ -73,10 +73,12 @@
         } else {
             if($documentRow["Sender_Institution_ID"] == $institutionRow["ID"]){
                 $type = "intern";
-            }
-            
-            if($documentRow["Receiver_Institution_ID"] == $institutionRow["ID"]){
+            } else if($documentRow["Receiver_Institution_ID"] == $institutionRow["ID"]){
                 $type = "received";
+            } else {
+                ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOCUMENT_INVALID"))
+                ->send();
             }
         }
 
@@ -93,7 +95,6 @@
                     ->send();
             }
         }
-
 
         DatabaseManager::Connect();
 
@@ -116,16 +117,11 @@
         }
 
         if($receiptRow == null){
-            $document = new Invoice();
-            $document->setID($documentRow["ID"]);
+            $document = new Invoice($documentRow["ID"],$documentRow["Sender_User_ID"],$documentRow["Sender_Institution_ID"],$documentRow["Sender_Address_ID"]);
             $document->setReceiverAddressID($documentRow["Receiver_Address_ID"]);
             $document->setReceiverID($documentRow["Receiver_User_ID"]);
-            $document->setReceiverInstitutionID($documentRow["Receiver_Institution_ID"]);
-            $document->setSenderAddressID($documentRow["Sender_Address_ID"]);
-            $document->setSenderID($documentRow["Sender_User_ID"]);
-            $document->setSenderInstitutionID($documentRow["Sender_Institution_ID"]);
             $document->setCreatorID($documentRow["Creator_User_ID"]);
-            $document->getReceiptID($invoiceRow["Invoices_ID"]);
+            $document->setReceiptID($invoiceRow["Invoices_ID"]);  // e optional si da si eroare 
 
 
             $getItems = DatabaseManager::PrepareStatement($queryGetItems);
@@ -148,16 +144,12 @@
         }
 
         if($invoiceRow == null){
-            $document = new Receipt();
-            $document->setID($documentRow["ID"]);
+            $document = new Receipt($documentRow["ID"],$documentRow["Sender_User_ID"],$documentRow["Sender_Institution_ID"],$documentRow["Sender_Address_ID"]);
             $document->setReceiverAddressID($documentRow["Receiver_Address_ID"]);
             $document->setReceiverID($documentRow["Receiver_User_ID"]);
             $document->setReceiverInstitutionID($documentRow["Receiver_Institution_ID"]);
-            $document->setSenderAddressID($documentRow["Sender_Address_ID"]);
-            $document->setSenderID($documentRow["Sender_User_ID"]);
-            $document->setSenderInstitutionID($documentRow["Sender_Institution_ID"]);
             $document->setCreatorID($documentRow["Creator_User_ID"]);
-            //$document->getInvoiceID($receiptRow["Invoices_ID"]); -- nu exista in clasa functia
+            //$document->setInvoiceID($receiptRow["Invoices_ID"]);   -- e optional acolo trecut, dar nu e nici functia in clasa
 
 
             $getItems = DatabaseManager::PrepareStatement($queryGetItems);
@@ -178,7 +170,7 @@
                 $document->addItem($itemContainer);
             }
 
-            $document->setPaymentAmount($documentRow["Payment_Number"]);
+            $document->setPaymentAmount($receiptRow["Payment_Number"]); // da eraore nu stiu dc
             
             // $getPaymentMethod = DatabaseManager::PrepareStatement($queryGetPayment); // asa apare pe flow, dar clasa permite 
             // $getPaymentMethod->bindParam(":ID",$receiptRow["Payment_Methods_ID"]); // doar trimiterea ID-ului
@@ -190,7 +182,8 @@
 
             // $document->setPaymentMethod($paymentMethod);  // gen nu exista functie care sa preia obiectul asta :D
 
-            $document->setPaymentMethodID($documentRow["Payment_Methods_ID"]); // so, I'll do smth like this
+            $document->setPaymentMethodID($receiptRow["Payment_Methods_ID"]); // so, I'll do smth like this
+            // si asta da eroare
         }
        
         DatabaseManager::Disconnect();
