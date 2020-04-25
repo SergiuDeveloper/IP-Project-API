@@ -1,5 +1,16 @@
 <?php
 
+if(!defined('ROOT')){
+    define('ROOT', dirname(__FILE__) . '/../..');
+}
+
+require_once (ROOT . '/Document/Utility/Document.php' );
+require_once (ROOT . '/Document/Utility/DocumentItem.php' );
+require_once (ROOT . '/Document/Utility/DocumentItemContainer.php' );
+require_once (ROOT . '/Document/Utility/DocumentItemContainerRow.php' );
+require_once (ROOT . '/Document/Utility/Invoice.php' );
+require_once (ROOT . '/Document/Utility/PaymentMethod.php' );
+require_once (ROOT . '/Document/Utility/Currency.php' );
 
 class Receipt extends Document
 {
@@ -23,9 +34,9 @@ class Receipt extends Document
      */
     private $paymentAmount;
     /**
-     * @var integer ID of the payment method
+     * @var PaymentMethod ID of the payment method
      */
-    private $paymentMethodID;
+    private $paymentMethod;
 
     /**
      * @var DocumentItemContainer items mentioned in the receipt
@@ -91,17 +102,15 @@ class Receipt extends Document
     /**
      * @return float
      */
-    public function getPaymentAmount()
-    {
+    public function getPaymentAmount(){
         return $this->paymentAmount;
     }
 
     /**
-     * @return int
+     * @return PaymentMethod
      */
-    public function getPaymentMethodID()
-    {
-        return $this->paymentMethodID;
+    public function getPaymentMethod(){
+        return $this->paymentMethod;
     }
 
     /**
@@ -144,19 +153,17 @@ class Receipt extends Document
      * @param float $paymentAmount
      * @return Receipt
      */
-    public function setPaymentAmount($paymentAmount)
-    {
+    public function setPaymentAmount($paymentAmount){
         $this->paymentAmount = $paymentAmount;
         return $this;
     }
 
     /**
-     * @param int $paymentMethodID
+     * @param PaymentMethod $paymentMethod
      * @return Receipt
      */
-    public function setPaymentMethodID($paymentMethodID)
-    {
-        $this->paymentMethodID = $paymentMethodID;
+    public function setPaymentMethod($paymentMethod){
+        $this->paymentMethod = $paymentMethod;
         return $this;
     }
 }

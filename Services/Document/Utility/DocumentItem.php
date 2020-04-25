@@ -21,7 +21,6 @@ class DocumentItem
 {
     /**
      * @var integer holds the item ID
-     * TODO : Need another field for actual ID (institution item id)
      */
     private $ID;
 
@@ -45,8 +44,6 @@ class DocumentItem
     private $description;
     /**
      * @var double item value
-     * TODO : currency type. Default and converted or multiple currencies indexed
-     * TODO : ADD into db tax
      */
     private $valueBeforeTax;
 
@@ -61,9 +58,9 @@ class DocumentItem
     private $valueAfterTax;
 
     /**
-     * @var integer holds the currency id
+     * @var Currency holds the currency
      */
-    private $currencyID;
+    private $currency;
 
     public function __construct(){
         $this->ID               = null;
@@ -73,20 +70,17 @@ class DocumentItem
         $this->valueAfterTax    = null;
         $this->valueBeforeTax   = null;
         $this->taxPercentage    = null;
-        $this->currencyID = self::getDatabaseCurrencyID(DEFAULT_ITEM_VALUE_CURRENCY);
-
-        if( $this->currencyID == null ) {
-            self::addCurrency(DEFAULT_ITEM_VALUE_CURRENCY);
-            $this->currencyID = self::getDatabaseCurrencyID(DEFAULT_ITEM_VALUE_CURRENCY);
-        }
+        $this->currency         = null;
     }
 
     /**
      * @throws DocumentItemInvalid
      */
     public function addIntoDatabase(){
+        if($this->currency == null)
+            $this->currency = Currency::getCurrencyIDByTitle(DEFAULT_ITEM_VALUE_CURRENCY);
         if(
-            $this->currencyID       == null ||
+            $this->currency         == null ||
             $this->title            == null ||
             $this->description      == null ||
             $this->valueBeforeTax   == null ||
@@ -100,10 +94,12 @@ class DocumentItem
         try{
             DatabaseManager::Connect();
 
+            $currencyID = $this->currency->getID();
+
             $statement = DatabaseManager::PrepareStatement(self::$insertIntoDatabase);
             $statement->bindParam(":title",             $this->title);
             $statement->bindParam(":description",       $this->description);
-            $statement->bindParam(":currencyID",        $this->currencyID);
+            $statement->bindParam(":currencyID",        $currencyID);
             $statement->bindParam(":valueBeforeTax",    $this->valueBeforeTax);
             $statement->bindParam(":valueAfterTax",     $this->valueAfterTax);
             $statement->bindParam(":taxPercentage",     $this->taxPercentage);
@@ -128,7 +124,7 @@ class DocumentItem
     public function updateIntoDatabase(){
         if(
             $this->ID               == null ||
-            $this->currencyID       == null ||
+            $this->currency         == null ||
             $this->title            == null ||
             $this->description      == null ||
             $this->valueBeforeTax   == null ||
@@ -142,11 +138,13 @@ class DocumentItem
         try{
             DatabaseManager::Connect();
 
+            $currencyID = $this->currency->getID();
+
             $statement = DatabaseManager::PrepareStatement(self::$updateIntoDatabase);
             $statement->bindParam(":ID",                $this->ID);
             $statement->bindParam(":title",             $this->title);
             $statement->bindParam(":description",       $this->description);
-            $statement->bindParam(":currencyID",        $this->currencyID);
+            $statement->bindParam(":currencyID",        $currencyID);
             $statement->bindParam(":valueBeforeTax",    $this->valueBeforeTax);
             $statement->bindParam(":valueAfterTax",     $this->valueAfterTax);
             $statement->bindParam(":taxPercentage",     $this->taxPercentage);
@@ -179,7 +177,23 @@ class DocumentItem
                 ->setDescription($item->description)
                 ->setValueBeforeTax($item->valueBeforeTax)
                 ->setTaxPercentage($item->taxPercentage)
-                ->setCurrencyID($item->currencyID);
+                ->setCurrency($item->currency);
+
+            return $this;
+        }
+
+        if(
+            $this->productNumber    != null ||
+            $this->title            != null ||
+            $this->description      != null ||
+            $this->taxPercentage    != null ||
+            $this->valueAfterTax    != null ||
+            $this->valueBeforeTax   != null ||
+            $this->currency         != null
+        ){
+            $item = self::fetchFromDatabaseByItem($this);
+
+            $this->setID($item->ID);
 
             return $this;
         }
@@ -192,7 +206,7 @@ class DocumentItem
                 ->setDescription($item->description)
                 ->setValueBeforeTax($item->valueBeforeTax)
                 ->setTaxPercentage($item->taxPercentage)
-                ->setCurrencyID($item->currencyID);
+                ->setCurrency($item->currency);
 
             return $this;
         }
@@ -210,7 +224,7 @@ class DocumentItem
                     ->setDescription($items[0]->description)
                     ->setValueBeforeTax($items[0]->valueBeforeTax)
                     ->setTaxPercentage($items[0]->taxPercentage)
-                    ->setCurrencyID($items[0]->currencyID);
+                    ->setCurrency($items[0]->currency);
             }
 
             throw new DocumentItemMultipleResults();
@@ -229,7 +243,7 @@ class DocumentItem
                     ->setDescription($items[0]->description)
                     ->setValueBeforeTax($items[0]->valueBeforeTax)
                     ->setTaxPercentage($items[0]->taxPercentage)
-                    ->setCurrencyID($items[0]->currencyID);
+                    ->setCurrency($items[0]->currency);
             }
 
             throw new DocumentItemMultipleResults();
@@ -249,16 +263,19 @@ class DocumentItem
 
             $row = $statement->fetch(PDO::FETCH_ASSOC);
 
-            $result = new DocumentItem();
+            $result = null;
 
-            $result
-                ->setID( $row['ID'] )
-                ->setTitle( $row['Title'] )
-                ->setProductNumber( $row['Product_Number'] )
-                ->setDescription( $row['Description'] )
-                ->setValueBeforeTax( $row['Value_Before_Tax'] )
-                ->setTaxPercentage( $row['Tax_Percentage'] )
-                ->setCurrencyID( $row['Currencies_ID'] );
+            if($row != null) {
+                $result = new DocumentItem();
+                $result
+                    ->setID($row['ID'])
+                    ->setTitle($row['Title'])
+                    ->setProductNumber($row['Product_Number'])
+                    ->setDescription($row['Description'])
+                    ->setValueBeforeTax($row['Value_Before_Tax'])
+                    ->setTaxPercentage($row['Tax_Percentage'])
+                    ->setCurrency(Currency::getCurrencyByID(['Currencies_ID'], true));
+            }
 
             DatabaseManager::Disconnect();
 
@@ -293,7 +310,7 @@ class DocumentItem
                     ->setDescription( $row['Description'] )
                     ->setValueBeforeTax( $row['Value_Before_Tax'] )
                     ->setTaxPercentage( $row['Tax_Percentage'] )
-                    ->setCurrencyID( $row['Currencies_ID'] )
+                    ->setCurrency( Currency::getCurrencyByID(['Currencies_ID'], true) )
                 );
             }
 
@@ -330,13 +347,48 @@ class DocumentItem
                     ->setDescription( $row['Description'] )
                     ->setValueBeforeTax( $row['Value_Before_Tax'] )
                     ->setTaxPercentage( $row['Tax_Percentage'] )
-                    ->setCurrencyID( $row['Currencies_ID'] )
+                    ->setCurrency( Currency::getCurrencyByID(['Currencies_ID'], true) )
                 );
             }
 
             DatabaseManager::Disconnect();
 
             return $result;
+        }
+        catch (Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            die();
+        }
+    }
+
+    /**
+     * @param DocumentItem $item
+     * @return DocumentItem
+     */
+    public static function fetchFromDatabaseByItem($item){
+        try{
+            DatabaseManager::Connect();
+
+            $currencyID = $item->currency->getID();
+
+            $statement = DatabaseManager::PrepareStatement(self::$getIDFromDatabaseByAllOther);
+            $statement->bindParam(":title", $item->title);
+            $statement->bindParam(":description", $item->description);
+            $statement->bindParam(":productNumber", $item->productNumber);
+            $statement->bindParam(":valueBeforeTax", $item->valueBeforeTax);
+            $statement->bindParam(":valueAfterTax", $item->valueAfterTax);
+            $statement->bindParam(":taxPercentage", $item->taxPercentage);
+            $statement->bindParam(":currenciesID", $currencyID);
+
+            $statement->execute();
+
+            $row = $statement->fetch(PDO::FETCH_OBJ);
+
+            DatabaseManager::Disconnect();
+
+            return $item->setID($row->ID);
         }
         catch (Exception $exception){
             ResponseHandler::getInstance()
@@ -358,16 +410,19 @@ class DocumentItem
 
             $row = $statement->fetch(PDO::FETCH_ASSOC);
 
-            $item = new DocumentItem();
+            $item = null;
 
-            $item
-                ->setID( $row['ID'] )
-                ->setTitle( $row['Title'] )
-                ->setProductNumber( $row['Product_Number'] )
-                ->setDescription( $row['Description'] )
-                ->setValueBeforeTax( $row['Value_Before_Tax'] )
-                ->setTaxPercentage( $row['Tax_Percentage'] )
-                ->setCurrencyID( $row['Currencies_ID'] );
+            if($row != null) {
+                $item = new DocumentItem();
+                $item
+                    ->setID($row['ID'])
+                    ->setTitle($row['Title'])
+                    ->setProductNumber($row['Product_Number'])
+                    ->setDescription($row['Description'])
+                    ->setValueBeforeTax($row['Value_Before_Tax'])
+                    ->setTaxPercentage($row['Tax_Percentage'])
+                    ->setCurrency(Currency::getCurrencyByID(['Currencies_ID'], true));
+            }
 
             DatabaseManager::Disconnect();
 
@@ -443,11 +498,11 @@ class DocumentItem
     }
 
     /**
-     * @param int $currencyID
+     * @param Currency $currency
      * @return DocumentItem
      */
-    public function setCurrencyID($currencyID){
-        $this->currencyID = $currencyID;
+    public function setCurrency($currency){
+        $this->currency = $currency;
         return $this;
     }
 
@@ -501,62 +556,10 @@ class DocumentItem
     }
 
     /**
-     * @return int
+     * @return Currency
      */
-    public function getCurrencyID(){
-        return $this->currencyID;
-    }
-
-    /**
-     * @param $title
-     * @return integer
-     */
-    public static function getDatabaseCurrencyID($title){
-        try{
-            DatabaseManager::Connect();
-
-            $statement = DatabaseManager::PrepareStatement(self::$getCurrencyID);
-            $statement->bindParam(":title", $title);
-
-            $statement->execute();
-
-            $row = $statement->fetch(PDO::FETCH_OBJ);
-
-            DatabaseManager::Disconnect();
-        }
-        catch(Exception $exception){
-            ResponseHandler::getInstance()
-                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
-                ->send();
-
-            die();
-        }
-
-        if($row == null)
-            return null;
-
-        return $row->ID;
-    }
-
-    /**
-     * @param $title
-     */
-    public static function addCurrency($title){
-        try{
-            DatabaseManager::Connect();
-
-            $statement = DatabaseManager::PrepareStatement(self::$insertCurrency);
-            $statement->bindParam(":title", $title);
-
-            $statement->execute();
-
-            DatabaseManager::Disconnect();
-        }
-        catch (Exception $exception){
-            ResponseHandler::getInstance()
-                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
-                ->send();
-        }
+    public function getCurrency(){
+        return $this->currency;
     }
 
     private static $insertIntoDatabase = "
@@ -608,11 +611,14 @@ class DocumentItem
         SELECT * FROM items WHERE Title = :title AND Product_Number = :productNumber
     ";
 
-    private static $getCurrencyID = "
-        SELECT ID FROM currencies WHERE Title = :title
-    ";
-
-    private static $insertCurrency = "
-        INSERT INTO currencies (Title) VALUES (:title)
+    private static $getIDFromDatabaseByAllOther = "
+        SELECT ID FROM items WHERE 
+            Title               = :title AND
+            Product_Number      = :productNumber AND
+            Description         = :description AND
+            Value_Before_Tax    = :valueBeforeTax AND
+            Value_After_Tax     = :valueAfterTax AND
+            Tax_Percentage      = :taxPercentage AND
+            Currencies_ID       = :currenciesID 
     ";
 }
