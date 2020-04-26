@@ -71,6 +71,11 @@ class Receipt extends Document
         // TODO: Implement fetchFromDatabase() method.
     }
 
+    public function __construct($ID, $senderID, $senderInstitutionID, $senderAddressID)
+    {
+        parent::__construct($ID, $senderID, $senderInstitutionID, $senderAddressID);
+    }
+
     /**
      * @return int
      */

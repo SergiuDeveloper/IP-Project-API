@@ -96,7 +96,7 @@ class DocumentItem
      */
     public function addIntoDatabase(){
         if($this->currency == null)
-            $this->currency = Currency::getCurrencyIDByTitle(DEFAULT_ITEM_VALUE_CURRENCY);
+            $this->currency = Currency::getCurrencyByTitle(DEFAULT_ITEM_VALUE_CURRENCY);
         if(
             $this->currency         == null ||
             $this->title            == null ||
@@ -117,7 +117,7 @@ class DocumentItem
             $statement = DatabaseManager::PrepareStatement(self::$insertIntoDatabase);
             $statement->bindParam(":title",             $this->title);
             $statement->bindParam(":description",       $this->description);
-            $statement->bindParam(":currencyID",        $currencyID);
+            $statement->bindParam(":currenciesID",      $currencyID);
             $statement->bindParam(":valueBeforeTax",    $this->valueBeforeTax);
             $statement->bindParam(":valueAfterTax",     $this->valueAfterTax);
             $statement->bindParam(":taxPercentage",     $this->taxPercentage);
@@ -125,7 +125,11 @@ class DocumentItem
 
             $statement->execute();
 
-            $this->setID(self::fetchFromDatabaseByTitleAndProductNumber($this->title, $this->productNumber)->ID);
+            //$this->setID(self::fetchFromDatabaseByTitleAndProductNumber($this->title, $this->productNumber)->ID);
+
+            if($statement->rowCount() > 0){
+                $this->ID = (int)(DatabaseManager::getConnectionInstance()->lastInsertId());
+            }
 
             DatabaseManager::Disconnect();
         }

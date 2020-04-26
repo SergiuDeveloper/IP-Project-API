@@ -23,6 +23,12 @@ class DatabaseManager {
     private static $pdoDatabaseConnection;
     private static $connectionActive = false;
 
+    public static function getConnectionInstance(){
+        if(!self::$connectionActive)
+            return null;
+        return self::$pdoDatabaseConnection;
+    }
+
     /**
      * @return bool Database Connection success state
      */
