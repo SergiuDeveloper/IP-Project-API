@@ -1,5 +1,9 @@
 <?php
 
+if(!defined('ROOT')){
+    define('ROOT', dirname(__FILE__) . '/..');
+}
+
 /**
     Database management class(connection, disconnection, statement preparing)
 */
@@ -9,7 +13,7 @@ class DatabaseManager {
     private static $Password;
     private static $Schema;
 
-    private static $credentialsJSONFilePath = "./../Sensitive/Database.json";
+    private static $credentialsJSONFilePath = ROOT . '/Sensitive/Sensitive/Database.json';
     private static $credentialsBound = false;
 
     /**
