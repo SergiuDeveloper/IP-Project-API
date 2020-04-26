@@ -131,6 +131,12 @@ class DocumentItem
                 $this->ID = (int)(DatabaseManager::getConnectionInstance()->lastInsertId());
             }
 
+            if($statement->rowCount() == 0){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ITEM_DUPLICATE"))
+                    ->send();
+            }
+
             DatabaseManager::Disconnect();
         }
         catch (Exception $exception){
