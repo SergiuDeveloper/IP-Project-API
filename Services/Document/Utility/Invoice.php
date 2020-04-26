@@ -25,7 +25,7 @@ class Invoice extends Document
     private $entryID;
 
     /**
-     * @var integer document ID of the linked receipt of this invoice. SAME as in documents table, not receipts table.
+     * @var integer|null document ID of the linked receipt of this invoice. SAME as in documents table, not receipts table.
      */
     private $receiptID;
 

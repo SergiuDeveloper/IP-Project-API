@@ -62,6 +62,24 @@ class DocumentItem
      */
     private $currency;
 
+    public function __toString()
+    {
+        return $this->json_encode();
+    }
+
+    public function json_encode(){
+        return
+            '{"ID"='            . $this->ID .
+            ',"productNumber"=' . $this->productNumber .
+            ',"title"='         . $this->title .
+            ',"description"='   . $this->description .
+            ',"valueBeforeTax"='. $this->valueBeforeTax .
+            ',"taxPercentage"=' . $this->taxPercentage .
+            ',"valueAfterTax"=' . $this->valueAfterTax .
+            ',"currency"='      . $this->currency->json_encode() .
+            '}';
+    }
+
     public function __construct(){
         $this->ID               = null;
         $this->productNumber    = null;
@@ -267,6 +285,7 @@ class DocumentItem
 
             if($row != null) {
                 $result = new DocumentItem();
+
                 $result
                     ->setID($row['ID'])
                     ->setTitle($row['Title'])
@@ -274,7 +293,7 @@ class DocumentItem
                     ->setDescription($row['Description'])
                     ->setValueBeforeTax($row['Value_Before_Tax'])
                     ->setTaxPercentage($row['Tax_Percentage'])
-                    ->setCurrency(Currency::getCurrencyByID(['Currencies_ID'], true));
+                    ->setCurrency(Currency::getCurrencyByID($row['Currencies_ID'], true));
             }
 
             DatabaseManager::Disconnect();
@@ -310,7 +329,7 @@ class DocumentItem
                     ->setDescription( $row['Description'] )
                     ->setValueBeforeTax( $row['Value_Before_Tax'] )
                     ->setTaxPercentage( $row['Tax_Percentage'] )
-                    ->setCurrency( Currency::getCurrencyByID(['Currencies_ID'], true) )
+                    ->setCurrency( Currency::getCurrencyByID($row['Currencies_ID'], true) )
                 );
             }
 
@@ -347,7 +366,7 @@ class DocumentItem
                     ->setDescription( $row['Description'] )
                     ->setValueBeforeTax( $row['Value_Before_Tax'] )
                     ->setTaxPercentage( $row['Tax_Percentage'] )
-                    ->setCurrency( Currency::getCurrencyByID(['Currencies_ID'], true) )
+                    ->setCurrency( Currency::getCurrencyByID($row['Currencies_ID'], true) )
                 );
             }
 
@@ -421,7 +440,7 @@ class DocumentItem
                     ->setDescription($row['Description'])
                     ->setValueBeforeTax($row['Value_Before_Tax'])
                     ->setTaxPercentage($row['Tax_Percentage'])
-                    ->setCurrency(Currency::getCurrencyByID(['Currencies_ID'], true));
+                    ->setCurrency(Currency::getCurrencyByID($row['Currencies_ID'], true));
             }
 
             DatabaseManager::Disconnect();

@@ -13,6 +13,18 @@ class Currency{
     private $ID;
     private $title;
 
+    public function __toString()
+    {
+        return $this->json_encode();
+    }
+
+    public function json_encode(){
+        return
+            '{"ID"='    . $this->ID .
+            ',"title"=' . $this->title .
+            '}';
+    }
+
     public function __construct($title, $fetchData = true, $ID = null){
         $this->title = $title;
         if($fetchData == true)
@@ -56,6 +68,33 @@ class Currency{
 
             $statement = DatabaseManager::PrepareStatement(self::$getCurrencyByID);
             $statement->bindParam(":ID", $ID);
+
+            $statement->execute();
+
+            $row = $statement->fetch(PDO::FETCH_OBJ);
+
+            $currency = new Currency($row->Title, false, $row->ID);
+
+            if($alreadyConnected == false)
+                DatabaseManager::Disconnect();
+
+            return $currency;
+        }
+        catch (Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            die();
+        }
+    }
+
+    public static function getCurrencyByTitle($title, $alreadyConnected = false){
+        try{
+            if($alreadyConnected == false)
+                DatabaseManager::Connect();
+
+            $statement = DatabaseManager::PrepareStatement(self::$getCurrencyByTitle);
+            $statement->bindParam(":title", $title);
 
             $statement->execute();
 
