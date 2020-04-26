@@ -22,6 +22,7 @@ class DocumentItemContainerRow{
     /**
      * DocumentItemContainerRow constructor.
      * @param DocumentItem $item
+     * @param $quantity
      */
     public function __construct($item, $quantity){
         $this->quantity         = $quantity;
