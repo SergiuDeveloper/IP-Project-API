@@ -66,6 +66,10 @@ class Currency{
             if($alreadyConnected == false)
                 DatabaseManager::Connect();
 
+            $statement = DatabaseManager::PrepareStatement(self::$insertCurrencyIntoDatabase);
+            $statement->bindParam(":title", $title);
+            $statement->execute();
+
             $statement = DatabaseManager::PrepareStatement(self::$getCurrencyByID);
             $statement->bindParam(":ID", $ID);
 
@@ -92,6 +96,11 @@ class Currency{
         try{
             if($alreadyConnected == false)
                 DatabaseManager::Connect();
+
+            $statement = DatabaseManager::PrepareStatement(self::$insertCurrencyIntoDatabase);
+            $statement->bindParam(":title", $title);
+            $statement->execute();
+
 
             $statement = DatabaseManager::PrepareStatement(self::$getCurrencyByTitle);
             $statement->bindParam(":title", $title);
