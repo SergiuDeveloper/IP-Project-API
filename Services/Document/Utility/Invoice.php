@@ -121,4 +121,8 @@ class Invoice extends Document
         $this->itemsContainer = $itemsContainer;
         return $this;
     }
+
+    public function upload() {
+        
+    }
 }

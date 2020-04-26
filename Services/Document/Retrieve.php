@@ -22,7 +22,7 @@
     $email              = $_GET["email"];
     $hashedPassword     = $_GET["hashedPassword"];
     $institutionName    = $_GET["institutionName"];
-    $documentId    = $_GET["documentId"];
+    $documentId         = $_GET["documentId"];
 
     if ($email == null || $hashedPassword == null || $institutionName == null || $documentId == null) {
         ResponseHandler::getInstance()
