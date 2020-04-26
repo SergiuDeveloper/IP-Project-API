@@ -70,8 +70,35 @@ abstract class Document
     /**
      * TODO : in service or in here
      */
-    protected function fetchIntoDatabaseDocumentBase(){
+    protected function fetchFromDatabaseDocumentBaseByID() {
+        try{
+            DatabaseManager::Connect();
+            $statement = DatabaseManager::PrepareStatement(self::$getFromDatabaseByID);
+            $statement->bindParam(":ID", $this->ID);
 
+            $statement->execute();
+
+            $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+            if($row != null) {
+                $this->ID = $row['ID'];
+                $this->senderID = $row['Sender_User_ID'];
+                $this->senderInstitutionID = $row['Sender_Institution_ID'];
+                $this->senderAddressID = $row['Sender_Address_ID'];
+                $this->receiverID = $row['Receiver_User_ID'];
+                $this->receiverInstitutionID = $row['Receiver_Institution_ID'];
+                $this->receiverAddressID = $row['Receiver_Address_ID'];
+                $this->creatorID = $row['Creator_User_ID'];
+            }
+
+            DatabaseManager::Disconnect();
+        }
+        catch (Exception $exception) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            die();
+        }
     }
 
     public abstract function addIntoDatabase();
@@ -207,4 +234,8 @@ abstract class Document
         $this->creatorID = $creatorID;
         return $this;
     }
+
+    private static $getFromDatabaseByID = "
+    SELECT * FROM documents WHERE ID = :ID
+    ";
 }
