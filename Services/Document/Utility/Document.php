@@ -1,5 +1,25 @@
 <?php
 
+if( !defined('ROOT') ){
+    define('ROOT', dirname(__FILE__) . "/../..");
+}
+
+if( !defined('DEFAULT_ITEM_VALUE_CURRENCY') ){
+    define('DEFAULT_ITEM_VALUE_CURRENCY', 'RON');
+}
+
+require_once ( ROOT . '/Utility/StatusCodes.php' );
+require_once ( ROOT . '/Utility/CommonEndPointLogic.php' );
+require_once ( ROOT . '/Utility/ResponseHandler.php' );
+require_once ( ROOT . '/Utility/DatabaseManager.php' );
+
+require_once ( ROOT . '/Document/Utility/DocumentItem.php' );
+require_once ( ROOT . '/Document/Utility/Invoice.php' );
+require_once ( ROOT . '/Document/Utility/Receipt.php' );
+require_once ( ROOT . '/Document/Utility/DocumentItemContainer.php' );
+
+require_once ( ROOT . '/DataAccessObject/DataObjects.php' );
+
 abstract class Document
 {
     /**
@@ -38,6 +58,8 @@ abstract class Document
      * @var integer holds the creator ID;
      */
     protected $creatorID;
+
+    public abstract function getDAO();
 
     protected function __construct($ID, $senderID, $senderInstitutionID, $senderAddressID){
         $this->ID                       = $ID;

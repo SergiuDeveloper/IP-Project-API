@@ -17,6 +17,8 @@ require_once ( dirname(__FILE__) . '/Exception/DocumentItemDuplicate.php' );
 require_once ( dirname(__FILE__) . '/Exception/DocumentItemMultipleResults.php' );
 require_once ( dirname(__FILE__) . '/Exception/DocumentItemInvalid.php' );
 
+require_once ( ROOT . '/DataAccessObject/DataObjects.php' );
+
 class DocumentItem
 {
     /**
@@ -62,11 +64,20 @@ class DocumentItem
      */
     private $currency;
 
+    /**
+     * [DEBUG FUNCTION]
+     *
+     * @return string
+     */
     public function __toString()
     {
         return $this->json_encode();
     }
 
+    /**
+     * @deprecated
+     * @return string
+     */
     public function json_encode(){
         return
             '{"ID"='            . $this->ID .
@@ -78,6 +89,14 @@ class DocumentItem
             ',"valueAfterTax"=' . $this->valueAfterTax .
             ',"currency"='      . $this->currency->json_encode() .
             '}';
+    }
+
+    /**
+     * Use this to put items into response data
+     * @return \DAO\Item
+     */
+    public function getDAO(){
+        return new \DAO\Item($this);
     }
 
     public function __construct(){

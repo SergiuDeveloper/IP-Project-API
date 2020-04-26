@@ -17,6 +17,8 @@ require_once ( ROOT . '/Document/Utility/DocumentItem.php' );
 require_once ( ROOT . '/Document/Utility/Document.php' );
 require_once ( ROOT . '/Document/Utility/DocumentItemContainer.php' );
 
+require_once ( ROOT . '/DataAccessObject/DataObjects.php' );
+
 class Invoice extends Document
 {
     /**
@@ -56,6 +58,10 @@ class Invoice extends Document
 
     public function fetchFromDatabase(){
         // TODO: Implement fetchFromDatabase() method.
+    }
+
+    public function getDAO(){
+        return new \DAO\Invoice($this);
     }
 
     public function fetchFromDatabaseDocumentByID()

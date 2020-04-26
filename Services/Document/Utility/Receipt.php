@@ -12,6 +12,8 @@ require_once (ROOT . '/Document/Utility/Invoice.php' );
 require_once (ROOT . '/Document/Utility/PaymentMethod.php' );
 require_once (ROOT . '/Document/Utility/Currency.php' );
 
+require_once ( ROOT . '/DataAccessObject/DataObjects.php' );
+
 class Receipt extends Document
 {
     /**
@@ -69,6 +71,13 @@ class Receipt extends Document
      */
     public function fetchFromDatabase(){
         // TODO: Implement fetchFromDatabase() method.
+    }
+
+    /**
+     * @return \DAO\Receipt
+     */
+    public function getDAO(){
+        return new \DAO\Receipt($this);
     }
 
     public function __construct($ID, $senderID, $senderInstitutionID, $senderAddressID)
