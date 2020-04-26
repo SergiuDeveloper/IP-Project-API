@@ -58,6 +58,41 @@ class Invoice extends Document
         // TODO: Implement fetchFromDatabase() method.
     }
 
+    public function fetchFromDatabaseDocumentByID()
+    {
+        try{
+            parent::fetchFromDatabaseDocumentBaseByID();
+
+            DatabaseManager::Connect();
+            $statement = DatabaseManager::PrepareStatement(self::$getFromDatabaseByDocumentID);
+            $statement->bindParam(":ID", $this->ID);
+
+            $row = $statement->fetch(PDO::FETCH_ASSOC);
+            if($row != null) {
+                $this->entryID = $row['ID'];
+                $this->ID = $row['Documents_ID'];
+                $this->receiptID = $row['Receipts_ID'];
+                if($this->receiptID != null) {
+                    $getFromReceiptStatement = DatabaseManager::PrepareStatement(self::$getDocumentsIDFromReceipts);
+                    $getFromReceiptStatement->bindParam(":receiptID", $this->receiptID);
+                    $getFromReceiptStatement->execute();
+
+                    $receiptRow = $getFromReceiptStatement->fetch();
+                    $this->receiptDocumentID = $row['Documents_ID'];
+                }
+            }
+
+            DatabaseManager::Disconnect();
+        }
+        catch (Exception $exception) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus('DB_EXCEPT'))
+                ->send();
+            die();
+        }
+
+    }
+
     /**
      * @return int
      */
@@ -125,4 +160,13 @@ class Invoice extends Document
     public function upload() {
         
     }
+
+    private static $getFromDatabaseByDocumentID = "
+    SELECT * from invoices where Documents_ID = :ID
+    ";
+
+    private static $getDocumentsIDFromReceipts = "
+    SELECT Documents_ID from receipts where ID = :receiptID
+    ";
+
 }
