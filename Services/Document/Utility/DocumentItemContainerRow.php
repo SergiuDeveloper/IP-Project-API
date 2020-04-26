@@ -23,8 +23,8 @@ class DocumentItemContainerRow{
      * DocumentItemContainerRow constructor.
      * @param DocumentItem $item
      */
-    public function __construct($item){
-        $this->quantity         = 1;
+    public function __construct($item, $quantity){
+        $this->quantity         = $quantity;
         $this->productNumber    = $item->getProductNumber();
         $this->description      = $item->getTitle();
         $this->unitPrice        = $item->getValueBeforeTax();

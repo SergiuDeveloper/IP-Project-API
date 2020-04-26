@@ -49,7 +49,7 @@ class DocumentItemContainer{
                 $documentItemContainerRow->setQuantity($documentItemContainerRow->getQuantity() + $quantity);
                 return;
             }
-        array_push($this->documentItemRows, new DocumentItemContainerRow($item));
+        array_push($this->documentItemRows, new DocumentItemContainerRow($item, $quantity));
     }
 
     /**
