@@ -64,6 +64,36 @@ class Invoice extends Document
         return new \DAO\Invoice($this);
     }
 
+    public function __construct(){
+        parent::__construct();
+        $this->itemsContainer           = new DocumentItemContainer();
+        $this->entryID                  = null;
+        $this->receiptID                = null;
+        $this->receiverInstitutionID    = null;
+    }
+
+    /**
+     *
+     * Call Example :
+        $invoice = new Invoice();
+
+        $invoice->setID(1)->fetchFromDatabaseDocumentByID();                                MUST HAVE ID SET
+
+        try{
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+                ->addResponseData("documentType", "invoice")
+                ->addResponseData("document", $invoice->getDAO())
+                ->send();
+        }
+        catch (Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
+                ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+        }
+     *
+     * Call will populate invoice object, which can be sent into response data with the given model
+     */
     public function fetchFromDatabaseDocumentByID()
     {
         try{
@@ -72,16 +102,21 @@ class Invoice extends Document
             DatabaseManager::Connect();
             $statement = DatabaseManager::PrepareStatement(self::$getFromDatabaseByDocumentID);
             $statement->bindParam(":ID", $this->ID);
+            $statement->execute();
 
             $row = $statement->fetch(PDO::FETCH_ASSOC);
+
             if($row != null) {
                 $this->entryID = $row['ID'];
                 $this->ID = $row['Documents_ID'];
                 $this->receiptID = $row['Receipts_ID'];
+
                 if($this->receiptID != null) {
                     $getFromReceiptStatement = DatabaseManager::PrepareStatement(self::$getDocumentsIDFromReceipts);
                     $getFromReceiptStatement->bindParam(":receiptID", $this->receiptID);
                     $getFromReceiptStatement->execute();
+
+                    $getFromReceiptStatement->debugDumpParams();
 
                     $receiptRow = $getFromReceiptStatement->fetch();
                     $this->receiptDocumentID = $receiptRow['Documents_ID'];
@@ -91,7 +126,7 @@ class Invoice extends Document
                 $getFromDocumentItemsStatement->bindParam(":entryID", $this->entryID);
                 $getFromDocumentItemsStatement->execute();
 
-                while($itemRow = $getFromDocumentItemsStatement->fetch(PDO::FETCH_ASSOC)) {
+                while($itemRow = $getFromDocumentItemsStatement->fetch(PDO::FETCH_ASSOC)){
                     $this->itemsContainer->addItem(
                         DocumentItem::fetchFromDatabaseByID($itemRow['Items_ID']),
                         $itemRow['Quantity']
@@ -187,7 +222,7 @@ class Invoice extends Document
     ";
 
     private static $getItemByInvoiceID = "
-    SELECT * FROM document_items WHERE Receipts_ID = :entryID
+    SELECT * FROM document_items WHERE Invoices_ID = :entryID
     ";
 
 }

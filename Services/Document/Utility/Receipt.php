@@ -80,9 +80,8 @@ class Receipt extends Document
         return new \DAO\Receipt($this);
     }
 
-    public function __construct($ID, $senderID, $senderInstitutionID, $senderAddressID)
-    {
-        parent::__construct($ID, $senderID, $senderInstitutionID, $senderAddressID);
+    public function __construct(){
+        parent::__construct();
     }
 
     /**

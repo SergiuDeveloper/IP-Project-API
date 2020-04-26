@@ -61,14 +61,15 @@ abstract class Document
 
     public abstract function getDAO();
 
-    protected function __construct($ID, $senderID, $senderInstitutionID, $senderAddressID){
-        $this->ID                       = $ID;
-        $this->senderID                 = $senderID;
-        $this->senderInstitutionID      = $senderInstitutionID;
-        $this->senderAddressID          = $senderAddressID;
+    protected function __construct(){
+        $this->ID                       = null;
+        $this->senderID                 = null;
+        $this->senderInstitutionID      = null;
+        $this->senderAddressID          = null;
         $this->receiverID               = null;
         $this->receiverInstitutionID    = null;
         $this->receiverAddressID        = null;
+        $this->creatorID                = null;
 
         if(defined('CALLER_USER_ID')){
             $this->creatorID = CALLER_USER_ID;
