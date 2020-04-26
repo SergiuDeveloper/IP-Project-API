@@ -78,7 +78,18 @@ class Invoice extends Document
                     $getFromReceiptStatement->execute();
 
                     $receiptRow = $getFromReceiptStatement->fetch();
-                    $this->receiptDocumentID = $row['Documents_ID'];
+                    $this->receiptDocumentID = $receiptRow['Documents_ID'];
+                }
+
+                $getFromDocumentItemsStatement = DatabaseManager::PrepareStatement(self::$getItemByInvoiceID);
+                $getFromDocumentItemsStatement->bindParam(":entryID", $this->entryID);
+                $getFromDocumentItemsStatement->execute();
+
+                while($itemRow = $getFromDocumentItemsStatement->fetch(PDO::FETCH_ASSOC)) {
+                    $this->itemsContainer->addItem(
+                        DocumentItem::fetchFromDatabaseByID($itemRow['Items_ID']),
+                        $itemRow['Quantity']
+                        );
                 }
             }
 
@@ -167,6 +178,10 @@ class Invoice extends Document
 
     private static $getDocumentsIDFromReceipts = "
     SELECT Documents_ID from receipts where ID = :receiptID
+    ";
+
+    private static $getItemByInvoiceID = "
+    SELECT * FROM document_items WHERE Receipts_ID = :entryID
     ";
 
 }
