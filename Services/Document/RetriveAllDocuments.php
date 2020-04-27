@@ -39,45 +39,51 @@
 
     $getDocumentTypeQuery = "SELECT * FROM document_types WHERE ID = :id";
 
-    try
-    {
-       DatabaseManager::Connect();
-
-        if (InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::PREVIEW_SPECIFIC_RECEIVED_DOCUMENT) == false)
-        {
+    try {
+        if (InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::PREVIEW_RECEIVED_DOCUMENTS) == false) {
             ResponseHandler::getInstance()
                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION"))
                 ->send();
         }
+    }
+    catch(Exception $exception){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_ACTION"))
+            ->send();
+    }
 
-       $getInstitutionID = DatabaseManager::PrepareStatement($getInstitutionIDQuery);
-       $getInstitutionID->bindParam(":institutionName", $institutionName);
-       $getInstitutionID->execute();
+    try{
 
-       $institutionID = $getInstitutionID->fetch(PDO::FETCH_ASSOC);
+        DatabaseManager::Connect(); //DB_EXCEPT TODO : exceptii calumea, testare
 
-       if ($institutionID == null)
-       {
+        $getInstitutionID = DatabaseManager::PrepareStatement($getInstitutionIDQuery);
+        $getInstitutionID->bindParam(":institutionName", $institutionName);
+        $getInstitutionID->execute();
+
+        $institutionID = $getInstitutionID->fetch(PDO::FETCH_ASSOC);
+
+        if ($institutionID == null)
+        {
            ResponseHandler::getInstance()
                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND"))
                ->send();
-       }
+        }
 
-       $getDocuments = DatabaseManager::PrepareStatement($getDocumentsQuery);
-       $getDocuments->bindParam(":institutionID", $institutionID["ID"]);
-       $getDocuments->execute();
+        $getDocuments = DatabaseManager::PrepareStatement($getDocumentsQuery);
+        $getDocuments->bindParam(":institutionID", $institutionID["ID"]);
+        $getDocuments->execute();
 
-       $documents = $getDocuments->fetch(PDO::FETCH_ASSOC);
+        $documents = $getDocuments->fetch(PDO::FETCH_ASSOC);
 
-       if ($documents == null)
-       {
+        if ($documents == null)
+        {
            ResponseHandler::getInstance()
                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOCUMENTS_INVALID"))
                ->send();
-       }
+        }
 
-       $receiptsList = array();
-       $invoicesList = array();
+        $receiptsList = array();
+        $invoicesList = array();
 
         foreach ($documents as $document)
         {
@@ -112,4 +118,4 @@
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
             ->send(StatusCodes::INTERNAL_SERVER_ERROR);
     }
-?>
+
