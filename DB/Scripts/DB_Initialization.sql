@@ -327,10 +327,10 @@ CREATE TABLE Documents (
     Sender_User_ID 				INT 			NULL,
     Sender_Institution_ID 		INT 		NOT NULL,
     Sender_Address_ID 			INT 			NULL,
-    Date_Sent 					DATETIME 	NOT NULL,
+    Date_Sent 					DATETIME 		NULL,
     Is_Sent 					BOOLEAN 	NOT NULL,
     Receiver_User_ID 			INT 			NULL,
-    Receiver_Institution_ID 	INT 		NOT NULL,
+    Receiver_Institution_ID 	INT 			NULL,
     Receiver_Address_ID 		INT 			NULL,
 	Document_Types_ID			INT			NOT NULL,
     
