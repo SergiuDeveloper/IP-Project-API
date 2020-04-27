@@ -14,6 +14,9 @@
     $institutionName        = $_POST['institutionName'];
     $institutionAddressID   = $_POST['institutionAddress'];
     $documentItems          = json_decode($_POST['documentItems'], true); 
+    $invoiceID              = $_POST['invoiceID'];
+    $paymentNumer           = $_POST['paymentNumber'];
+    $paymentMethodID        = $_POST['paymentMethodID'];
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
@@ -93,7 +96,7 @@
     }
 
     $getDocumentTypeStatement = DatabaseManager::PrepareStatement('
-        SELECT ID FROM Document_Types WHERE Title = \'Invoice\'
+        SELECT ID FROM Document_Types WHERE Title = \'Receipt\'
     ');
     $getDocumentTypeStatement->execute();
     $documentTypesRow = $getDocumentTypeStatement->fetch(PDO::FETCH_ASSOC);
@@ -125,18 +128,27 @@
 
     $documentID = DatabaseManager::GetLastInsertID();
 
-    $insertInvoiceStatement = DatabaseManager::PrepareStatement('
-        INSERT INTO Invoices (
-            Documents_ID
+    $insertReceiptStatement = DatabaseManager::PrepareStatement('
+        INSERT INTO Receipts (
+            Documents_ID,
+            Invoices_ID,
+            Payment_Number,
+            Payment_Methods_ID
         )
         VALUES (
-            :documentID
+            :documentID,
+            :invoiceID,
+            :paymentNumber,
+            :paymentMethodID
         )
     ');
-    $insertInvoiceStatement->bindParam(':documentID', $documentID);
-    $insertInvoiceStatement->execute();
+    $insertReceiptStatement->bindParam(':documentID', $documentID);
+    $insertReceiptStatement->bindParam(':invoice', $invoiceID);
+    $insertReceiptStatement->bindParam(':paymentNumber', $paymentNumber);
+    $insertReceiptStatement->bindParam(':paymentMethodID', $paymentMethodID);
+    $insertReceiptStatement->execute();
 
-    $invoiceID = DatabaseManager::GetLastInsertID();
+    $receiptID = DatabaseManager::GetLastInsertID();
 
     if ($documentItems === null || count($documentItems) > 0) {
         DatabaseManager::Disconnect();
@@ -202,17 +214,17 @@
 
         $insertDocumentItemStatement = DatabaseManager::PrepareStatement('
             INSERT INTO Document_Items (
-                Invoices_ID,
+                Receipts_ID,
                 Items_ID,
                 Quantity
             )
             VALUES (
-                :invoiceID,
+                :receiptID,
                 :itemID,
                 :quantity
             )
         ');
-        $insertDocumentItemStatement->bindParam(':invoiceID', $invoiceID);
+        $insertDocumentItemStatement->bindParam(':receiptID', $receiptID);
         $insertDocumentItemStatement->bindParam(':itemID', $itemID);
         $insertDocumentItemStatement->bindParam(':quantity', $item['quantity']);
         $insertDocumentItemStatement->execute();
