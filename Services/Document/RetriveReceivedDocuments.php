@@ -39,21 +39,24 @@
 
     $getDocumentTypeQuery = "SELECT * FROM document_types WHERE ID = :id";
 
-    try {
-        if (InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::PREVIEW_RECEIVED_DOCUMENTS) == false) {
+    try
+    {
+        if (InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::PREVIEW_RECEIVED_DOCUMENTS) == false)
+        {
             ResponseHandler::getInstance()
                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION"))
                 ->send();
         }
     }
-    catch(Exception $exception){
+    catch(Exception $exception)
+    {
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_ACTION"))
             ->send();
     }
 
-    try{
-
+    try
+    {
         DatabaseManager::Connect(); //DB_EXCEPT TODO : exceptii calumea, testare
 
         $getInstitutionID = DatabaseManager::PrepareStatement($getInstitutionIDQuery);
@@ -62,7 +65,7 @@
 
         $institutionID = $getInstitutionID->fetch(PDO::FETCH_ASSOC);
 
-        if ($institutionID == null)
+        if ($institutionID == null) 
         {
            ResponseHandler::getInstance()
                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND"))
@@ -113,9 +116,10 @@
         DatabaseManager::Disconnect();
 
     }
-    catch (Exception $exception){
+    catch (Exception $exception)
+    {
         ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
-            ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+            ->send();
     }
 
