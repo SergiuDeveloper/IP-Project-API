@@ -84,13 +84,15 @@ class Receipt extends Document
                 $this->entryID = $row['ID'];
                 $this->ID = $row['Documents_ID'];
                 $this->invoiceID = $row['Invoices_ID'];
+                $this->paymentAmount= $row['Payment_Number'];
+                $paymentID = $row['Payment_Methods_ID'];
 
                 if($this->invoiceID != null) {
                     $getFromInvoiceStatement = DatabaseManager::PrepareStatement(self::$getDocumentsIDFromInvoices);
                     $getFromInvoiceStatement->bindParam(":invoiceID", $this->invoiceID);
                     $getFromInvoiceStatement->execute();
 
-                    $getFromInvoiceStatement->debugDumpParams();
+                    //$getFromInvoiceStatement->debugDumpParams();
 
                     $invoiceRow = $getFromInvoiceStatement->fetch();
                     $this->invoiceDocumentID = $invoiceRow['Documents_ID'];
@@ -106,16 +108,8 @@ class Receipt extends Document
                         $itemRow['Quantity']
                         );
                 }
-            
-                $this->paymentAmount= $row['Payment_Number'];
 
-                $getFromPaymentMethodStatement = DatabaseManager::PrepareStatement(self::$getPaymentMethodByID);
-                $getFromPaymentMethodStatement->bindParam(":paymentID", $row['Payment_Methods_ID']);
-                $getFromPaymentMethodStatement->execute();
-
-                $paymentRow = $getFromPaymentMethodStatement->fetch(PDO::FETCH_ASSOC);
-                $paymentMethod = new PaymentMethod($paymentRow['title']);
-                $this->paymentMethod = $paymentMethod;
+                $this->paymentMethod = PaymentMethod::getPaymentMethodByID($paymentID);
             }
 
             DatabaseManager::Disconnect();

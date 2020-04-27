@@ -21,9 +21,11 @@ class PaymentMethod{
      * PaymentMethod constructor.
      * @param string $title
      */
-    public function __construct($title){
+    public function __construct($title = null){
         $this->title = $title;
-        $this->ID = self::getPaymentMethodID($title);
+
+        if($this->title != null)
+            $this->ID = self::getPaymentMethodID($title);
     }
 
     /**
@@ -86,7 +88,33 @@ class PaymentMethod{
      * @returns PaymentMethod
      */
     public static function getPaymentMethodByID($ID){
+        try{
+            DatabaseManager::Connect();
 
+            $statement = DatabaseManager::PrepareStatement(self::$getPaymentMethodByID);
+            $statement->bindParam(":ID", $ID);
+            $statement->execute();
+
+            $row = $statement->fetch(PDO::FETCH_OBJ);
+
+            DatabaseManager::Disconnect();
+
+            $paymentMethod = null;
+
+            if($row != null){
+                $paymentMethod = new PaymentMethod();
+                $paymentMethod->title = $row->Title;
+                $paymentMethod->ID = $row->ID;
+            }
+        }
+        catch (Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            die();
+        }
+
+        return $paymentMethod;
     }
 
     private static $getPaymentMethodByTitle = "
@@ -95,5 +123,9 @@ class PaymentMethod{
 
     private static $insertPaymentMethodIntoDatabase = "
         INSERT INTO payment_methods (Title) VALUES (:title)
+    ";
+
+    private static $getPaymentMethodByID = "
+        SELECT * FROM payment_methods WHERE ID = :ID
     ";
 }
