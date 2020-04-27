@@ -70,7 +70,62 @@ class Receipt extends Document
      * TODO : in service or in here
      */
     public function fetchFromDatabase(){
-        // TODO: Implement fetchFromDatabase() method.
+        try{
+            parent::fetchFromDatabaseDocumentBaseByID();
+
+            DatabaseManager::Connect();
+            $statement = DatabaseManager::PrepareStatement(self::$getFromDatabaseByDocumentID);
+            $statement->bindParam(":ID", $this->ID);
+            $statement->execute();
+
+            $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+            if($row != null) {
+                $this->entryID = $row['ID'];
+                $this->ID = $row['Documents_ID'];
+                $this->invoiceID = $row['Invoices_ID'];
+
+                if($this->invoiceID != null) {
+                    $getFromInvoiceStatement = DatabaseManager::PrepareStatement(self::$getDocumentsIDFromInvoices);
+                    $getFromInvoiceStatement->bindParam(":invoiceID", $this->invoiceID);
+                    $getFromInvoiceStatement->execute();
+
+                    $getFromInvoiceStatement->debugDumpParams();
+
+                    $invoiceRow = $getFromInvoiceStatement->fetch();
+                    $this->invoiceDocumentID = $invoiceRow['Documents_ID'];
+                }
+
+                $getFromDocumentItemsStatement = DatabaseManager::PrepareStatement(self::$getItemByReceiptID);
+                $getFromDocumentItemsStatement->bindParam(":entryID", $this->entryID);
+                $getFromDocumentItemsStatement->execute();
+
+                while($itemRow = $getFromDocumentItemsStatement->fetch(PDO::FETCH_ASSOC)){
+                    $this->itemsContainer->addItem(
+                        DocumentItem::fetchFromDatabaseByID($itemRow['Items_ID']),
+                        $itemRow['Quantity']
+                        );
+                }
+            
+                $this->paymentAmount= $row['Payment_Number'];
+
+                $getFromPaymentMethodStatement = DatabaseManager::PrepareStatement(self::$getPaymentMethodByID);
+                $getFromPaymentMethodStatement->bindParam(":paymentID", $row['Payment_Methods_ID']);
+                $getFromPaymentMethodStatement->execute();
+
+                $paymentRow = $getFromPaymentMethodStatement->fetch(PDO::FETCH_ASSOC);
+                $paymentMethod = new PaymentMethod($paymentRow['title']);
+                $this->paymentMethod = $paymentMethod;
+            }
+
+            DatabaseManager::Disconnect();
+        }
+        catch (Exception $exception) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus('DB_EXCEPT'))
+                ->send();
+            die();
+        }
     }
 
     /**
@@ -82,6 +137,10 @@ class Receipt extends Document
 
     public function __construct(){
         parent::__construct();
+        $this->itemsContainer           = new DocumentItemContainer();
+        $this->entryID                  = null;
+        $this->invoiceID                = null;
+        $this->invoiceDocumentID        = null;
     }
 
     /**
@@ -179,4 +238,20 @@ class Receipt extends Document
         $this->paymentMethod = $paymentMethod;
         return $this;
     }
+
+    private static $getFromDatabaseByDocumentID = "
+    SELECT * from receipts where Documents_ID = :ID
+    ";
+
+    private static $getDocumentsIDFromInvoices = "
+    SELECT Documents_ID from invoices where ID = :invoiceID
+    ";
+
+    private static $getItemByReceiptID = "
+    SELECT * FROM document_items WHERE Receipts_ID = :entryID
+    ";
+
+    private static $getPaymentMethodByID = "
+    select * from payment_methods WHERE ID = :paymentID
+    ";
 }
