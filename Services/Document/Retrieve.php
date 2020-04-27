@@ -36,6 +36,8 @@
 
     $documentQuery = "SELECT * FROM documents WHERE ID = :documentId;";
 
+    $documentTypeQuery = "SELECT * from document_types WHERE ID = :id";
+
     $receiptQuery = "SELECT * FROM Receipts WHERE Documents_ID = :documentId;";
 
     $invoiceQuery = "SELECT * FROM Invoices WHERE Documents_ID = :documentId;";
@@ -65,6 +67,7 @@
         $getDocument->execute();
 
         $documentRow = $getDocument->fetch(PDO::FETCH_ASSOC);
+        $docTypeId = $documentRow['Document_Types_ID'];
 
         if($documentRow == null){
             ResponseHandler::getInstance()
@@ -98,31 +101,23 @@
 
         DatabaseManager::Connect();
 
-        $getReceipt = DatabaseManager::PrepareStatement($receiptQuery);
-        $getReceipt->bindParam(":documentId", $documentId);
-        $getReceipt->execute();
+        $getType = DatabaseManager::PrepareStatement($documentTypeQuery);
+        $getType->bindParam(":id", $docTypeId);
+        $getType->execute();
 
-        $receiptRow = $getReceipt->fetch(PDO::FETCH_ASSOC);
+        $getTypeRow = $getType->fetch(PDO::FETCH_ASSOC);
+        $type = $getTypeRow['title'];
 
-        $getInvoice = DatabaseManager::PrepareStatement($invoiceQuery);
-        $getInvoice->bindParam(":documentId", $documentId);
-        $getInvoice->execute();
+        if($type == "Invoice"){
 
-        $invoiceRow = $getInvoice->fetch(PDO::FETCH_ASSOC);
-
-        if($receiptRow == null && $invoiceQuery == null){
-            ResponseHandler::getInstance()
-                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOCUMENT_NOT_FOUND"))
-                ->send();
-        }
-        if($receiptRow == null){
             $document = new Invoice();
-            $document->setId($documentRow["ID"])->fetchFromDatabaseDocumentByID();
-        }
+            $document->setId($documentId)->fetchFromDatabaseDocumentByID();
 
-        if($invoiceRow == null){
+        } else if($type == "Receipt"){
+
             $document = new Receipt();
-            $document->setId($documentRow["ID"])->fetchFromDatabase();
+            $document->setId($documentId)->fetchFromDatabase();
+
         }
        
         DatabaseManager::Disconnect();
@@ -132,12 +127,25 @@
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
             ->send();
     }
+    
+    try{
+        if($type == "Invoice"){
 
-    try {
-        ResponseHandler::getInstance()
+            ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
-            ->addResponseData("document", $document)
+            ->addResponseData("documentType", "invoice")
+            ->addResponseData("document", $document->getDAO())
             ->send();
+    
+        } else if($type == "Receipt"){
+    
+            ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+            ->addResponseData("documentType", "receipt")
+            ->addResponseData("document", $document->getDAO())
+            ->send();
+    
+        }
     }
     catch (Exception $exception){
         ResponseHandler::getInstance()
