@@ -81,6 +81,14 @@ class PaymentMethod{
         }
     }
 
+    /**
+     * @param integer $ID
+     * @returns PaymentMethod
+     */
+    public static function getPaymentMethodByID($ID){
+
+    }
+
     private static $getPaymentMethodByTitle = "
         SELECT * FROM payment_methods WHERE Title = :title
     ";

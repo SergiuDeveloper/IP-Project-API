@@ -36,7 +36,7 @@
 
    try
    {
-       CommonEndPointLogic::SendEmail($inputEmail, "New Account Password", $newPassword);
+       CommonEndPointLogic::SendEmail($inputEmail, "New Account Password", $newPassword);  // TODO : add different body for email
    }
    catch (Exception $e)
    {
