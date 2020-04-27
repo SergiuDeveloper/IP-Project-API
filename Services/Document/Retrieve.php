@@ -115,75 +115,14 @@
                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOCUMENT_NOT_FOUND"))
                 ->send();
         }
-
         if($receiptRow == null){
-            $document = new Invoice($documentRow["ID"],$documentRow["Sender_User_ID"],$documentRow["Sender_Institution_ID"],$documentRow["Sender_Address_ID"]);
-            $document->setReceiverAddressID($documentRow["Receiver_Address_ID"]);
-            $document->setReceiverID($documentRow["Receiver_User_ID"]);
-            $document->setCreatorID($documentRow["Creator_User_ID"]);
-            $document->setReceiptID($invoiceRow["Invoices_ID"]);  // e optional si da si eroare 
-
-
-            $getItems = DatabaseManager::PrepareStatement($queryGetItems);
-            $getItems->bindParam(":documentId",$documentRow["ID"]);
-            $getItems->execute();
-    
-            while($getItemsRow = $getItems->fetch(PDO::FETCH_ASSOC)){
-
-                $getItem = DatabaseManager::PrepareStatement($queryGetItem);
-                $getItem->bindParam(":itemId",$getItemRow["Items_ID"]);
-                $getItem->execute();
-
-                $getItemRow = $getInvoice->fetch(PDO::FETCH_ASSOC);
-                
-                $item = new Item($getItemRow["Product_Number"], $getItemRow["Description"],$getItemRow["Value_Before_Tax"],$getItemRow["Tax_Percentage"],$getItemRow["Value_After_Tax"]);
-
-                $itemContainer = new ItemContainer($getItemsRow["Quantity"],$item);
-                $document->addItem($itemContainer);
-            }
+            $document = new Invoice();
+            $document->setId($documentRow["ID"])->fetchFromDatabaseDocumentByID();
         }
 
         if($invoiceRow == null){
-            $document = new Receipt($documentRow["ID"],$documentRow["Sender_User_ID"],$documentRow["Sender_Institution_ID"],$documentRow["Sender_Address_ID"]);
-            $document->setReceiverAddressID($documentRow["Receiver_Address_ID"]);
-            $document->setReceiverID($documentRow["Receiver_User_ID"]);
-            $document->setReceiverInstitutionID($documentRow["Receiver_Institution_ID"]);
-            $document->setCreatorID($documentRow["Creator_User_ID"]);
-            //$document->setInvoiceID($receiptRow["Invoices_ID"]);   -- e optional acolo trecut, dar nu e nici functia in clasa
-
-
-            $getItems = DatabaseManager::PrepareStatement($queryGetItems);
-            $getItems->bindParam(":documentId",$documentRow["ID"]);
-            $getItems->execute();
-    
-            while($getItemsRow = $getItems->fetch(PDO::FETCH_ASSOC)){
-
-                $getItem = DatabaseManager::PrepareStatement($queryGetItem);
-                $getItem->bindParam(":itemId",$getItemRow["Items_ID"]);
-                $getItem->execute();
-
-                $getItemRow = $getInvoice->fetch(PDO::FETCH_ASSOC);
-                
-                $item = new Item($getItemRow["Product_Number"], $getItemRow["Description"],$getItemRow["Value_Before_Tax"],$getItemRow["Tax_Percentage"],$getItemRow["Value_After_Tax"]);
-
-                $itemContainer = new ItemContainer($getItemsRow["Quantity"],$item);
-                $document->addItem($itemContainer);
-            }
-
-            $document->setPaymentAmount($receiptRow["Payment_Number"]); // da eraore nu stiu dc
-            
-            // $getPaymentMethod = DatabaseManager::PrepareStatement($queryGetPayment); // asa apare pe flow, dar clasa permite 
-            // $getPaymentMethod->bindParam(":ID",$receiptRow["Payment_Methods_ID"]); // doar trimiterea ID-ului
-            // $getPaymentMethod->execute();
-
-            // $getPayment = $getPaymentMethod->fetch(PDO::FETCH_ASSOC);
-
-            // $paymentMethod = new PaymentMethod($getPayment["ID"],$getPayment["title"]);
-
-            // $document->setPaymentMethod($paymentMethod);  // gen nu exista functie care sa preia obiectul asta :D
-
-            $document->setPaymentMethodID($receiptRow["Payment_Methods_ID"]); // so, I'll do smth like this
-            // si asta da eroare
+            $document = new Receipt();
+            $document->setId($documentRow["ID"])->fetchFromDatabase();
         }
        
         DatabaseManager::Disconnect();
@@ -205,40 +144,4 @@
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
             ->send(StatusCodes::INTERNAL_SERVER_ERROR);
     }
-
-
-    class Item {
-        public $productNumber;
-        public $description;
-        public $unitPrice;
-        public $itemTax;
-        public $unitPriceWithTax;
-        public function __construct($productNumber, $description, $unitPrice, $itemTax, $unitPriceWithTax){
-          $this->productNumber = $productNumber;
-          $this->description = $description;
-          $this->unitPrice = $unitPrice;
-          $this->itemTax = $itemTax;
-          $this->unitPriceWithTax = $unitPriceWithTax;
-        }
-    }
-    class ItemContainer {
-        public $quantity;
-        public $item;
-
-        function __construct($quantity, $item)
-        {
-            $this->quantity = $quantity;
-            $this->item = $item;
-        }
-    }
-    // class PaymentMethod { 
-    //     public $ID;
-    //     public $title;
-
-    //     function __construct($ID, $title)
-    //     {
-    //         $this->ID = $ID;
-    //         $this->title = $title;
-    //     }
-    // } 
 ?>
