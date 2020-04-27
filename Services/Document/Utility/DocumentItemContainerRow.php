@@ -28,9 +28,9 @@ class DocumentItemContainerRow{
         $this->quantity         = $quantity;
         $this->productNumber    = $item->getProductNumber();
         $this->description      = $item->getTitle();
-        $this->unitPrice        = $item->getValueBeforeTax();
+        $this->unitPrice        = $item->getValueBeforeTax() * $this->quantity;
         $this->itemTax          = $item->getTaxPercentage();
-        $this->unitPriceWithTax = $item->getValueAfterTax();
+        $this->unitPriceWithTax = $item->getValueAfterTax() * $this->quantity;
 
         $this->itemReference    = $item;
     }
