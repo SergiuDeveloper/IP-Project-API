@@ -209,10 +209,6 @@ class Invoice extends Document
         return $this;
     }
 
-    public function upload() {
-        
-    }
-
     private static $getFromDatabaseByDocumentID = "
     SELECT * from invoices where Documents_ID = :ID
     ";

@@ -13,7 +13,7 @@ class DatabaseManager {
     private static $Password;
     private static $Schema;
 
-    private static $credentialsJSONFilePath = ROOT . '/Sensitive/Sensitive/Database.json';
+    private static $credentialsJSONFilePath = ROOT . '/Sensitive/Database.json';
     private static $credentialsBound = false;
 
     /**
@@ -88,6 +88,13 @@ class DatabaseManager {
             return null;
 
         return DatabaseManager::$pdoDatabaseConnection->prepare($preparedStatementQuery);
+    }
+
+    /**
+     * @return  integer     Last insert ID
+     */
+    public static function GetLastInsertID() {
+        return DatabaseManager::$pdoDatabaseConnection->lastInsertID();
     }
 
     /**
