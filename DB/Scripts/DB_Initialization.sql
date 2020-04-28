@@ -415,7 +415,7 @@ CREATE TABLE Items (
 
 CREATE TABLE Document_Items (
 	ID 				INT 				PRIMARY KEY 	AUTO_INCREMENT,
-    Invoices_ID 	INT 	NOT NULL,
+    Invoices_ID 	INT 		NULL,
     Receipts_ID		INT 		NULL,
     Items_ID 		INT 	NOT NULL,
     Quantity 		INT 	NOT NULL,
