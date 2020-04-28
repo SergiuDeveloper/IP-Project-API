@@ -42,9 +42,9 @@
 
     $invoiceQuery = "SELECT * FROM Invoices WHERE Documents_ID = :documentId;";
 
-    $queryGetItems = "SELECT * FROM document_items WHERE Documents_ID = :documentId;";
+    //$queryGetItems = "SELECT * FROM document_items WHERE Documents_ID = :documentId;";
 
-    $queryGetItem = "SELECT * FROM Items WHERE ID = :itemId;";
+    //$queryGetItem = "SELECT * FROM Items WHERE ID = :itemId;";
 
     $institutionRoles = array();
     try {
@@ -111,12 +111,12 @@
         if($type == "Invoice"){
 
             $document = new Invoice();
-            $document->setId($documentId)->fetchFromDatabaseDocumentByID();
+            $document->setId($documentId)->fetchFromDatabaseByDocumentID();
 
         } else if($type == "Receipt"){
 
             $document = new Receipt();
-            $document->setId($documentId)->fetchFromDatabase();
+            $document->setId($documentId)->fetchFromDatabaseByDocumentID();
 
         }
        
@@ -152,4 +152,3 @@
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
             ->send(StatusCodes::INTERNAL_SERVER_ERROR);
     }
-?>

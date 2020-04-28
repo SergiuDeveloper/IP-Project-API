@@ -79,14 +79,93 @@ abstract class Document
     /**
      * TODO : in service or in here
      */
-    protected function insertIntoDatabaseDocumentBase(){
+    protected function updateIntoDatabaseDocumentBase(){
 
     }
 
     /**
      * TODO : in service or in here
+     * @param $documentTypeID
+     * @throws DocumentItemInvalid
      */
-    protected function updateIntoDatabaseDocumentBase(){
+    protected function insertIntoDatabaseDocumentBase($documentTypeID){
+        if(
+            $this->senderInstitutionID == null ||
+            $this->receiverInstitutionID == null ||
+            $documentTypeID == null
+        ){
+            throw new DocumentItemInvalid();
+        }
+
+        $statementString = self::$insertBaseIntoDatabase;
+
+        if($this->senderID != null)
+            $statementString = $statementString . ', Sender_ID';
+        if($this->senderAddressID != null)
+            $statementString = $statementString . ', Sender_Address_ID';
+        if($this->receiverID != null)
+            $statementString = $statementString . ', Receiver_ID';
+        if($this->receiverAddressID != null)
+            $statementString = $statementString . ', Receiver_Address_ID';
+        if($this->creatorID != null || ($this->creatorID == null && defined('CALLER_USER_ID')))
+            $statementString = $statementString . ', Creator_User_ID';
+
+        $statementString = $statementString . ') VALUES (:senderInstitutionID, :receiverInstitutionID, :documentTypesID, CURRENT_TIMESTAMP, null, 0';
+
+        if($this->senderID != null)
+            $statementString = $statementString . ', :senderID';
+        if($this->senderAddressID != null)
+            $statementString = $statementString . ', :senderAddressID';
+        if($this->receiverID != null)
+            $statementString = $statementString . ', :receiverID';
+        if($this->receiverAddressID != null)
+            $statementString = $statementString . ', :receiverAddressID';
+        if($this->creatorID != null || ($this->creatorID == null && defined('CALLER_USER_ID')))
+            $statementString = $statementString . ', :creatorUserID';
+
+        $statementString = $statementString . ')';
+
+        try{
+            DatabaseManager::Connect();
+
+            $defaultCreatorID = CALLER_USER_ID;
+
+            $statement = DatabaseManager::PrepareStatement($statementString);
+            $statement->bindParam(':senderInstitutionID', $this->senderInstitutionID);
+            $statement->bindParam(':receiverInstitutionID', $this->receiverInstitutionID);
+            $statement->bindParam(':documentTypesID', $documentTypeID);
+            if($this->senderID != null)
+                $statement->bindParam(":senderID", $this->senderID);
+            if($this->senderAddressID != null)
+                $statement->bindParam(":senderAddressID", $this->senderAddressID);
+            if($this->receiverID != null)
+                $statement->bindParam(":receiverID", $this->receiverID);
+            if($this->receiverAddressID != null)
+                $statement->bindParam(":receiverAddressID", $this->receiverAddressID);
+            if($this->creatorID != null)
+                $statement->bindParam(":creatorUserID", $this->creatorID);
+            else if(defined('CALLER_USER_ID'))
+                $statement->bindParam(":creatorUserID", $defaultCreatorID);
+
+            $statement->execute();
+
+            if($statement->rowCount() == 0)
+                throw new DocumentItemDuplicate();
+
+            $this->ID = (int)(DatabaseManager::getConnectionInstance()->lastInsertId());
+
+            DatabaseManager::Disconnect();
+        }
+        catch(DocumentItemDuplicate $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOCUMENT_DUPLICATE"))
+                ->send();
+        }
+        catch (Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+        }
 
     }
 
@@ -104,14 +183,14 @@ abstract class Document
             $row = $statement->fetch(PDO::FETCH_ASSOC);
 
             if($row != null) {
-                $this->ID = $row['ID'];
-                $this->senderID = $row['Sender_User_ID'];
-                $this->senderInstitutionID = $row['Sender_Institution_ID'];
-                $this->senderAddressID = $row['Sender_Address_ID'];
-                $this->receiverID = $row['Receiver_User_ID'];
-                $this->receiverInstitutionID = $row['Receiver_Institution_ID'];
-                $this->receiverAddressID = $row['Receiver_Address_ID'];
-                $this->creatorID = $row['Creator_User_ID'];
+                $this->ID                       = $row['ID'];
+                $this->senderID                 = $row['Sender_User_ID'];
+                $this->senderInstitutionID      = $row['Sender_Institution_ID'];
+                $this->senderAddressID          = $row['Sender_Address_ID'];
+                $this->receiverID               = $row['Receiver_User_ID'];
+                $this->receiverInstitutionID    = $row['Receiver_Institution_ID'];
+                $this->receiverAddressID        = $row['Receiver_Address_ID'];
+                $this->creatorID                = $row['Creator_User_ID'];
             }
 
             DatabaseManager::Disconnect();
@@ -128,7 +207,7 @@ abstract class Document
 
     public abstract function updateIntoDatabase();
 
-    public abstract function fetchFromDatabase();
+    public abstract function fetchFromDatabaseByDocumentID();
 
     /**
      * @return integer
@@ -259,6 +338,10 @@ abstract class Document
     }
 
     private static $getFromDatabaseByID = "
-    SELECT * FROM documents WHERE ID = :ID
+        SELECT * FROM documents WHERE ID = :ID
+    ";
+
+    private static $insertBaseIntoDatabase = "
+        INSERT INTO documents ( Sender_Institution_ID, Receiver_Institution_ID, Document_Types_ID, Date_Created, Date_Sent, Is_Sent
     ";
 }

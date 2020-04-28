@@ -94,7 +94,7 @@ class Invoice extends Document
      *
      * Call will populate invoice object, which can be sent into response data with the given model
      */
-    public function fetchFromDatabaseDocumentByID()
+    public function fetchFromDatabaseByDocumentID()
     {
         try{
             parent::fetchFromDatabaseDocumentBaseByID();

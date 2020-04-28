@@ -85,7 +85,7 @@ class PaymentMethod{
 
     /**
      * @param integer $ID
-     * @returns PaymentMethod
+     * @return PaymentMethod|null
      */
     public static function getPaymentMethodByID($ID){
         try{

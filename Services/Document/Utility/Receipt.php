@@ -66,10 +66,7 @@ class Receipt extends Document
         // TODO: Implement updateIntoDatabase() method.
     }
 
-    /**
-     * TODO : in service or in here
-     */
-    public function fetchFromDatabase(){
+    public function fetchFromDatabaseByDocumentID(){
         try{
             parent::fetchFromDatabaseDocumentBaseByID();
 
