@@ -254,6 +254,6 @@ class CommonEndPointLogic {
     private static $sendGridUsername;
     private static $sendGridPassword;
     private static $sendGridNickname;
-    private static $sendGridJSONFilePath = "./../Sensitive/SendGrid.json";
+    private static $sendGridJSONFilePath = ROOT . '/Sensitive/SendGrid.json';
     private static $sendGridCredentialsBound = false;
 }
