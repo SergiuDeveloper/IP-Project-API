@@ -1,8 +1,0 @@
-{
-    "Connection": {
-        "URL": "sergiu-mysql-server.mysql.database.azure.com",
-        "Username": "Fiscal_Documents_EDI_User@sergiu-mysql-server",
-        "Password": "Fiscal_Documents_EDI_Password",
-        "Schema": "Fiscal_Documents_EDI_Test"
-    }
-}
