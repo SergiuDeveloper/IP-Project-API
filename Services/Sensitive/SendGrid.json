@@ -1,8 +1,0 @@
-{
-    "EmailCredentials": {
-        "URL":      "https://api.sendgrid.com/api/mail.send.json",
-        "Username": "azure_0a4e0665ba1ddbf27cff9409f952abb8@azure.com",
-        "Password": "FiscalDocumentsEDI123",
-        "Nickname": "Fiscal Documents EDI"
-    }
-}
