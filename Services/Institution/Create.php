@@ -11,7 +11,7 @@
     require_once(ROOT . "/Utility/ResponseHandler.php");
 
     require_once("Role/Utility/InstitutionRoles.php");
-    require_once("Utility/InstitutionCreation.php ");
+    require_once("Utility/InstitutionCreation.php");
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
@@ -106,3 +106,5 @@
     echo json_encode($response), PHP_EOL;
     http_response_code(StatusCodes::OK);
     */
+
+?>
