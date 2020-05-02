@@ -142,7 +142,7 @@ class CommonEndPointLogic {
         $content = CommonEndPointLogic::composeEmailBody($activationKey);
 
         $requestParameters = array(
-            "api_user" => CommonEndPointLogic::$sendGridURL,
+            "api_user" => CommonEndPointLogic::$sendGridUsername,
             "api_key"  => CommonEndPointLogic::$sendGridPassword,
             "to"       => $receiver,
             "subject"  => $subject,
