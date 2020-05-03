@@ -92,15 +92,17 @@ class InstitutionCreation
      * Inserts an institution into the database and returns its ID
      *
      * @param $institutionName  string  Name of the institution to be added
+     * @param $CIF              string  Institution CIF
      * @return                  int     ID of the institution
      */
-    public static function insertInstitutionIntoDatabase($institutionName){
+    public static function insertInstitutionIntoDatabase($institutionName, $CIF){
 
         try{
             DatabaseManager::Connect();
 
             $SQLStatement = DatabaseManager::PrepareStatement(self::$insertInstitutionStatement);
             $SQLStatement->bindParam(":institutionName", $institutionName);
+            $SQLStatement->bindParam(":cif", $CIF);
 
             $SQLStatement->execute();
 
@@ -250,7 +252,9 @@ class InstitutionCreation
 
             DatabaseManager::Disconnect();
 
-            return $row == null;
+            echo $row, PHP_EOL;
+
+            return $row != null;
         }
         catch(Exception $exception){
             ResponseHandler::getInstance()
@@ -283,8 +287,8 @@ class InstitutionCreation
     ";
 
     private static $insertInstitutionStatement = "
-        INSERT INTO institutions (Name, DateTime_Created, DateTime_Modified) VALUE 
-            (:institutionName, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        INSERT INTO institutions (Name, DateTime_Created, DateTime_Modified, CIF) VALUE 
+            (:institutionName, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :cif)
     ";
 
     private static $getAddressID = "
