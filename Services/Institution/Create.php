@@ -19,12 +19,14 @@
     $hashedPassword     = $_POST["hashedPassword"];
     $institutionName    = $_POST["institutionName"];
     $institutionAddress = json_decode($_POST["institutionAddress"], true);
+    $institutionCIF     = $_POST["institutionCIF"];
 
     if(
         $email              == null ||
         $hashedPassword     == null ||
         $institutionName    == null ||
-        $institutionAddress == null
+        $institutionAddress == null ||
+        $institutionCIF     == null
     ){
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
@@ -40,7 +42,7 @@
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
-    if( InstitutionCreation::checkForInstitutionDuplicate($institutionName) == false ){
+    if( InstitutionCreation::checkForInstitutionDuplicate($institutionName) == true ){
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DUPLICATE_INSTITUTION"))
             ->send();
@@ -68,7 +70,7 @@
 
     $addressID = InstitutionCreation::insertAddressIntoDatabase($institutionAddress);
 
-    $institutionID = InstitutionCreation::insertInstitutionIntoDatabase($institutionName);
+    $institutionID = InstitutionCreation::insertInstitutionIntoDatabase($institutionName, $institutionCIF);
 
     InstitutionCreation::linkInstitutionWithAddress($institutionID, $addressID);
 
