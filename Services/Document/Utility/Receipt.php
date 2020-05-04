@@ -246,3 +246,4 @@ class Receipt extends Document
     select * from payment_methods WHERE ID = :paymentID
     ";
 }
+?>

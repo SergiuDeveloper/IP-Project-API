@@ -129,3 +129,4 @@ class PaymentMethod{
         SELECT * FROM payment_methods WHERE ID = :ID
     ";
 }
+?>

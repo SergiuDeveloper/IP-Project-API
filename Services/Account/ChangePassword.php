@@ -52,3 +52,5 @@
    ResponseHandler::getInstance()
       ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
       ->send();
+
+?>

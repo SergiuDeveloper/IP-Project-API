@@ -155,3 +155,5 @@ class Currency{
         SELECT ID, Title FROM currencies WHERE ID = :ID
     ";
 }
+
+?>

@@ -156,3 +156,4 @@
     http_response_code(StatusCodes::OK);
     die();
     */
+?>

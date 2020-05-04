@@ -275,5 +275,6 @@ class Notification
     ";
 
 }
+?>
 
 

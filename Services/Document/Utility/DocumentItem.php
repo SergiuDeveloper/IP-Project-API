@@ -670,3 +670,4 @@ class DocumentItem
             Currencies_ID       = :currenciesID 
     ";
 }
+?>

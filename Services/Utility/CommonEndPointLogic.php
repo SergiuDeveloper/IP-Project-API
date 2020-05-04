@@ -257,3 +257,4 @@ class CommonEndPointLogic {
     private static $sendGridJSONFilePath = ROOT . '/Sensitive/SendGrid.json';
     private static $sendGridCredentialsBound = false;
 }
+?>

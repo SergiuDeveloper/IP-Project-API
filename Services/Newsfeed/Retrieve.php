@@ -125,3 +125,5 @@
           array_push($this->tags, $tag);
         }
       }
+
+?>

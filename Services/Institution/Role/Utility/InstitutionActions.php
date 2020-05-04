@@ -25,3 +25,4 @@ class InstitutionActions
     const REMOVE_RECEIVED_DOCUMENTS             = 15;
     const DOWNLOAD_DOCUMENTS                    = 16;
 }
+?>

@@ -345,3 +345,4 @@ abstract class Document
         INSERT INTO documents ( Sender_Institution_ID, Receiver_Institution_ID, Document_Types_ID, Date_Created, Date_Sent, Is_Sent
     ";
 }
+?>

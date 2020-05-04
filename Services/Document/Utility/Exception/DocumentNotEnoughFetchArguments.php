@@ -5,3 +5,4 @@ class DocumentNotEnoughFetchArguments extends Exception
 {
 
 }
+?>

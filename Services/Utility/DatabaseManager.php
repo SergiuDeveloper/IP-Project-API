@@ -124,3 +124,4 @@ class DatabaseManager {
         DatabaseManager::$credentialsBound = true;
     }
 }
+?>

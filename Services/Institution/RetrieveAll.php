@@ -105,3 +105,5 @@
     echo json_encode($institutionsArray), PHP_EOL;
     http_response_code(StatusCodes::OK);
 */
+
+?>
