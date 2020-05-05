@@ -25,6 +25,14 @@ class Currency{
             '}';
     }
 
+    /**
+     * @param $currency
+     * @return bool
+     */
+    public function equals($currency){
+        return $this->ID == $currency->ID && $this->title == $currency->title;
+    }
+
     public function __construct($title, $fetchData = true, $ID = null){
         $this->title = $title;
         if($fetchData == true)

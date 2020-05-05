@@ -34,7 +34,7 @@ class DocumentItemContainer{
      */
     public function indexOf($item){
         for($i = 0; $i < count($this->documentItemRows); $i++)
-            if($this->documentItemRows[$i]->getItemReference()->getID() == $item->getID())
+            if($this->documentItemRows[$i]->equals($item))
                 return $i;
         return -1;
     }
@@ -45,7 +45,7 @@ class DocumentItemContainer{
      */
     public function addItem($item, $quantity = 1){
         foreach($this->documentItemRows as $documentItemContainerRow)
-            if($documentItemContainerRow->getItemReference()->getID() == $item->getID()){
+            if($documentItemContainerRow->getItemReference()->equals($item)){
                 $documentItemContainerRow->setQuantity($documentItemContainerRow->getQuantity() + $quantity);
                 return;
             }
@@ -57,7 +57,7 @@ class DocumentItemContainer{
      */
     public function removeRow($item){
         for($i = 0; $i < count($this->documentItemRows); $i++){
-            if($this->documentItemRows[$i]->getItemReference()->getID() == $item->getID() ){
+            if($this->documentItemRows[$i]->equals($item) ){
                 array_splice($this->documentItemRows, $i, 1);
                 return;
             }
@@ -70,7 +70,7 @@ class DocumentItemContainer{
      */
     public function removeItem($item, $quantity = 1){
         for($i = 0; $i < count($this->documentItemRows); $i++){
-            if($this->documentItemRows[$i]->getItemReference()->getID() == $item->getID() ){
+            if($this->documentItemRows[$i]->equals($item) ){
                 $this->documentItemRows[$i]->setQuantity($this->documentItemRows[$i]->getQuantity() - $quantity);
 
                 if($this->documentItemRows[$i]->getQuantity() <= 0){

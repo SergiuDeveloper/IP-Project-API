@@ -92,6 +92,24 @@ class DocumentItem
     }
 
     /**
+     * @param DocumentItem $item
+     * @return boolean
+     */
+    public function equals($item){
+        if($this->ID != null && $item->ID != null)
+            return $this->ID == $item->ID;
+        else
+            return
+                $this->title            == $item->title &&
+                $this->description      == $item->description &&
+                $this->productNumber    == $item->productNumber &&
+                $this->valueBeforeTax   == $item->valueBeforeTax &&
+                $this->taxPercentage    == $item->taxPercentage &&
+                $this->valueAfterTax    == $item->valueAfterTax &&
+                $this->currency->equals($item->currency);
+    }
+
+    /**
      * Use this to put items into response data
      * @return \DAO\Item
      */

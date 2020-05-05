@@ -160,6 +160,8 @@
     if($documentItems != null) {
         foreach ($documentItems as $item) {
 
+            //echo print_r($item), PHP_EOL;
+
             $itemObject = new DocumentItem();
             $itemObject
                 ->setProductNumber($item['productNumber'])
@@ -169,33 +171,11 @@
                 ->setTaxPercentage($item['taxPercentage'])
                 ->setCurrency(Currency::getCurrencyByTitle($item['currencyTitle']));
 
-            /*
-            try{
-                $itemObject->fetchFromDatabase();
-            }catch (DocumentItemInvalid $e) {
-                ResponseHandler::getInstance()
-                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ITEM_INVALID"))
-                    ->send();
-            }catch (DocumentItemMultipleResults $e) {
-                // TODO : individualise documents based on institution. Next sprint
-            }catch (DocumentNotEnoughFetchArguments $e) {
-                // TODO : remove, same as invalid
-            }
-
-            if($itemObject->getID() == null){
-                try {
-                    $itemObject->addIntoDatabase();
-                } catch (DocumentItemInvalid $e) {
-                    ResponseHandler::getInstance()
-                        ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ITEM_INVALID"))
-                        ->send();
-                }
-            }
-            */
+            //echo json_encode($itemObject->getDAO()), PHP_EOL;
 
             $invoice->addItem($itemObject, $item['quantity']);
 
-
+            //echo json_encode($invoice->getDAO()), PHP_EOL;
         }
     }
 
