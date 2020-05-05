@@ -11,7 +11,7 @@ require_once (ROOT . '/Document/Utility/DocumentItemContainerRow.php' );
 require_once (ROOT . '/Document/Utility/Invoice.php' );
 require_once (ROOT . '/Document/Utility/PaymentMethod.php' );
 require_once (ROOT . '/Document/Utility/Currency.php' );
-
+require_once (ROOT . '/Document/Utility/Exception/DocumentExceptions.php');
 require_once ( ROOT . '/DataAccessObject/DataObjects.php' );
 
 class Receipt extends Document
@@ -212,9 +212,6 @@ class Receipt extends Document
         }
     }
 
-    /**
-     * TODO : in service or in here
-     */
     public function updateIntoDatabase(){
         // TODO: Implement updateIntoDatabase() method.
     }
