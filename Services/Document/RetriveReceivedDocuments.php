@@ -99,7 +99,7 @@
             if ($documentType["Title"] == "Invoice")
             {
                 $invoice = new Invoice();
-                $invoice->setId($document["ID"])->fetchFromDatabaseDocumentByID();
+                $invoice->setId($document["ID"])->fetchFromDatabase();
 
                 array_push($invoicesList, $invoice);
             }
@@ -107,7 +107,7 @@
             if ($documentType["Title"] == "Receipt")
             {
                $receipt = new Receipt();
-               $receipt->setID($document["ID"])->fetchFromDatabase();
+               $receipt->setID($document["ID"])->fetchFromDatabaseByDocumentID();
 
                array_push($receiptsList, $receipt);
             }
