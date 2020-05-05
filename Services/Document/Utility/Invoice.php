@@ -16,6 +16,7 @@ require_once ( ROOT . '/Utility/DatabaseManager.php' );
 require_once ( ROOT . '/Document/Utility/DocumentItem.php' );
 require_once ( ROOT . '/Document/Utility/Document.php' );
 require_once ( ROOT . '/Document/Utility/DocumentItemContainer.php' );
+require_once ( ROOT . '/Document/Utility/Exception/DocumentExceptions.php');
 
 require_once ( ROOT . '/DataAccessObject/DataObjects.php' );
 
@@ -117,7 +118,6 @@ class Invoice extends Document
                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
                 ->send();
         }
-        // TODO: Implement addIntoDatabase() method.
     }
 
     public function updateIntoDatabase(){
@@ -127,7 +127,6 @@ class Invoice extends Document
 
     public function fetchFromDatabase($connected = false){
         $this->fetchFromDatabaseByDocumentID($connected);
-        // TODO: Implement fetchFromDatabase() method.
     }
 
     public function getDAO(){
