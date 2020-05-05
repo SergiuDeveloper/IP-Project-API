@@ -3,7 +3,7 @@
 namespace DAO {
 
     if (!defined('ROOT')) {
-        define('ROOT', dirname(__FILE__) . '/..');
+        define('ROOT', dirname(__FILE__) . '/../..');
     }
 
     require_once(ROOT . '/DataAccessObject/Document/ItemRow.php');

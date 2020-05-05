@@ -113,7 +113,7 @@ class DocumentItem
     /**
      * @throws DocumentItemInvalid
      */
-    public function addIntoDatabase(){
+    public function addIntoDatabase($connected = false){
         if($this->currency == null)
             $this->currency = Currency::getCurrencyByTitle(DEFAULT_ITEM_VALUE_CURRENCY);
         if(
@@ -129,7 +129,8 @@ class DocumentItem
         }
 
         try{
-            DatabaseManager::Connect();
+            if(!$connected)
+                DatabaseManager::Connect();
 
             $currencyID = $this->currency->getID();
 
@@ -156,7 +157,8 @@ class DocumentItem
                     ->send();
             }
 
-            DatabaseManager::Disconnect();
+            if(!$connected)
+                DatabaseManager::Disconnect();
         }
         catch (Exception $exception){
             ResponseHandler::getInstance()
@@ -209,14 +211,12 @@ class DocumentItem
     }
 
     /**
+     * @param bool $connected
      * @return $this
-     * @throws DocumentNotEnoughFetchArguments
-     * @throws DocumentItemMultipleResults
-     * @throws DocumentItemInvalid
      */
-    public function fetchFromDatabase(){
+    public function fetchFromDatabase($connected = false){
         if($this->ID != null){
-            $item = self::fetchFromDatabaseByID($this->ID);
+            $item = self::fetchFromDatabaseByID($this->ID, $connected);
 
             $this
                 ->setProductNumber($item->productNumber)
@@ -238,26 +238,30 @@ class DocumentItem
             $this->valueBeforeTax   != null ||
             $this->currency         != null
         ){
-            $item = self::fetchFromDatabaseByItem($this);
+            $item = self::fetchFromDatabaseByItem($this,$connected);
 
-            $this->setID($item->ID);
+            if($item != null){
+                $this->setID($item->ID);
 
-            return $this;
+                return $this;
+            }
         }
-
+        // TODO : change this for duplicates. Individualise items for inst.
         if($this->productNumber != null && $this->title != null){
-            $item = self::fetchFromDatabaseByTitleAndProductNumber($this->title, $this->productNumber);
+            $item = self::fetchFromDatabaseByTitleAndProductNumber($this->title, $this->productNumber, $connected);
 
-            $this
-                ->setID($item->ID)
-                ->setDescription($item->description)
-                ->setValueBeforeTax($item->valueBeforeTax)
-                ->setTaxPercentage($item->taxPercentage)
-                ->setCurrency($item->currency);
+            if($item != null){
+                $this
+                    ->setID($item->ID)
+                    ->setDescription($item->description)
+                    ->setValueBeforeTax($item->valueBeforeTax)
+                    ->setTaxPercentage($item->taxPercentage)
+                    ->setCurrency($item->currency);
 
-            return $this;
+                return $this;
+            }
         }
-
+        /*
         if($this->productNumber != null){
             $items = self::fetchAllFromDatabaseByProductNumber($this->productNumber);
 
@@ -295,13 +299,15 @@ class DocumentItem
 
             throw new DocumentItemMultipleResults();
         }
+        */
 
-        throw new DocumentNotEnoughFetchArguments();
+        return $this;
     }
 
-    public static function fetchFromDatabaseByID($ID){
+    public static function fetchFromDatabaseByID($ID, $connected = false){
         try{
-            DatabaseManager::Connect();
+            if(!$connected)
+                DatabaseManager::Connect();
 
             $statement = DatabaseManager::PrepareStatement(self::$getFromDatabaseByID);
             $statement->bindParam(":ID", $ID);
@@ -325,7 +331,8 @@ class DocumentItem
                     ->setCurrency(Currency::getCurrencyByID($row['Currencies_ID'], true));
             }
 
-            DatabaseManager::Disconnect();
+            if(!$connected)
+                DatabaseManager::Disconnect();
 
             return $result;
         }
@@ -337,9 +344,10 @@ class DocumentItem
         }
     }
 
-    public static function fetchAllFromDatabaseByProductNumber($productNumber){
+    public static function fetchAllFromDatabaseByProductNumber($productNumber, $connected = false){
         try{
-            DatabaseManager::Connect();
+            if(!$connected)
+                DatabaseManager::Connect();
 
             $statement = DatabaseManager::PrepareStatement(self::$getFromDatabaseByProductNumber);
             $statement->bindParam(":productNumber", $productNumber);
@@ -362,7 +370,8 @@ class DocumentItem
                 );
             }
 
-            DatabaseManager::Disconnect();
+            if(!$connected)
+                DatabaseManager::Disconnect();
 
             return $result;
         }
@@ -413,11 +422,13 @@ class DocumentItem
 
     /**
      * @param DocumentItem $item
+     * @param bool $connected
      * @return DocumentItem
      */
-    public static function fetchFromDatabaseByItem($item){
+    public static function fetchFromDatabaseByItem($item, $connected = false){
         try{
-            DatabaseManager::Connect();
+            if(!$connected)
+                DatabaseManager::Connect();
 
             $currencyID = $item->currency->getID();
 
@@ -434,9 +445,10 @@ class DocumentItem
 
             $row = $statement->fetch(PDO::FETCH_OBJ);
 
-            DatabaseManager::Disconnect();
+            if(!$connected)
+                DatabaseManager::Disconnect();
 
-            return $item->setID($row->ID);
+            return $row == null ? null : $item->setID($row->ID);
         }
         catch (Exception $exception){
             ResponseHandler::getInstance()
@@ -446,9 +458,10 @@ class DocumentItem
         }
     }
 
-    public static function fetchFromDatabaseByTitleAndProductNumber($title, $productNumber){
+    public static function fetchFromDatabaseByTitleAndProductNumber($title, $productNumber, $connected = false){
         try{
-            DatabaseManager::Connect();
+            if(!$connected)
+                DatabaseManager::Connect();
 
             $statement = DatabaseManager::PrepareStatement(self::$getFromDatabaseByTitleAndProductNumber);
             $statement->bindParam(":title", $title);
@@ -472,7 +485,8 @@ class DocumentItem
                     ->setCurrency(Currency::getCurrencyByID($row['Currencies_ID'], true));
             }
 
-            DatabaseManager::Disconnect();
+            if(!$connected)
+                DatabaseManager::Disconnect();
 
             return $item;
         }

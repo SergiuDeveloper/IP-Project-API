@@ -43,20 +43,90 @@ class Invoice extends Document
 
     /**
      * @param DocumentItem $item
+     * @param int $quantity
      */
-    public function addItem($item){
-        $this->itemsContainer->addItem($item);
+    public function addItem($item, $quantity = 1){
+        $this->itemsContainer->addItem($item, $quantity);
     }
 
+    /**
+     * @throws DocumentItemInvalid
+     * @throws DocumentTypeNotFound
+     * @throws DocumentInvalid
+     */
     public function addIntoDatabase(){
+
+        try {
+            DatabaseManager::Connect();
+
+            $getDocumentTypeID = DatabaseManager::PrepareStatement(
+                "SELECT ID FROM document_types WHERE LOWER(Title) = LOWER(:title)"
+            );
+
+            $documentTypeTitle = 'Invoice';
+            $getDocumentTypeID->bindParam(":title", $documentTypeTitle);
+            $getDocumentTypeID->execute();
+
+            if (($row = $getDocumentTypeID->fetch(PDO::FETCH_OBJ)) == null)
+                throw new DocumentTypeNotFound();
+
+            parent::insertIntoDatabaseDocumentBase($row->ID, true);
+
+            $insertDocumentIntoDatabaseStatement = DatabaseManager::PrepareStatement(
+                "INSERT INTO invoices (Documents_ID) values (:documentID)"
+            );
+            $insertDocumentIntoDatabaseStatement->bindParam(":documentID", $this->ID);
+            $insertDocumentIntoDatabaseStatement->execute();
+
+            $this->setEntryID(DatabaseManager::GetLastInsertID());
+
+            foreach ($this->itemsContainer->getDocumentItemRows() as $itemRow) {
+                $item = $itemRow->getItemReference();
+
+                $item->fetchFromDatabase(true); /// TODO : implement DocumentItem :: checkItemValidity for pre-addition checks
+
+                if ($item->getID() == null) {
+                    $item->addIntoDatabase(true);
+                }
+
+                $insertIntoDocumentItemsStatement = DatabaseManager::PrepareStatement(
+                    "INSERT INTO document_items (Invoices_ID, Items_ID, Quantity) values (:invoiceID, :itemID, :quantity)"
+                );
+
+                $itemID = $item->getID();
+                $quantity = $itemRow->getQuantity();
+
+                $insertIntoDocumentItemsStatement->bindParam(":invoiceID", $this->entryID);
+                $insertIntoDocumentItemsStatement->bindParam(":itemID", $itemID);
+                $insertIntoDocumentItemsStatement->bindParam(":quantity", $quantity);
+                $insertIntoDocumentItemsStatement->execute();
+
+            }
+        }
+        catch (DocumentTypeNotFound $exception){
+            throw $exception;
+        }
+        catch (DocumentInvalid $exception){
+            throw $exception;
+        }
+        catch (DocumentItemInvalid $exception){
+            throw $exception;
+        }
+        catch (PDOException $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+        }
         // TODO: Implement addIntoDatabase() method.
     }
 
     public function updateIntoDatabase(){
+
         // TODO: Implement updateIntoDatabase() method.
     }
 
-    public function fetchFromDatabase(){
+    public function fetchFromDatabase($connected = false){
+        $this->fetchFromDatabaseByDocumentID($connected);
         // TODO: Implement fetchFromDatabase() method.
     }
 
@@ -93,22 +163,30 @@ class Invoice extends Document
         }
      *
      * Call will populate invoice object, which can be sent into response data with the given model
+     * @param bool $connected
      */
-    public function fetchFromDatabaseByDocumentID()
+    public function fetchFromDatabaseByDocumentID($connected = false)
     {
         try{
-            parent::fetchFromDatabaseDocumentBaseByID();
+            parent::fetchFromDatabaseDocumentBaseByID($connected);
 
-            DatabaseManager::Connect();
+            //echo $this->ID, PHP_EOL;
+
+            if(!$connected)
+                DatabaseManager::Connect();
             $statement = DatabaseManager::PrepareStatement(self::$getFromDatabaseByDocumentID);
-            $statement->bindParam(":ID", $this->ID);
+            $statement->bindParam(":documentID", $this->ID);
             $statement->execute();
+
+            //$statement->debugDumpParams();
 
             $row = $statement->fetch(PDO::FETCH_ASSOC);
 
+            //print_r($row);
+
             if($row != null) {
                 $this->entryID = $row['ID'];
-                $this->ID = $row['Documents_ID'];
+                //$this->ID = $row['Documents_ID'];
                 $this->receiptID = $row['Receipts_ID'];
 
                 if($this->receiptID != null) {
@@ -128,13 +206,14 @@ class Invoice extends Document
 
                 while($itemRow = $getFromDocumentItemsStatement->fetch(PDO::FETCH_ASSOC)){
                     $this->itemsContainer->addItem(
-                        DocumentItem::fetchFromDatabaseByID($itemRow['Items_ID']),
+                        DocumentItem::fetchFromDatabaseByID($itemRow['Items_ID'], $connected),
                         $itemRow['Quantity']
                         );
                 }
             }
 
-            DatabaseManager::Disconnect();
+            if(!$connected)
+                DatabaseManager::Disconnect();
         }
         catch (Exception $exception) {
             ResponseHandler::getInstance()
@@ -210,7 +289,7 @@ class Invoice extends Document
     }
 
     private static $getFromDatabaseByDocumentID = "
-    SELECT * from invoices where Documents_ID = :ID
+    SELECT * from invoices where Documents_ID = :documentID
     ";
 
     private static $getDocumentsIDFromReceipts = "

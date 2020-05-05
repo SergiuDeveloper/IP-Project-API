@@ -13,9 +13,9 @@
     require_once(ROOT . "/Institution/Role/Utility/InstitutionActions.php");
     require_once(ROOT . "/Institution/Role/Utility/InstitutionRoles.php");
 
-    require_once("./Utility/Document.php");
-    require_once("./Utility/Invoice.php");
-    require_once("./Utility/Receipt.php");
+    require_once(ROOT . "/Document/Utility/Document.php");
+    require_once(ROOT . "/Document/Utility/Invoice.php");
+    require_once(ROOT . "/Document/Utility/Receipt.php");
 
     CommonEndPointLogic::ValidateHTTPGETRequest();
 

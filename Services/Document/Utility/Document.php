@@ -19,6 +19,7 @@ require_once ( ROOT . '/Document/Utility/Receipt.php' );
 require_once ( ROOT . '/Document/Utility/DocumentItemContainer.php' );
 
 require_once ( ROOT . '/DataAccessObject/DataObjects.php' );
+require_once ( ROOT . '/Document/Utility/Exception/DocumentExceptions.php');
 
 abstract class Document
 {
@@ -86,15 +87,17 @@ abstract class Document
     /**
      * TODO : in service or in here
      * @param $documentTypeID
-     * @throws DocumentItemInvalid
+     * @param bool $connected
+     * @throws DocumentInvalid
      */
-    protected function insertIntoDatabaseDocumentBase($documentTypeID){
+    protected function insertIntoDatabaseDocumentBase($documentTypeID, $connected = false){
         if(
             $this->senderInstitutionID == null ||
-            $this->receiverInstitutionID == null ||
-            $documentTypeID == null
+            //$this->receiverInstitutionID == null || TODO :makes no sense
+            $documentTypeID == null ||
+            $this->senderAddressID == null
         ){
-            throw new DocumentItemInvalid();
+            throw new DocumentInvalid();
         }
 
         $statementString = self::$insertBaseIntoDatabase;
@@ -110,7 +113,7 @@ abstract class Document
         if($this->creatorID != null || ($this->creatorID == null && defined('CALLER_USER_ID')))
             $statementString = $statementString . ', Creator_User_ID';
 
-        $statementString = $statementString . ') VALUES (:senderInstitutionID, :receiverInstitutionID, :documentTypesID, CURRENT_TIMESTAMP, null, 0';
+        $statementString = $statementString . ') VALUES (:senderInstitutionID, :receiverInstitutionID, :documentTypesID, CURRENT_TIMESTAMP, 0';
 
         if($this->senderID != null)
             $statementString = $statementString . ', :senderID';
@@ -126,7 +129,8 @@ abstract class Document
         $statementString = $statementString . ')';
 
         try{
-            DatabaseManager::Connect();
+            if($connected == false)
+                DatabaseManager::Connect();
 
             $defaultCreatorID = CALLER_USER_ID;
 
@@ -154,7 +158,8 @@ abstract class Document
 
             $this->ID = (int)(DatabaseManager::getConnectionInstance()->lastInsertId());
 
-            DatabaseManager::Disconnect();
+            if($connected == false)
+                DatabaseManager::Disconnect();
         }
         catch(DocumentItemDuplicate $exception){
             ResponseHandler::getInstance()
@@ -171,10 +176,13 @@ abstract class Document
 
     /**
      * TODO : in service or in here
+     * @param bool $connected
      */
-    protected function fetchFromDatabaseDocumentBaseByID() {
+    protected function fetchFromDatabaseDocumentBaseByID($connected = false) {
         try{
-            DatabaseManager::Connect();
+            if(!$connected)
+                DatabaseManager::Connect();
+
             $statement = DatabaseManager::PrepareStatement(self::$getFromDatabaseByID);
             $statement->bindParam(":ID", $this->ID);
 
@@ -193,7 +201,8 @@ abstract class Document
                 $this->creatorID                = $row['Creator_User_ID'];
             }
 
-            DatabaseManager::Disconnect();
+            if(!$connected)
+                DatabaseManager::Disconnect();
         }
         catch (Exception $exception) {
             ResponseHandler::getInstance()
@@ -342,7 +351,7 @@ abstract class Document
     ";
 
     private static $insertBaseIntoDatabase = "
-        INSERT INTO documents ( Sender_Institution_ID, Receiver_Institution_ID, Document_Types_ID, Date_Created, Date_Sent, Is_Sent
+        INSERT INTO documents ( Sender_Institution_ID, Receiver_Institution_ID, Document_Types_ID, Date_Created, Is_Sent
     ";
 }
 ?>

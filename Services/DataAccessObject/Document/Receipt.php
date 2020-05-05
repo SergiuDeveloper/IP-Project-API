@@ -1,10 +1,9 @@
 <?php
 
-
 namespace DAO {
 
     if (!defined('ROOT')) {
-        define('ROOT', dirname(__FILE__) . '/..');
+        define('ROOT', dirname(__FILE__) . '/../..');
     }
 
     require_once(ROOT . '/DataAccessObject/Document/ItemRow.php');
@@ -16,6 +15,8 @@ namespace DAO {
         public $items;
         public $invoiceID;
         public $paymentMethod;
+        public $paymentAmount;
+        public $paymentNumber;
 
         /**
          * Invoice constructor.
@@ -36,6 +37,8 @@ namespace DAO {
 
             $this->invoiceID        = $receipt->getInvoiceDocumentID();
             $this->paymentMethod    = $receipt->getPaymentMethod()->getTitle();
+            $this->paymentAmount    = $receipt->getPaymentAmount();
+            $this->paymentNumber    = $receipt->getPaymentNumber();
 
             $this->items = array();
 

@@ -7,6 +7,9 @@
     require_once(ROOT . '/Utility/ResponseHandler.php');
     require_once(ROOT . '/Institution/Role/Utility/InstitutionActions.php');
     require_once(ROOT . '/Institution/Role/Utility/InstitutionRoles.php');
+    require_once(ROOT . '/Document/Utility/Document.php');
+    require_once(ROOT . '/Document/Utility/DocumentItem.php');
+    require_once(ROOT . '/DataAccessObject/DataObjects.php');
 
     $email                  = $_POST['email'];
     $hashedPassword         = $_POST['hashedPassword'];
@@ -92,6 +95,15 @@
             $creatorUserID = $userRows['ID'];
     }
 
+    $invoice = new Invoice();
+
+    $invoice
+        ->setCreatorID($creatorUserID)
+        ->setSenderInstitutionID($institutionID)
+        ->setSenderAddressID($institutionAddressID);
+
+    /*
+
     $getDocumentTypeStatement = DatabaseManager::PrepareStatement('
         SELECT ID FROM Document_Types WHERE Title = \'Invoice\'
     ');
@@ -143,9 +155,74 @@
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
             ->send();
+    }*/
+
+    if($documentItems != null) {
+        foreach ($documentItems as $item) {
+
+            $itemObject = new DocumentItem();
+            $itemObject
+                ->setProductNumber($item['productNumber'])
+                ->setDescription($item['description'])
+                ->setTitle($item['title'])
+                ->setValueBeforeTax($item['valueBeforeTax'])
+                ->setTaxPercentage($item['taxPercentage'])
+                ->setCurrency(Currency::getCurrencyByTitle($item['currencyTitle']));
+
+            /*
+            try{
+                $itemObject->fetchFromDatabase();
+            }catch (DocumentItemInvalid $e) {
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ITEM_INVALID"))
+                    ->send();
+            }catch (DocumentItemMultipleResults $e) {
+                // TODO : individualise documents based on institution. Next sprint
+            }catch (DocumentNotEnoughFetchArguments $e) {
+                // TODO : remove, same as invalid
+            }
+
+            if($itemObject->getID() == null){
+                try {
+                    $itemObject->addIntoDatabase();
+                } catch (DocumentItemInvalid $e) {
+                    ResponseHandler::getInstance()
+                        ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ITEM_INVALID"))
+                        ->send();
+                }
+            }
+            */
+
+            $invoice->addItem($itemObject, $item['quantity']);
+
+
+        }
     }
 
-    foreach ($documentItems as $item) {
+    try {
+        $invoice->addIntoDatabase();
+    } catch (DocumentItemInvalid $e) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_ITEM"))
+            ->send();
+    } catch (DocumentTypeNotFound $e) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOC_TYPE_INVALID"))
+            ->send();
+    } catch (DocumentInvalid $e) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOC_INVALID"))
+            ->send();
+    }
+
+    //echo json_encode($invoice->getDAO()), PHP_EOL;
+
+        //echo json_encode($itemObject->getDAO()), PHP_EOL; ITEMS ACQUIRED
+
+
+
+         /*
+
         $getCurrencyIDStatement = DatabaseManager::PrepareStatement('
             SELECT ID FROM Currencies WHERE LOWER(Title) = LOWER(:currencyTitle)
         ');
@@ -216,7 +293,8 @@
         $insertDocumentItemStatement->bindParam(':itemID', $itemID);
         $insertDocumentItemStatement->bindParam(':quantity', $item['quantity']);
         $insertDocumentItemStatement->execute();
-    }
+
+        */
 
     DatabaseManager::Disconnect();
     ResponseHandler::getInstance()
