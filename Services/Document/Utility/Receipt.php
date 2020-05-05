@@ -249,12 +249,17 @@ class Receipt extends Document
                 $getFromDocumentItemsStatement->bindParam(":entryID", $this->entryID);
                 $getFromDocumentItemsStatement->execute();
 
+                $this->paymentAmount = 0;
+
                 while($itemRow = $getFromDocumentItemsStatement->fetch(PDO::FETCH_ASSOC)){
                     $this->itemsContainer->addItem(
-                        DocumentItem::fetchFromDatabaseByID($itemRow['Items_ID']),
-                        $itemRow['Quantity']
+                            DocumentItem::fetchFromDatabaseByID($itemRow['Items_ID']),
+                            $itemRow['Quantity']
                         );
                 }
+
+                foreach($this->getItemsContainer()->getDocumentItemRows() as $itemRow)
+                    $this->paymentAmount = $this->paymentAmount + $itemRow->getUnitPriceWithTax();
 
                 $this->paymentMethod = PaymentMethod::getPaymentMethodByID($paymentID);
             }
