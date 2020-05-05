@@ -18,7 +18,7 @@
     $institutionAddressID   = $_POST['institutionAddress'];
     $documentItems          = json_decode($_POST['documentItems'], true); 
     $invoiceID              = $_POST['invoiceID'];
-    $paymentNumber           = $_POST['paymentNumber'];
+    //$paymentNumer           = $_POST['paymentNumber']; self calculating
     $paymentMethodID        = $_POST['paymentMethodID']; // keep ID for now
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
@@ -108,8 +108,6 @@
         $receipt->setReceiptDocumentID($invoiceID);
     if($paymentMethodID != null)
         $receipt->setPaymentMethod(PaymentMethod::getPaymentMethodByID($paymentMethodID));
-    if($paymentNumber != null)
-        $receipt->setPaymentNumber($paymentNumber);
 
     if($documentItems != null) {
         foreach ($documentItems as $item) {

@@ -22,7 +22,7 @@
     $email              = $_GET["email"];
     $hashedPassword     = $_GET["hashedPassword"];
     $institutionName    = $_GET["institutionName"];
-    $documentId         = $_GET["documentId"];
+    $documentId         = $_GET["documentID"];
 
     if ($email == null || $hashedPassword == null || $institutionName == null || $documentId == null) {
         ResponseHandler::getInstance()
@@ -106,7 +106,7 @@
         $getType->execute();
 
         $getTypeRow = $getType->fetch(PDO::FETCH_ASSOC);
-        $type = $getTypeRow['title'];
+        $type = $getTypeRow['Title'];
 
         if($type == "Invoice"){
 
@@ -133,7 +133,7 @@
 
             ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
-            ->addResponseData("documentType", "invoice")
+            ->addResponseData("documentType", "Invoice")
             ->addResponseData("document", $document->getDAO())
             ->send();
     
@@ -141,7 +141,7 @@
     
             ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
-            ->addResponseData("documentType", "receipt")
+            ->addResponseData("documentType", "Receipt")
             ->addResponseData("document", $document->getDAO())
             ->send();
     

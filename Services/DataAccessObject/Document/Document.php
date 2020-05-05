@@ -1,7 +1,7 @@
 <?php
 
 namespace DAO {
-    abstract class Document{
+    class Document{
         public $ID;
         public $senderID;
         public $senderInstitutionID;
@@ -10,8 +10,11 @@ namespace DAO {
         public $receiverInstitutionID;
         public $receiverAddressID;
         public $creatorID;
+        public $dateCreated;
+        public $dateSent;
+        public $isSent;
 
-        protected function __construct(
+        public function __construct(
             $ID,
             $senderID,
             $senderInstitutionID,
@@ -19,7 +22,10 @@ namespace DAO {
             $receiverID,
             $receiverInstitutionID,
             $receiverAddressID,
-            $creatorID
+            $creatorID,
+            $dateCreated = null,
+            $dateSent = null,
+            $isSent = null
         ){
             $this->ID                       = $ID;
             $this->senderID                 = $senderID;
@@ -29,6 +35,9 @@ namespace DAO {
             $this->receiverInstitutionID    = $receiverInstitutionID;
             $this->receiverAddressID        = $receiverAddressID;
             $this->creatorID                = $creatorID;
+            $this->dateCreated              = $dateCreated;
+            $this->dateSent                 = $dateSent;
+            $this->isSent                   = $isSent;
         }
     }
 }
