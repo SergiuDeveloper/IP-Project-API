@@ -80,12 +80,28 @@ CREATE TABLE Newsfeed_Posts_Tags_Assignations (
     )
 );
 
+CREATE TABLE Institution_Contact_Information (
+	ID				INT							PRIMARY KEY		AUTO_INCREMENT,
+    Email			VARCHAR(256)	NOT NULL,
+    Phone_Number	VARCHAR(16)			NULL,
+    Fax				VARCHAR(16)			NULL,
+    
+    UNIQUE KEY (
+		Email,
+        Phone_Number,
+        Fax
+    )
+);
+
 CREATE TABLE Institutions (
-	ID					INT							PRIMARY KEY		AUTO_INCREMENT,
-	Name				VARCHAR(64)		NOT NULL,
-    CIF					VARCHAR(12)		NOT NULL,
-	DateTime_Created	DATETIME			NULL,
-	DateTime_Modified	DATETIME			NULL,
+	ID										INT							PRIMARY KEY		AUTO_INCREMENT,
+	Name									VARCHAR(64)		NOT NULL,
+    CIF										VARCHAR(12)		NOT NULL,
+    Institution_Contact_Information_ID		INT				NOT NULL,
+	DateTime_Created						DATETIME			NULL,
+	DateTime_Modified						DATETIME			NULL,
+    
+    CONSTRAINT fk_Institutions_Institution_Contact_Information_ID FOREIGN KEY (Institution_Contact_Information_ID) REFERENCES Institution_Contact_Information(ID) ON DELETE CASCADE,
     
     UNIQUE KEY (
 		Name
