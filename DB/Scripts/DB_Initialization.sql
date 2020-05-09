@@ -4,43 +4,66 @@ USE Fiscal_Documents_EDI_Live;
 
 CREATE TABLE Users (
 	ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
-    Email				VARCHAR(256)	NOT NULL 	UNIQUE KEY,
+    Email				VARCHAR(256)	NOT NULL,
 	Hashed_Password 	VARCHAR(64) 	NOT NULL,
 	First_Name			VARCHAR(64)		NOT NULL,
 	Last_Name			VARCHAR(64)		NOT NULL,
 	Is_Active			BOOLEAN			NOT NULL 					DEFAULT FALSE,
 	DateTime_Created	DATETIME			NULL,
-	DateTime_Modified	DATETIME			NULL
+	DateTime_Modified	DATETIME			NULL,
+    
+    UNIQUE KEY (
+		Email
+	)
 );
 
 CREATE TABLE Administrators (
 	ID			INT					PRIMARY KEY		AUTO_INCREMENT,
-    Users_ID	INT 	NOT NULL 	UNIQUE KEY,
+    Users_ID	INT 	NOT NULL,
     
-    CONSTRAINT fk_Users_ID FOREIGN KEY (Users_ID) REFERENCES Users(ID) ON DELETE CASCADE
+    CONSTRAINT fk_Users_ID FOREIGN KEY (Users_ID) REFERENCES Users(ID) ON DELETE CASCADE,
+    
+    UNIQUE KEY (
+		Users_ID
+	)
 );
 
 CREATE TABLE User_Activation_Keys (
 	ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
-	User_ID				INT				NOT NULL	UNIQUE KEY,
-	Unique_Key			VARCHAR(64)		NOT NULL	UNIQUE KEY,
+	User_ID				INT				NOT NULL,
+	Unique_Key			VARCHAR(64)		NOT NULL,
 	DateTime_Created	DATETIME			NULL,
 	DateTime_Used		DATETIME			NULL,
     
-    CONSTRAINT fk_User_ID FOREIGN KEY (User_ID) REFERENCES Users(ID) ON DELETE CASCADE
+    CONSTRAINT fk_User_ID FOREIGN KEY (User_ID) REFERENCES Users(ID) ON DELETE CASCADE,
+    
+    UNIQUE KEY (
+		User_ID
+	),
+    UNIQUE KEY (
+		Unique_key
+	)
 );
 
 CREATE TABLE Newsfeed_Posts (
 	ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
-    Title				VARCHAR(64)		NOT NULL	UNIQUE KEY,
+    Title				VARCHAR(64)		NOT NULL,
     Content				VARCHAR(256)	NOT NULL,
     URL					VARCHAR(2048)	NOT NULL,
-    DateTime_Created	DATETIME			NULL
+    DateTime_Created	DATETIME			NULL,
+    
+    UNIQUE KEY (
+		Title
+	)
 );
 
 CREATE TABLE Newsfeed_Tags (
 	ID 		INT 						PRIMARY KEY		AUTO_INCREMENT,
-	Title	VARCHAR (64)	NOT NULL	UNIQUE KEY
+	Title	VARCHAR (64)	NOT NULL,
+    
+    UNIQUE KEY (
+		Title
+	)
 );
 
 CREATE TABLE Newsfeed_Posts_Tags_Assignations (
@@ -58,10 +81,42 @@ CREATE TABLE Newsfeed_Posts_Tags_Assignations (
 );
 
 CREATE TABLE Institutions (
-	ID					INT							PRIMARY KEY		AUTO_INCREMENT,
-	Name				VARCHAR(64)		NOT NULL	UNIQUE KEY,
-	DateTime_Created	DATETIME			NULL,
-	DateTime_Modified	DATETIME			NULL
+	ID										INT							PRIMARY KEY		AUTO_INCREMENT,
+	Name									VARCHAR(64)		NOT NULL,
+    CIF										VARCHAR(12)		NOT NULL,
+	DateTime_Created						DATETIME			NULL,
+	DateTime_Modified						DATETIME			NULL,
+    
+    UNIQUE KEY (
+		Name
+	),
+    UNIQUE KEY (
+		CIF
+	)
+);
+
+CREATE TABLE Contact_Email_Addresses (
+    ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
+    Institution_ID 		INT 			NOT NULL,
+    Value 				VARCHAR(256) 	NOT NULL,
+    
+    CONSTRAINT fk_Institution_ID_Contact_Email_Addresses FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE
+);
+
+CREATE TABLE Contact_Phone_Numbers (
+    ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
+    Institution_ID 		INT 			NOT NULL,
+    Value 				VARCHAR(16) 	NOT NULL,
+    
+    CONSTRAINT fk_Institution_ID_Contact_Phone_Numbers FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE
+);
+
+CREATE TABLE Contact_Fax_Numbers (
+    ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
+    Institution_ID 		INT 			NOT NULL,
+    Value 				VARCHAR(16) 	NOT NULL,
+    
+    CONSTRAINT fk_Institution_ID_Contact_Fax_Numbers FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE
 );
 
 CREATE TABLE Addresses (
