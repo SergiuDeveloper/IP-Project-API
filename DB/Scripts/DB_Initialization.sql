@@ -80,28 +80,12 @@ CREATE TABLE Newsfeed_Posts_Tags_Assignations (
     )
 );
 
-CREATE TABLE Institution_Contact_Information (
-	ID				INT							PRIMARY KEY		AUTO_INCREMENT,
-    Email			VARCHAR(256)	NOT NULL,
-    Phone_Number	VARCHAR(16)			NULL,
-    Fax				VARCHAR(16)			NULL,
-    
-    UNIQUE KEY (
-		Email,
-        Phone_Number,
-        Fax
-    )
-);
-
 CREATE TABLE Institutions (
 	ID										INT							PRIMARY KEY		AUTO_INCREMENT,
 	Name									VARCHAR(64)		NOT NULL,
     CIF										VARCHAR(12)		NOT NULL,
-    Institution_Contact_Information_ID		INT				NOT NULL,
 	DateTime_Created						DATETIME			NULL,
 	DateTime_Modified						DATETIME			NULL,
-    
-    CONSTRAINT fk_Institutions_Institution_Contact_Information_ID FOREIGN KEY (Institution_Contact_Information_ID) REFERENCES Institution_Contact_Information(ID) ON DELETE CASCADE,
     
     UNIQUE KEY (
 		Name
@@ -109,6 +93,30 @@ CREATE TABLE Institutions (
     UNIQUE KEY (
 		CIF
 	)
+);
+
+CREATE TABLE Contact_Email_Addresses (
+    ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
+    Institution_ID 		INT 			NOT NULL,
+    Value 				VARCHAR(256) 	NOT NULL,
+    
+    CONSTRAINT fk_Institution_ID_Contact_Email_Addresses FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE
+);
+
+CREATE TABLE Contact_Phone_Numbers (
+    ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
+    Institution_ID 		INT 			NOT NULL,
+    Value 				VARCHAR(16) 	NOT NULL,
+    
+    CONSTRAINT fk_Institution_ID_Contact_Phone_Numbers FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE
+);
+
+CREATE TABLE Contact_Fax_Numbers (
+    ID 					INT 						PRIMARY KEY		AUTO_INCREMENT,
+    Institution_ID 		INT 			NOT NULL,
+    Value 				VARCHAR(16) 	NOT NULL,
+    
+    CONSTRAINT fk_Institution_ID_Contact_Fax_Numbers FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE
 );
 
 CREATE TABLE Addresses (
