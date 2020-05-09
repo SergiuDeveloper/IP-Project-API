@@ -27,9 +27,15 @@
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
-    $queryIdInstitution = "SELECT ID, Institution_Contact_Information_ID  FROM Institutions WHERE name = :institutionName;";
+    $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName;";
 
-    $queryContact = "SELECT * FROM institution_contact_information WHERE ID = :contactId;";
+    $queryContactEmail = "SELECT id FROM contact_email_adresses WHERE Institution_ID = :institutionId;";
+    $queryContactPhone = "SELECT id FROM contact_phone_numbers WHERE Institution_ID = :institutionId;";
+    $queryContactFax = "SELECT id FROM contact_fax_numbers WHERE Institution_ID = :institutionId;";
+    
+    $queryContactEmail = "SELECT value FROM contact_email_adresses WHERE Institution_ID = :institutionId;";
+    $queryContactPhone = "SELECT value FROM contact_phone_numbers WHERE Institution_ID = :institutionId;";
+    $queryContactFax = "SELECT value FROM contact_fax_numbers WHERE Institution_ID = :institutionId;";
 
     try {
         DatabaseManager::Connect();
@@ -53,28 +59,34 @@
                 ->send();
         }
 
-        if($institutionRow['Institution_Contact_Information_ID'] == null){
-            ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("CONTACT_NOT_FOUND"))
-            ->send();
-        }
-
         DatabaseManager::Connect();
 
-        $getContact = DatabaseManager::PrepareStatement($queryContact);
-        $getContact->bindParam(":contactId", $institutionRow['Institution_Contact_Information_ID']);
-        $getContact->execute();
+        $getEmail = DatabaseManager::PrepareStatement($queryContactEmail);
+        $getEmail->bindParam(":institutionId", $institutionRow['ID']);
+        $getEmail->execute();
 
-        $contactRow = $getContact->fetch(PDO::FETCH_ASSOC);
+        $emailRow = $getEmail->fetch(PDO::FETCH_ASSOC);
 
-        if($contactRow == null){
+        $getPhone = DatabaseManager::PrepareStatement($queryContactPhone);
+        $getPhone->bindParam(":institutionId", $institutionRow['ID']);
+        $getPhone->execute();
+
+        $phoneRow = $getPhone->fetch(PDO::FETCH_ASSOC);
+
+        $getFax = DatabaseManager::PrepareStatement($queryContactFax);
+        $getFax->bindParam(":institutionId", $institutionRow['ID']);
+        $getFax->execute();
+
+        $faxRow = $getFax->fetch(PDO::FETCH_ASSOC);
+
+        if($emailRow == null && $phoneRow == null && $faxRow == null){
             ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("CONTACT_NOT_FOUND"))
             ->send();
             DatabaseManager::Disconnect();
         }
 
-        $contact = new Contact($contactRow['Email'],$contactRow['Phone_Number'],$contactRow['Fax']);
+        $contact = new Contact($emailRow['value'],$phoneRow['value'],$faxRow['value']);
 
         DatabaseManager::Disconnect();
     }

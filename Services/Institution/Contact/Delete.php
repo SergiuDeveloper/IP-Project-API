@@ -27,13 +27,11 @@
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
-    $queryIdInstitution = "SELECT ID, Institution_Contact_Information_ID  FROM Institutions WHERE name = :institutionName;";
+    $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName;";
 
-    $queryContact = "SELECT ID FROM institution_contact_information WHERE ID = :contactId;";
-
-    $queryDeleteContact = "DELETE FROM institution_contact_information WHERE ID = :contactId;";
-
-    $updateContactID = "UPDATE institutions SET Institution_Contact_Information_ID = null WHERE id = :institutionId;";
+    $queryDeleteContactEmail = "DELETE FROM contact_email_adresses WHERE Institution_ID = :institutionId;";
+    $queryDeleteContactPhone = "DELETE FROM contact_phone_numbers WHERE Institution_ID = :institutionId;";
+    $queryDeleteContactFax = "DELETE FROM contact_fax_numbers WHERE Institution_ID = :institutionId;";
 
     try {
         DatabaseManager::Connect();
@@ -56,38 +54,48 @@
                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION"))
                 ->send();
         }
-
-        if($institutionRow['Institution_Contact_Information_ID'] == null){
-            ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("CONTACT_NOT_FOUND"))
-            ->send();
-        }
-
         DatabaseManager::Connect();
 
-        $getContact = DatabaseManager::PrepareStatement($queryContact);
-        $getContact->bindParam(":contactId", $institutionRow['Institution_Contact_Information_ID']);
-        $getContact->execute();
+        $getEmail = DatabaseManager::PrepareStatement($queryContactEmail);
+        $getEmail->bindParam(":institutionId", $institutionRow['ID']);
+        $getEmail->execute();
 
-        $contactRow = $getContact->fetch(PDO::FETCH_ASSOC);
+        $emailRow = $getEmail->fetch(PDO::FETCH_ASSOC);
 
-        if($contactRow == null){
+        $getPhone = DatabaseManager::PrepareStatement($queryContactPhone);
+        $getPhone->bindParam(":institutionId", $institutionRow['ID']);
+        $getPhone->execute();
+
+        $phoneRow = $getPhone->fetch(PDO::FETCH_ASSOC);
+
+        $getFax = DatabaseManager::PrepareStatement($queryContactFax);
+        $getFax->bindParam(":institutionId", $institutionRow['ID']);
+        $getFax->execute();
+
+        $faxRow = $getFax->fetch(PDO::FETCH_ASSOC);
+
+        if($emailRow == null && $phoneRow == null && $faxRow == null){
             ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("CONTACT_NOT_FOUND"))
             ->send();
             DatabaseManager::Disconnect();
         }
 
-        $delete = DatabaseManager::PrepareStatement($queryDeleteContact);
-        $delete->bindParam(":contactId", $contactRow['ID']);
-        $delete->execute();
-
-        $updateId = DatabaseManager::PrepareStatement($updateContactID);
-        $updateId->bindParam(":institutionId", $institutionRow['ID']);
-        $updateId->execute();
-
-
-
+        if($emailRow != null){
+            $delete = DatabaseManager::PrepareStatement($queryDeleteContactEmail);
+            $delete->bindParam(":institutionId", $institutionRow['ID']);
+            $delete->execute();
+        }
+        if($phoneRow != null){
+            $delete = DatabaseManager::PrepareStatement($queryDeleteContactPhone);
+            $delete->bindParam(":institutionId", $institutionRow['ID']);
+            $delete->execute();
+        }
+        if($faxRow != null){
+            $delete = DatabaseManager::PrepareStatement($queryDeleteContactFax);
+            $delete->bindParam(":institutionId", $institutionRow['ID']);
+            $delete->execute();
+        }
         DatabaseManager::Disconnect();
     }
     catch (Exception $databaseException) {

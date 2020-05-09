@@ -38,11 +38,9 @@
 
     $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName;";
 
-    $insertContact = "INSERT INTO institution_contact_information(Email,Phone_Number,Fax) VALUES(:email, :phone, :fax);";
-
-    $getContactID = "SELECT id from institution_contact_information WHERE Email = :email, Phone_Number = :phone, Fax = :fax;";
-
-    $updateContactID = "UPDATE institutions SET Institution_Contact_Information_ID = :contactId WHERE id = :institutionId;";
+    $insertContactEmail = "INSERT INTO contact_email_adresses(Value,Institution_ID) VALUES(:value, :institutionId);";
+    $insertContactPhone = "INSERT INTO contact_phone_numbers(Value,Institution_ID) VALUES(:value, :institutionId);";
+    $insertContactFax = "INSERT INTO contact_fax_numbers(Value,Institution_ID) VALUES(:value, :institutionId);";
 
     try {
         DatabaseManager::Connect();
@@ -67,25 +65,27 @@
         }
 
         DatabaseManager::Connect();
-        
-        $insert = DatabaseManager::PrepareStatement($insertContact);
-        $insert->bindParam(":email", $contactEmail);
-        $insert->bindParam(":phone", $contactPhone);
-        $insert->bindParam(":fax", $contactFax);
-        $insert->execute();
-
-        $getId = DatabaseManager::PrepareStatement($getContactID);
-        $getId->bindParam(":email", $contactEmail);
-        $getId->bindParam(":phone", $contactPhone);
-        $getId->bindParam(":fax", $contactFax);
-        $getId->execute();
-
-        $contactIdRow = $getId->fetch(PDO::FETCH_ASSOC);
-
-        $getId = DatabaseManager::PrepareStatement($updateContactID);
-        $getId->bindParam(":contactId", $contactIdRow['ID']);
-        $getId->bindParam(":institutionId", $institutionRow['ID']);
-        $getId->execute();
+        if($contactEmail != null)
+        {
+            $insert = DatabaseManager::PrepareStatement($insertContactEmail);
+            $insert->bindParam(":value", $contactEmail);
+            $insert->bindParam(":institutionId", $institutionRow['ID']);
+            $insert->execute();
+        }
+        if($contactPhone != null)
+        {
+            $insert = DatabaseManager::PrepareStatement($insertContactPhone);
+            $insert->bindParam(":value", $contactPhone);
+            $insert->bindParam(":institutionId", $institutionRow['ID']);
+            $insert->execute();
+        }
+        if($contactFax != null)
+        {
+            $insert = DatabaseManager::PrepareStatement($insertContactFax);
+            $insert->bindParam(":value", $contactFax);
+            $insert->bindParam(":institutionId", $institutionRow['ID']);
+            $insert->execute();
+        }
 
         DatabaseManager::Disconnect();
     }

@@ -36,15 +36,17 @@
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
-    $queryIdInstitution = "SELECT ID, Institution_Contact_Information_ID  FROM Institutions WHERE name = :institutionName;";
+    $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName;";
 
-    $queryContact = "SELECT ID FROM institution_contact_information WHERE ID = :contactId;";
+    $queryContactEmail = "SELECT id FROM contact_email_adresses WHERE Institution_ID = :institutionId;";
+    $queryContactPhone = "SELECT id FROM contact_phone_numbers WHERE Institution_ID = :institutionId;";
+    $queryContactFax = "SELECT id FROM contact_fax_numbers WHERE Institution_ID = :institutionId;";
 
-    $updateEmail = "UPDATE institution_contact_information SET Email = :email WHERE ID = :contactId;";
+    $updateEmail = "UPDATE contact_email_adresses SET value = :email WHERE id = :contactId;";
 
-    $updatePhone = "UPDATE institution_contact_information SET Phone_Number = :phone WHERE ID = :contactId;";
+    $updatePhone = "UPDATE contact_phone_numbers SET value = :phone WHERE id = :contactId;";
 
-    $updateFax = "UPDATE institution_contact_information SET Fax = :fax WHERE ID = :contactId;";
+    $updateFax = "UPDATE contact_fax_numbers SET value = :fax WHERE id = :contactId;";
 
     try {
         DatabaseManager::Connect();
@@ -68,45 +70,57 @@
                 ->send();
         }
 
-        if($institutionRow['Institution_Contact_Information_ID'] == null){
-            ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("CONTACT_NOT_FOUND"))
-            ->send();
-        }
-
         DatabaseManager::Connect();
 
-        $getContact = DatabaseManager::PrepareStatement($queryContact);
-        $getContact->bindParam(":contactId", $institutionRow['Institution_Contact_Information_ID']);
-        $getContact->execute();
+        if($contactEmail != null){
+            $getEmail = DatabaseManager::PrepareStatement($queryContactEmail);
+            $getEmail->bindParam(":institutionId", $institutionRow['ID']);
+            $getEmail->execute();
+    
+            $emailRow = $getEmail->fetch(PDO::FETCH_ASSOC);
+        }
+       
+        if($contactPhone != null){
+            $getPhone = DatabaseManager::PrepareStatement($queryContactPhone);
+            $getPhone->bindParam(":institutionId", $institutionRow['ID']);
+            $getPhone->execute();
+    
+            $phoneRow = $getPhone->fetch(PDO::FETCH_ASSOC);    
+        }
 
-        $contactRow = $getContact->fetch(PDO::FETCH_ASSOC);
-
-        if($contactRow == null){
+        if($contactFax != null){
+            $getFax = DatabaseManager::PrepareStatement($queryContactFax);
+            $getFax->bindParam(":institutionId", $institutionRow['ID']);
+            $getFax->execute();
+    
+            $faxRow = $getFax->fetch(PDO::FETCH_ASSOC);
+        }
+       
+        if($emailRow == null && $phoneRow == null && $faxRow == null){
             ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("CONTACT_NOT_FOUND"))
             ->send();
             DatabaseManager::Disconnect();
         }
 
-        if($contactEmail != null){
+        if($emailRow != null){
             $update = DatabaseManager::PrepareStatement($updateEmail);
             $update->bindParam(":email", $contactEmail);
-            $update->bindParam(":contactId", $contactRow['ID']);
+            $update->bindParam(":contactId", $emailRow['ID']);
             $update->execute();
         }
 
-        if($contactPhone != null){
+        if($phoneRow != null){
             $update = DatabaseManager::PrepareStatement($updatePhone);
             $update->bindParam(":phone", $contactPhone);
-            $update->bindParam(":contactId", $contactRow['ID']);
+            $update->bindParam(":contactId", $phoneRow['ID']);
             $update->execute();
         }
 
-        if($contactFax != null){
+        if($faxRow != null){
             $update = DatabaseManager::PrepareStatement($updateFax);
             $update->bindParam(":fax", $contactPhone);
-            $update->bindParam(":contactId", $contactRow['ID']);
+            $update->bindParam(":contactId", $faxRow['ID']);
             $update->execute();
         }
 
