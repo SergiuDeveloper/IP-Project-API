@@ -1,8 +1,0 @@
-"ID";"Can_Modify_Institution";"Can_Delete_Institution";"Can_Add_Members";"Can_Remove_Members";"Can_Upload_Documents";"Can_Preview_Uploaded_Documents";"Can_Remove_Uploaded_Documents";"Can_Send_Documents";"Can_Preview_Received_Documents";"Can_Preview_Specific_Received_Document";"Can_Remove_Received_Documents";"Can_Download_Documents";"Can_Add_Roles";"Can_Remove_Roles";"Can_Modify_Roles";"Can_Assign_Roles";"Can_Deassign_Roles"
-1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1;1
-2;0;0;1;1;1;1;1;1;1;1;1;1;0;0;0;0;0
-3;0;0;0;0;1;1;0;1;1;1;0;1;0;0;0;0;0
-4;0;0;0;0;0;0;0;1;0;0;0;0;0;0;0;0;0
-5;0;0;0;0;0;1;0;0;0;1;0;1;0;0;0;0;0
-6;0;0;0;0;0;0;0;1;0;0;0;1;0;0;0;0;0
-7;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0
