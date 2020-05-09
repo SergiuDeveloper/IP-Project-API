@@ -33,6 +33,8 @@
 
     $queryDeleteContact = "DELETE FROM institution_contact_information WHERE ID = :contactId;";
 
+    $updateContactID = "UPDATE institutions SET Institution_Contact_Information_ID = null WHERE id = :institutionId;";
+
     try {
         DatabaseManager::Connect();
 
@@ -79,6 +81,12 @@
         $delete = DatabaseManager::PrepareStatement($queryDeleteContact);
         $delete->bindParam(":contactId", $contactRow['ID']);
         $delete->execute();
+
+        $updateId = DatabaseManager::PrepareStatement($updateContactID);
+        $updateId->bindParam(":institutionId", $institutionRow['ID']);
+        $updateId->execute();
+
+
 
         DatabaseManager::Disconnect();
     }
