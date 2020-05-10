@@ -215,7 +215,7 @@ class CommonEndPointLogic {
             return;
 
         ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("PASSWORD_RESET_EMAIL_SEND_FAILURE"))
+            ->setResponseHeader("PASSWORD_RESET_SEND_EMAIL_FAILURE")
             ->send();
     }
 

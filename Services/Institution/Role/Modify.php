@@ -10,8 +10,8 @@
     require_once(ROOT . "/Utility/SuccessStates.php");
     require_once(ROOT . "/Utility/ResponseHandler.php");
 
-    require_once("./Utility/InstitutionActions.php");
-    require_once("./Utility/InstitutionRoles.php");
+    require_once(ROOT . "Institution/Role/Utility/InstitutionActions.php");
+    require_once(ROOT . "Institution/Role/Utility/InstitutionRoles.php");
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 

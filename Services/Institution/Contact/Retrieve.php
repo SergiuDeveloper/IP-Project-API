@@ -29,13 +29,13 @@
 
     $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName;";
 
-    $queryContactEmail = "SELECT id FROM contact_email_adresses WHERE Institution_ID = :institutionId;";
-    $queryContactPhone = "SELECT id FROM contact_phone_numbers WHERE Institution_ID = :institutionId;";
-    $queryContactFax = "SELECT id FROM contact_fax_numbers WHERE Institution_ID = :institutionId;";
+    //$queryContactEmail = "SELECT id FROM contact_email_addresses WHERE Institution_ID = :institutionId;";
+    //$queryContactPhone = "SELECT id FROM contact_phone_numbers WHERE Institution_ID = :institutionId;";
+    //$queryContactFax = "SELECT id FROM contact_fax_numbers WHERE Institution_ID = :institutionId;";
     
-    $queryContactEmail = "SELECT value FROM contact_email_adresses WHERE Institution_ID = :institutionId;";
-    $queryContactPhone = "SELECT value FROM contact_phone_numbers WHERE Institution_ID = :institutionId;";
-    $queryContactFax = "SELECT value FROM contact_fax_numbers WHERE Institution_ID = :institutionId;";
+    $queryContactEmail = "SELECT Value FROM contact_email_addresses WHERE Institution_ID = :institutionId;";
+    $queryContactPhone = "SELECT Value FROM contact_phone_numbers WHERE Institution_ID = :institutionId;";
+    $queryContactFax = "SELECT Value FROM contact_fax_numbers WHERE Institution_ID = :institutionId;";
 
     try {
         DatabaseManager::Connect();
@@ -59,34 +59,49 @@
                 ->send();
         }
 
+        $emailArray = array();
+        $phoneArray = array();
+        $faxArray = array();
+
         DatabaseManager::Connect();
 
         $getEmail = DatabaseManager::PrepareStatement($queryContactEmail);
         $getEmail->bindParam(":institutionId", $institutionRow['ID']);
         $getEmail->execute();
 
-        $emailRow = $getEmail->fetch(PDO::FETCH_ASSOC);
+        while($row = $getEmail->fetch(PDO::FETCH_OBJ)){
+            array_push($emailArray, $row->Value);
+        }
+        //$emailRow = $getEmail->fetch(PDO::FETCH_ASSOC);
 
         $getPhone = DatabaseManager::PrepareStatement($queryContactPhone);
         $getPhone->bindParam(":institutionId", $institutionRow['ID']);
         $getPhone->execute();
 
-        $phoneRow = $getPhone->fetch(PDO::FETCH_ASSOC);
+        while($row = $getPhone->fetch(PDO::FETCH_OBJ)){
+            array_push($phoneArray, $row->Value);
+        }
+
+        //$phoneRow = $getPhone->fetch(PDO::FETCH_ASSOC);
 
         $getFax = DatabaseManager::PrepareStatement($queryContactFax);
         $getFax->bindParam(":institutionId", $institutionRow['ID']);
         $getFax->execute();
 
-        $faxRow = $getFax->fetch(PDO::FETCH_ASSOC);
+        while($row = $getFax->fetch(PDO::FETCH_OBJ)){
+            array_push($faxArray, $row->Value);
+        }
 
-        if($emailRow == null && $phoneRow == null && $faxRow == null){
+        //$faxRow = $getFax->fetch(PDO::FETCH_ASSOC);
+
+        /*if($emailRow == null && $phoneRow == null && $faxRow == null){
             ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("CONTACT_NOT_FOUND"))
             ->send();
             DatabaseManager::Disconnect();
-        }
+        }*/
 
-        $contact = new Contact($emailRow['value'],$phoneRow['value'],$faxRow['value']);
+        //$contact = new Contact($emailRow['value'],$phoneRow['value'],$faxRow['value']);
 
         DatabaseManager::Disconnect();
     }
@@ -99,7 +114,9 @@
     try {
         ResponseHandler::getInstance()
         ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
-        ->addResponseData("Contact", $contact)
+        ->addResponseData("emailContacts", $emailArray)
+        ->addResponseData("phoneContacts", $phoneArray)
+        ->addResponseData("faxContacts", $faxArray)
         ->send();
     }
     catch (Exception $exception){

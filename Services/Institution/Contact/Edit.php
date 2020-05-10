@@ -18,9 +18,9 @@
     $email              = $_POST["email"];
     $hashedPassword     = $_POST["hashedPassword"];
     $institutionName    = $_POST["institutionName"];
-    $contactEmail       = $_POST["contactEmail"];
-    $contactPhone       = $_POST["contactPhone"];
-    $contactFax         = $_POST["contactFax"];
+    $contactEmail       = json_decode($_POST["contactEmail"], true);
+    $contactPhone       = json_decode($_POST["contactPhone"], true);
+    $contactFax         = json_decode($_POST["contactFax"], true);
 
     if ($email == null || $hashedPassword == null || $institutionName == null) {
         ResponseHandler::getInstance()
@@ -36,97 +36,58 @@
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
-    $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName;";
-
-    $queryContactEmail = "SELECT id FROM contact_email_adresses WHERE Institution_ID = :institutionId;";
-    $queryContactPhone = "SELECT id FROM contact_phone_numbers WHERE Institution_ID = :institutionId;";
-    $queryContactFax = "SELECT id FROM contact_fax_numbers WHERE Institution_ID = :institutionId;";
-
-    $updateEmail = "UPDATE contact_email_adresses SET value = :email WHERE id = :contactId;";
-
-    $updatePhone = "UPDATE contact_phone_numbers SET value = :phone WHERE id = :contactId;";
-
-    $updateFax = "UPDATE contact_fax_numbers SET value = :fax WHERE id = :contactId;";
-
     try {
-        DatabaseManager::Connect();
-
-        $getInstitution = DatabaseManager::PrepareStatement($queryIdInstitution);
-        $getInstitution->bindParam(":institutionName", $institutionName);
-        $getInstitution->execute();
-
-        $institutionRow = $getInstitution->fetch(PDO::FETCH_ASSOC);
-
-        if($institutionRow == null){
-            ResponseHandler::getInstance()
-                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND"))
-                ->send();
-                DatabaseManager::Disconnect();
-        }
-
-        if( false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::MODIFY_INSTITUTION)) {
+        if (false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::MODIFY_INSTITUTION)){
             ResponseHandler::getInstance()
                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION"))
                 ->send();
         }
+    } catch (Exception $exception){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_ACTION"))
+            ->send();
+    }
 
+    $institutionID = InstitutionValidator::getLastValidatedInstitution()->getID();
+
+    try {
         DatabaseManager::Connect();
 
-        if($contactEmail != null){
-            $getEmail = DatabaseManager::PrepareStatement($queryContactEmail);
-            $getEmail->bindParam(":institutionId", $institutionRow['ID']);
-            $getEmail->execute();
-    
-            $emailRow = $getEmail->fetch(PDO::FETCH_ASSOC);
-        }
-       
-        if($contactPhone != null){
-            $getPhone = DatabaseManager::PrepareStatement($queryContactPhone);
-            $getPhone->bindParam(":institutionId", $institutionRow['ID']);
-            $getPhone->execute();
-    
-            $phoneRow = $getPhone->fetch(PDO::FETCH_ASSOC);    
+        $clearEmailTableStatement = DatabaseManager::PrepareStatement("DELETE FROM contact_email_addresses WHERE Institution_ID = :institutionID");
+        $clearPhoneTableStatement = DatabaseManager::PrepareStatement("DELETE FROM contact_phone_numbers WHERE Institution_ID = :institutionID");
+        $clearFaxTableStatement = DatabaseManager::PrepareStatement("DELETE FROM contact_fax_numbers WHERE Institution_ID = :institutionID");
+
+        $clearEmailTableStatement->bindParam(":institutionID", $institutionID);
+        $clearPhoneTableStatement->bindParam(":institutionID", $institutionID);
+        $clearFaxTableStatement->bindParam(":institutionID", $institutionID);
+
+        $clearEmailTableStatement->execute();
+        $clearPhoneTableStatement->execute();
+        $clearFaxTableStatement->execute();
+
+        foreach ($contactEmail as $emailItem){
+            $insertEmailStatement = DatabaseManager::PrepareStatement("INSERT INTO contact_email_addresses (Value, Institution_ID) VALUES (:email, :institutionID)");
+            $insertEmailStatement->bindParam(":email", $emailItem);
+            $insertEmailStatement->bindParam(":institutionID", $institutionID);
+            $insertEmailStatement->execute();
         }
 
-        if($contactFax != null){
-            $getFax = DatabaseManager::PrepareStatement($queryContactFax);
-            $getFax->bindParam(":institutionId", $institutionRow['ID']);
-            $getFax->execute();
-    
-            $faxRow = $getFax->fetch(PDO::FETCH_ASSOC);
-        }
-       
-        if($emailRow == null && $phoneRow == null && $faxRow == null){
-            ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("CONTACT_NOT_FOUND"))
-            ->send();
-            DatabaseManager::Disconnect();
+        foreach ($contactPhone as $phoneItem){
+            $insertEmailStatement = DatabaseManager::PrepareStatement("INSERT INTO contact_phone_numbers (Value, Institution_ID) VALUES (:phone, :institutionID)");
+            $insertEmailStatement->bindParam(":phone", $phoneItem);
+            $insertEmailStatement->bindParam(":institutionID", $institutionID);
+            $insertEmailStatement->execute();
         }
 
-        if($emailRow != null){
-            $update = DatabaseManager::PrepareStatement($updateEmail);
-            $update->bindParam(":email", $contactEmail);
-            $update->bindParam(":contactId", $emailRow['ID']);
-            $update->execute();
-        }
-
-        if($phoneRow != null){
-            $update = DatabaseManager::PrepareStatement($updatePhone);
-            $update->bindParam(":phone", $contactPhone);
-            $update->bindParam(":contactId", $phoneRow['ID']);
-            $update->execute();
-        }
-
-        if($faxRow != null){
-            $update = DatabaseManager::PrepareStatement($updateFax);
-            $update->bindParam(":fax", $contactPhone);
-            $update->bindParam(":contactId", $faxRow['ID']);
-            $update->execute();
+        foreach ($contactFax as $faxItem){
+            $insertEmailStatement = DatabaseManager::PrepareStatement("INSERT INTO contact_fax_numbers (Value, Institution_ID) VALUES (:fax, :institutionID)");
+            $insertEmailStatement->bindParam(":fax", $faxItem);
+            $insertEmailStatement->bindParam(":institutionID", $institutionID);
+            $insertEmailStatement->execute();
         }
 
         DatabaseManager::Disconnect();
-    }
-    catch (Exception $databaseException) {
+    } catch (Exception $exception){
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
             ->send();

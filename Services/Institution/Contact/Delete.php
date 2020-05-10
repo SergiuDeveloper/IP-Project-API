@@ -29,7 +29,7 @@
 
     $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName;";
 
-    $queryDeleteContactEmail = "DELETE FROM contact_email_adresses WHERE Institution_ID = :institutionId;";
+    $queryDeleteContactEmail = "DELETE FROM contact_email_addresses WHERE Institution_ID = :institutionId;";
     $queryDeleteContactPhone = "DELETE FROM contact_phone_numbers WHERE Institution_ID = :institutionId;";
     $queryDeleteContactFax = "DELETE FROM contact_fax_numbers WHERE Institution_ID = :institutionId;";
 
@@ -56,7 +56,7 @@
         }
         DatabaseManager::Connect();
 
-        $getEmail = DatabaseManager::PrepareStatement($queryContactEmail);
+        /*$getEmail = DatabaseManager::PrepareStatement($queryContactEmail);
         $getEmail->bindParam(":institutionId", $institutionRow['ID']);
         $getEmail->execute();
 
@@ -80,22 +80,20 @@
             ->send();
             DatabaseManager::Disconnect();
         }
+        */
 
-        if($emailRow != null){
-            $delete = DatabaseManager::PrepareStatement($queryDeleteContactEmail);
-            $delete->bindParam(":institutionId", $institutionRow['ID']);
-            $delete->execute();
-        }
-        if($phoneRow != null){
-            $delete = DatabaseManager::PrepareStatement($queryDeleteContactPhone);
-            $delete->bindParam(":institutionId", $institutionRow['ID']);
-            $delete->execute();
-        }
-        if($faxRow != null){
-            $delete = DatabaseManager::PrepareStatement($queryDeleteContactFax);
-            $delete->bindParam(":institutionId", $institutionRow['ID']);
-            $delete->execute();
-        }
+        $delete = DatabaseManager::PrepareStatement($queryDeleteContactEmail);
+        $delete->bindParam(":institutionId", $institutionRow['ID']);
+        $delete->execute();
+
+        $delete = DatabaseManager::PrepareStatement($queryDeleteContactPhone);
+        $delete->bindParam(":institutionId", $institutionRow['ID']);
+        $delete->execute();
+
+        $delete = DatabaseManager::PrepareStatement($queryDeleteContactFax);
+        $delete->bindParam(":institutionId", $institutionRow['ID']);
+        $delete->execute();
+
         DatabaseManager::Disconnect();
     }
     catch (Exception $databaseException) {

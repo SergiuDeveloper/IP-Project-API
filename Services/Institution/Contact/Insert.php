@@ -18,9 +18,9 @@
     $email              = $_POST["email"];
     $hashedPassword     = $_POST["hashedPassword"];
     $institutionName    = $_POST["institutionName"];
-    $contactEmail       = $_POST["contactEmail"];
-    $contactPhone       = $_POST["contactPhone"];
-    $contactFax         = $_POST["contactFax"];
+    $contactEmail       = json_decode($_POST["contactEmail"], true);
+    $contactPhone       = json_decode($_POST["contactPhone"], true);
+    $contactFax         = json_decode($_POST["contactFax"], true);
 
     if ($email == null || $hashedPassword == null || $institutionName == null) {
         ResponseHandler::getInstance()
@@ -38,7 +38,7 @@
 
     $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName;";
 
-    $insertContactEmail = "INSERT INTO contact_email_adresses(Value,Institution_ID) VALUES(:value, :institutionId);";
+    $insertContactEmail = "INSERT INTO contact_email_addresses(Value,Institution_ID) VALUES(:value, :institutionId);";
     $insertContactPhone = "INSERT INTO contact_phone_numbers(Value,Institution_ID) VALUES(:value, :institutionId);";
     $insertContactFax = "INSERT INTO contact_fax_numbers(Value,Institution_ID) VALUES(:value, :institutionId);";
 
@@ -55,7 +55,7 @@
             ResponseHandler::getInstance()
                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND"))
                 ->send();
-                DatabaseManager::Disconnect();
+            DatabaseManager::Disconnect();
         }
 
         if( false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::MODIFY_INSTITUTION)) {
@@ -65,26 +65,33 @@
         }
 
         DatabaseManager::Connect();
+
         if($contactEmail != null)
         {
-            $insert = DatabaseManager::PrepareStatement($insertContactEmail);
-            $insert->bindParam(":value", $contactEmail);
-            $insert->bindParam(":institutionId", $institutionRow['ID']);
-            $insert->execute();
+            foreach ($contactEmail as $contactEmailItem) {
+                $insert = DatabaseManager::PrepareStatement($insertContactEmail);
+                $insert->bindParam(":value", $contactEmailItem);
+                $insert->bindParam(":institutionId", $institutionRow['ID']);
+                $insert->execute();
+            }
         }
         if($contactPhone != null)
         {
-            $insert = DatabaseManager::PrepareStatement($insertContactPhone);
-            $insert->bindParam(":value", $contactPhone);
-            $insert->bindParam(":institutionId", $institutionRow['ID']);
-            $insert->execute();
+            foreach ($contactPhone as $contactPhoneItem) {
+                $insert = DatabaseManager::PrepareStatement($insertContactPhone);
+                $insert->bindParam(":value", $contactPhoneItem);
+                $insert->bindParam(":institutionId", $institutionRow['ID']);
+                $insert->execute();
+            }
         }
         if($contactFax != null)
         {
-            $insert = DatabaseManager::PrepareStatement($insertContactFax);
-            $insert->bindParam(":value", $contactFax);
-            $insert->bindParam(":institutionId", $institutionRow['ID']);
-            $insert->execute();
+            foreach($contactFax as $contactFaxItem) {
+                $insert = DatabaseManager::PrepareStatement($insertContactFax);
+                $insert->bindParam(":value", $contactFaxItem);
+                $insert->bindParam(":institutionId", $institutionRow['ID']);
+                $insert->execute();
+            }
         }
 
         DatabaseManager::Disconnect();
@@ -97,13 +104,12 @@
 
     try {
         ResponseHandler::getInstance()
-        ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
-        ->send();
-    }
-    catch (Exception $exception){
+            ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+            ->send();
+    } catch (Exception $exception){
         ResponseHandler::getInstance()
-        ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
-        ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
+            ->send(StatusCodes::INTERNAL_SERVER_ERROR);
     }
     
 ?>
