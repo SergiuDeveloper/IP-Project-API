@@ -16,6 +16,10 @@ if(!defined('ROOT')){
     define('ROOT', dirname(__FILE__) . "/../..");
 }
 
+if(!defined('DISABLE_CIF_VALIDITY')) {
+    define('DISABLE_CIF_VALIDITY', true);
+}
+
 require_once(ROOT . "/Utility/StatusCodes.php");
 require_once(ROOT . "/Utility/CommonEndPointLogic.php");
 require_once(ROOT . "/Utility/DatabaseManager.php");
@@ -40,6 +44,42 @@ require_once(ROOT . "/Utility/ResponseHandler.php");
  */
 class InstitutionCreation
 {
+
+    public static function validateCIF($cif){
+        if(DISABLE_CIF_VALIDITY)
+            return true;
+
+        if(!is_integer($cif)){
+            $cif = strtoupper($cif);
+            if(strpos($cif, 'RO') === 0){
+                $cif = substr($cif, 2);
+            }
+            $cif = (int)trim($cif);
+        }
+
+        if(strlen($cif) > 10 || strlen($cif) < 2)
+            return false;
+
+        $controlValue = 753217532;
+
+        $controlDigit = $cif%10;
+        $cif = (int)($cif/10);
+
+        $aux = 0;
+        while($cif > 0){
+            $aux += ($cif%10) * ($controlValue%10);
+            $cif = (int) ($cif / 10);
+            $controlValue = (int) ($controlValue/10);
+        }
+
+        $controlDigitMultiply = ($aux * 10) / 11;
+
+        if($controlDigitMultiply == 10)
+            $controlDigitMultiply = 0;
+
+        return $controlDigit == $controlDigitMultiply;
+    }
+
     /**
      * Function links an institution with an address
      *
@@ -96,6 +136,12 @@ class InstitutionCreation
      * @return                  int     ID of the institution
      */
     public static function insertInstitutionIntoDatabase($institutionName, $CIF){
+
+        if(!self::validateCIF($CIF)){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_CIF"))
+                ->send();
+        }
 
         try{
             DatabaseManager::Connect();

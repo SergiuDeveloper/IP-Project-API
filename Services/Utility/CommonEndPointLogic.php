@@ -241,8 +241,8 @@ class CommonEndPointLogic {
         return "
             Hello!<br>
             Your activation link is below :<br> 
-            <a href='http://fiscaldocumentseditest.azurewebsites.net/Account/Activation.php?uniqueKey=$activationKey'>
-                http://fiscaldocumentseditest.azurewebsites.net/Account/Activation.php?uniqueKey=$activationKey 
+            <a href='http://fiscaldocumentsapi.azurewebsites.net/Account/Activation.php?uniqueKey=$activationKey'>
+                http://fiscaldocumentsapi.azurewebsites.net/Account/Activation.php?uniqueKey=$activationKey
             </a> <br>";
     }
 

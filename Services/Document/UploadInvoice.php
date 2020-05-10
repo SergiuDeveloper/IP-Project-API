@@ -11,12 +11,18 @@
     require_once(ROOT . '/Document/Utility/DocumentItem.php');
     require_once(ROOT . '/DataAccessObject/DataObjects.php');
 
+    $debugHeader = 'In ' . basename(__FILE__) . ', ';
+
     $email                  = $_POST['email'];
     $hashedPassword         = $_POST['hashedPassword'];
     $creatorUserEmail       = $_POST['creatorUserEmail'];
     $institutionName        = $_POST['institutionName'];
     $institutionAddressID   = $_POST['institutionAddress'];
-    $documentItems          = json_decode($_POST['documentItems'], true); 
+    $documentItems          = json_decode($_POST['documentItems'], true);
+
+    $debugModeExists    = isset($_POST['debugMode']);
+    if($debugModeExists)
+        $debugMode          = $_POST['debugMode'];
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
@@ -102,60 +108,6 @@
         ->setSenderInstitutionID($institutionID)
         ->setSenderAddressID($institutionAddressID);
 
-    /*
-
-    $getDocumentTypeStatement = DatabaseManager::PrepareStatement('
-        SELECT ID FROM Document_Types WHERE Title = \'Invoice\'
-    ');
-    $getDocumentTypeStatement->execute();
-    $documentTypesRow = $getDocumentTypeStatement->fetch(PDO::FETCH_ASSOC);
-    $documentTypeID = $documentTypesRow['ID'];
-
-    $insertDocumentStatement = DatabaseManager::PrepareStatement('
-        INSERT INTO Documents (
-            Date_Created,
-            Creator_User_ID,
-            Sender_Institution_ID,
-            Sender_Address_ID,
-            Is_Sent,
-            Document_Types_ID
-        )
-        VALUES (
-            NOW(),
-            :creatorUserID,
-            :institutionID,
-            :institutionAddressID,
-            FALSE,
-            :documentTypeID
-        )
-    ');
-    $insertDocumentStatement->bindParam(':creatorUserID', $creatorUserID);
-    $insertDocumentStatement->bindParam(':institutionID', $institutionID);
-    $insertDocumentStatement->bindParam(':institutionAddressID', $institutionAddressID);
-    $insertDocumentStatement->bindParam(':documentTypeID', $documentTypeID);
-    $insertDocumentStatement->execute();
-
-    $documentID = DatabaseManager::GetLastInsertID();
-
-    $insertInvoiceStatement = DatabaseManager::PrepareStatement('
-        INSERT INTO Invoices (
-            Documents_ID
-        )
-        VALUES (
-            :documentID
-        )
-    ');
-    $insertInvoiceStatement->bindParam(':documentID', $documentID);
-    $insertInvoiceStatement->execute();
-
-    $invoiceID = DatabaseManager::GetLastInsertID();
-
-    if ($documentItems === null || count($documentItems) > 0) {
-        DatabaseManager::Disconnect();
-        ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
-            ->send();
-    }*/
 
     if($documentItems != null) {
         foreach ($documentItems as $item) {
@@ -171,16 +123,21 @@
                 ->setTaxPercentage($item['taxPercentage'])
                 ->setCurrency(Currency::getCurrencyByTitle($item['currencyTitle']));
 
-            //echo json_encode($itemObject->getDAO()), PHP_EOL;
+            if($debugMode)
+                echo $debugHeader . ' PASSED VAR TESTl, Item PRE INSERT, LINE : ', __LINE__ ,', VAR = ', json_encode($itemObject->getDAO()),  PHP_EOL;
 
             $invoice->addItem($itemObject, $item['quantity']);
-
-            //echo json_encode($invoice->getDAO()), PHP_EOL;
         }
     }
 
+    if($debugMode)
+        echo $debugHeader . ' PASSED VAR TEST,Invoice PRE INSERT , LINE : ', __LINE__ ,', VAR = ', json_encode($invoice->getDAO()),  PHP_EOL;
+
     try {
         $invoice->addIntoDatabase();
+
+        if($debugMode)
+            echo $debugHeader . ' PASSED VAR TEST, Invoice POST INSERT, LINE : ', __LINE__ ,', VAR = ', json_encode($invoice->getDAO()),  PHP_EOL;
     } catch (DocumentItemInvalid $e) {
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_ITEM"))
@@ -194,87 +151,6 @@
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOC_INVALID"))
             ->send();
     }
-
-    //echo json_encode($invoice->getDAO()), PHP_EOL;
-
-        //echo json_encode($itemObject->getDAO()), PHP_EOL; ITEMS ACQUIRED
-
-
-
-         /*
-
-        $getCurrencyIDStatement = DatabaseManager::PrepareStatement('
-            SELECT ID FROM Currencies WHERE LOWER(Title) = LOWER(:currencyTitle)
-        ');
-        $getCurrencyIDStatement->bindParam(':currencyTitle', $item['currencyTitle']);
-        $getCurrencyIDStatement->execute();
-        $currencyRow = $getCurrencyIDStatement->fetch(PDO::FETCH_ASSOC);
-        if ($currencyRow === false) {
-            $addCurrencyStatement = DatabaseManager::PrepareStatement('
-                INSERT INTO Currencies (
-                    Title
-                )
-                VALUES (
-                    :currencyTitle
-                )
-            ');
-            $addCurrencyStatement->bindParam(':currencyTitle', $item['currencyTitle']);
-            $addCurrencyStatement->execute();
-
-            $currencyID = DatabaseManager::GetLastInsertID();
-        }
-        else
-            $curencyID = $currencyRow['ID'];
-
-        $insertItemStatement = DatabaseManager::PrepareStatement('
-            INSERT INTO Items (
-                Product_Number,
-                Title,
-                Description,
-                Value_Before_Tax,
-                Tax_Percentage,
-                Value_After_Tax,
-                Currencies_ID
-            )
-            VALUES (
-                :productNumber,
-                :title,
-                :description,
-                :valueBeforeTax,
-                :taxPercentage,
-                :valueAfterTax,
-                :curencyID
-            )
-        ');
-        $insertItemStatement->bindParam(':productNumber', $item['productNumber']);
-        $insertItemStatement->bindParam(':title', $item['title']);
-        $insertItemStatement->bindParam(':description', $item['description']);
-        $insertItemStatement->bindParam(':valueBeforeTax', $item['valueBeforeTax']);
-        $insertItemStatement->bindParam(':taxPercentage', $item['taxPercentage']);
-        $insertItemStatement->bindParam(':valueAfterTax', $item['valueAfterTax']);
-        $insertItemStatement->bindParam(':curencyID', $currencyID);
-        $insertItemStatement->execute();
-
-        $itemID = DatabaseManager::GetLastInsertID();
-
-        $insertDocumentItemStatement = DatabaseManager::PrepareStatement('
-            INSERT INTO Document_Items (
-                Invoices_ID,
-                Items_ID,
-                Quantity
-            )
-            VALUES (
-                :invoiceID,
-                :itemID,
-                :quantity
-            )
-        ');
-        $insertDocumentItemStatement->bindParam(':invoiceID', $invoiceID);
-        $insertDocumentItemStatement->bindParam(':itemID', $itemID);
-        $insertDocumentItemStatement->bindParam(':quantity', $item['quantity']);
-        $insertDocumentItemStatement->execute();
-
-        */
 
     DatabaseManager::Disconnect();
     ResponseHandler::getInstance()

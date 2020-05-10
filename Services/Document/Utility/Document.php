@@ -13,6 +13,7 @@ require_once ( ROOT . '/Utility/CommonEndPointLogic.php' );
 require_once ( ROOT . '/Utility/ResponseHandler.php' );
 require_once ( ROOT . '/Utility/DatabaseManager.php' );
 
+require_once ( ROOT . '/Document/Utility/Currency.php' );
 require_once ( ROOT . '/Document/Utility/DocumentItem.php' );
 require_once ( ROOT . '/Document/Utility/Invoice.php' );
 require_once ( ROOT . '/Document/Utility/Receipt.php' );
