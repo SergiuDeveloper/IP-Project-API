@@ -20,16 +20,7 @@ namespace DAO {
          */
         public function __construct($invoice)
         {
-            parent::__construct(
-                $invoice->getID(),
-                $invoice->getSenderID(),
-                $invoice->getSenderInstitutionID(),
-                $invoice->getSenderAddressID(),
-                $invoice->getReceiverID(),
-                $invoice->getReceiverInstitutionID(),
-                $invoice->getReceiverAddressID(),
-                $invoice->getCreatorID()
-            );
+            parent::__construct($invoice);
 
             $this->items = array();
 

@@ -120,9 +120,104 @@ class Invoice extends Document
         }
     }
 
-    public function updateIntoDatabase(){
+    public function updateItems($items){
+        try{
+            DatabaseManager::Connect();
 
-        // TODO: Implement updateIntoDatabase() method.
+            $this->itemsContainer->clearContents();
+
+            foreach($items as $itemRowJSON){
+                if(!array_key_exists('quantity', $itemRowJSON))
+                    ResponseHandler::getInstance()
+                        ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ITEM_QUANTITY_INVALID"))
+                        ->send();
+
+                if(!array_key_exists('item', $itemRowJSON))
+                    ResponseHandler::getInstance()
+                        ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ITEM_OBJECT_INVALID"))
+                        ->send();
+
+                $itemJSON = $itemRowJSON['item'];
+
+                $item = new DocumentItem();
+
+                foreach(array_keys($itemJSON) as $itemKey){
+                    switch ($itemKey) {
+                        case 'ID' :             $item->setID($itemJSON[$itemKey]);                                                              break;
+                        case 'productNumber':   $item->setProductNumber($itemJSON[$itemKey]);                                                   break;
+                        case 'description' :    $item->setTitle($itemJSON[$itemKey]);                                                           break;
+                        case 'unitPrice' :      $item->setValueBeforeTax($itemJSON[$itemKey]);                                                  break;
+                        case 'taxPercentage' :  $item->setTaxPercentage($itemJSON[$itemKey]);                                                   break;
+                        case 'currencyTitle' :  $item->setCurrency(Currency::getCurrencyByTitle($itemJSON[$itemKey], true));    break;
+                    }
+                }
+
+                try {
+                    $item->addIntoDatabase(true);
+                } catch (DocumentItemInvalid $exception){
+                    continue;
+                }
+
+                $this->addItem($item, $itemRowJSON['quantity']);
+
+            }
+            $removeCurrentItemLinksStatement = DatabaseManager::PrepareStatement("
+                DELETE FROM document_items WHERE Invoices_ID = :invoiceID
+            ");
+            $removeCurrentItemLinksStatement->bindParam("invoiceID", $this->entryID);
+            $removeCurrentItemLinksStatement->execute();
+
+            foreach($this->itemsContainer->getDocumentItemRows() as $itemContainerRow){
+
+                $insertNewLinksIntoDBStatement = DatabaseManager::PrepareStatement("
+                    INSERT INTO document_items (Invoices_ID, Items_ID, Quantity) VALUES (:entryID, :itemID, :quantity)
+                ");
+
+                $itemID = $itemContainerRow->getItemReference()->getID();
+                $quantity = $itemContainerRow->getQuantity();
+
+                $insertNewLinksIntoDBStatement->bindParam(":entryID", $this->entryID);
+                $insertNewLinksIntoDBStatement->bindParam(":itemID", $itemID);
+                $insertNewLinksIntoDBStatement->bindParam(":quantity", $quantity);
+                $insertNewLinksIntoDBStatement->execute();
+
+            }
+
+            DatabaseManager::Disconnect();
+        }
+        catch (PDOException $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+        }
+    }
+
+    public function updateIntoDatabase($documentJSON){
+        if($this->isSent == true)
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOCUMENT_UNMODIFIABLE_SENT"))
+                ->send();
+
+        if(array_key_exists('documentType', $documentJSON))
+            if($documentJSON['documentType'] != 'Invoice')
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOCUMENT_TYPE_INVALID"))
+                    ->send();
+
+        foreach(array_keys($documentJSON) as $key){
+            switch ($key){
+                case 'senderID' :               $this->setSenderID($documentJSON[$key]);                break;
+                case 'senderInstitutionID' :    $this->setSenderInstitutionID($documentJSON[$key]);     break;
+                case 'senderAddressID' :        $this->setSenderAddressID($documentJSON[$key]);         break;
+                case 'creatorID' :              $this->setCreatorID($documentJSON[$key]);               break;
+                case 'receiverID' :             $this->setReceiverID($documentJSON[$key]);              break;
+                case 'receiverInstitutionID' :  $this->setReceiverInstitutionID($documentJSON[$key]);   break;
+                case 'receiverAddressID' :      $this->setReceiverAddressID($documentJSON[$key]);       break;
+
+                case 'receiptID' :              $this->setReceiptDocumentID($documentJSON[$key]);       break;
+                case 'items' :                  $this->updateItems($documentJSON['items']);             break;
+            }
+        }
     }
 
     public function fetchFromDatabase($connected = false){

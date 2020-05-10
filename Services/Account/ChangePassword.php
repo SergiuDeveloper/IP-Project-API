@@ -5,7 +5,7 @@
        define('ROOT', dirname(__FILE__) . '/..');
    }
 
-   require_once("./Utility/ModifyAccountManager.php");
+   require_once(ROOT . "/Account/Utility/ModifyAccountManager.php");
    require_once(ROOT . "/Utility/CommonEndPointLogic.php");
    require_once(ROOT . "/Utility/StatusCodes.php");
    require_once(ROOT . "/Utility/ResponseHandler.php");

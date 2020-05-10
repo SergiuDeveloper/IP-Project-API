@@ -17,12 +17,16 @@
     require_once(ROOT . "/Document/Utility/Invoice.php");
     require_once(ROOT . "/Document/Utility/Receipt.php");
 
+    require_once(ROOT . "/Utility/DebugHandler.php");
+
     CommonEndPointLogic::ValidateHTTPGETRequest();
 
     $email              = $_GET["email"];
     $hashedPassword     = $_GET["hashedPassword"];
     $institutionName    = $_GET["institutionName"];
     $documentId         = $_GET["documentID"];
+
+    $debugEnabled       = isset($_GET['debugMode']) ? $_GET['debugMode'] : false;
 
     if ($email == null || $hashedPassword == null || $institutionName == null || $documentId == null) {
         ResponseHandler::getInstance()
@@ -74,13 +78,23 @@
                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOCUMENT_INVALID"))
                 ->send();
         } else {
+
+            if($debugEnabled)
+                DebugHandler::getInstance()
+                    ->setDebugMessage('Check Document ext/int')
+                    ->setLineNumber(__LINE__)
+                    ->setSource(basename(__FILE__))
+                    ->addDebugVars($documentRow['Sender_Institution_ID'], 'doc sender id')
+                    ->addDebugVars($institutionRow['ID'], 'institution id')
+                    ->debugEcho();
+
             if($documentRow["Sender_Institution_ID"] == $institutionRow["ID"]){
                 $type = "intern";
             } else if($documentRow["Receiver_Institution_ID"] == $institutionRow["ID"]){
                 $type = "received";
             } else {
                 ResponseHandler::getInstance()
-                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOCUMENT_INVALID"))
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOCUMENT_STATUS_INVALID"))
                 ->send();
             }
         }

@@ -211,7 +211,7 @@ class Receipt extends Document
         }
     }
 
-    public function updateIntoDatabase(){
+    public function updateIntoDatabase($documentJSON){
         // TODO: Implement updateIntoDatabase() method.
     }
 

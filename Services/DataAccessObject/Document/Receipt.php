@@ -24,16 +24,7 @@ namespace DAO {
          */
         public function __construct($receipt)
         {
-            parent::__construct(
-                $receipt->getID(),
-                $receipt->getSenderID(),
-                $receipt->getSenderInstitutionID(),
-                $receipt->getSenderAddressID(),
-                $receipt->getReceiverID(),
-                $receipt->getReceiverInstitutionID(),
-                $receipt->getReceiverAddressID(),
-                $receipt->getCreatorID()
-            );
+            parent::__construct($receipt);
 
             $this->invoiceID        = $receipt->getInvoiceDocumentID();
             $this->paymentMethod    = $receipt->getPaymentMethod()->getTitle();

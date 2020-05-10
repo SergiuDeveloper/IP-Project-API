@@ -18,7 +18,7 @@ class DebugHandler{
 
         $message = $message . ' ' . json_encode($this->debugBody);
 
-        echo $message;
+        echo $message, PHP_EOL;
 
         self::$instance = new DebugHandler();
     }

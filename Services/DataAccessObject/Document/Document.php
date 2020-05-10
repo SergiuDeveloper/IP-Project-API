@@ -14,30 +14,22 @@ namespace DAO {
         public $dateSent;
         public $isSent;
 
-        public function __construct(
-            $ID,
-            $senderID,
-            $senderInstitutionID,
-            $senderAddressID,
-            $receiverID,
-            $receiverInstitutionID,
-            $receiverAddressID,
-            $creatorID,
-            $dateCreated = null,
-            $dateSent = null,
-            $isSent = null
-        ){
-            $this->ID                       = $ID;
-            $this->senderID                 = $senderID;
-            $this->senderInstitutionID      = $senderInstitutionID;
-            $this->senderAddressID          = $senderAddressID;
-            $this->receiverID               = $receiverID;
-            $this->receiverInstitutionID    = $receiverInstitutionID;
-            $this->receiverAddressID        = $receiverAddressID;
-            $this->creatorID                = $creatorID;
-            $this->dateCreated              = $dateCreated;
-            $this->dateSent                 = $dateSent;
-            $this->isSent                   = $isSent;
+        /**
+         * Document constructor.
+         * @param \Document $document
+         */
+        public function __construct($document){
+            $this->ID                       = $document->getID();
+            $this->senderID                 = $document->getSenderID();
+            $this->senderInstitutionID      = $document->getSenderInstitutionID();
+            $this->senderAddressID          = $document->getSenderAddressID();
+            $this->receiverID               = $document->getReceiverID();
+            $this->receiverInstitutionID    = $document->getReceiverInstitutionID();
+            $this->receiverAddressID        = $document->getReceiverAddressID();
+            $this->creatorID                = $document->getCreatorID();
+            $this->dateCreated              = $document->getDateCreated();
+            $this->dateSent                 = $document->getDateSent();
+            $this->isSent                   = $document->isSent();
         }
     }
 }

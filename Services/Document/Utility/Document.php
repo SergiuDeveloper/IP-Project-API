@@ -61,6 +61,51 @@ abstract class Document
      */
     protected $creatorID;
 
+    /**
+     * @var string
+     */
+    protected $dateCreated;
+
+    /**
+     * @var string
+     */
+    protected $dateSent;
+
+    /**
+     * @var boolean
+     */
+    protected $isSent;
+
+    /**
+     * @return string
+     */
+    public function getDateCreated(){
+        return $this->dateCreated;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDateSent(){
+        return $this->dateSent;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isSent(){
+        return $this->isSent;
+    }
+
+    /**
+     * @param bool $isSent
+     * @return Document
+     */
+    public function setIsSent($isSent){
+        $this->isSent = $isSent;
+        return $this;
+    }
+
     public abstract function getDAO();
 
     protected function __construct(){
@@ -72,6 +117,9 @@ abstract class Document
         $this->receiverInstitutionID    = null;
         $this->receiverAddressID        = null;
         $this->creatorID                = null;
+        $this->isSent                   = false;
+        $this->dateCreated              = null;
+        $this->dateSent                 = null;
 
         if(defined('CALLER_USER_ID')){
             $this->creatorID = CALLER_USER_ID;
@@ -200,6 +248,9 @@ abstract class Document
                 $this->receiverInstitutionID    = $row['Receiver_Institution_ID'];
                 $this->receiverAddressID        = $row['Receiver_Address_ID'];
                 $this->creatorID                = $row['Creator_User_ID'];
+                $this->dateCreated              = $row['Date_Created'];
+                $this->dateSent                 = $row['Date_Sent'];
+                $this->isSent                   = $row['Is_Sent'];
             }
 
             if(!$connected)
@@ -215,7 +266,7 @@ abstract class Document
 
     public abstract function addIntoDatabase();
 
-    public abstract function updateIntoDatabase();
+    public abstract function updateIntoDatabase($documentJSON);
 
     public abstract function fetchFromDatabaseByDocumentID();
 

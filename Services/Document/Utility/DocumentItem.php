@@ -129,6 +129,7 @@ class DocumentItem
     }
 
     /**
+     * @param bool $connected
      * @throws DocumentItemInvalid
      */
     public function addIntoDatabase($connected = false){
@@ -186,9 +187,10 @@ class DocumentItem
     }
 
     /**
+     * @param bool $connected
      * @throws DocumentItemInvalid
      */
-    public function updateIntoDatabase(){
+    public function updateIntoDatabase($connected = false){
         if(
             $this->ID               == null ||
             $this->currency         == null ||
@@ -203,7 +205,8 @@ class DocumentItem
         }
 
         try{
-            DatabaseManager::Connect();
+            if($connected == false)
+                DatabaseManager::Connect();
 
             $currencyID = $this->currency->getID();
 
@@ -219,7 +222,8 @@ class DocumentItem
 
             $statement->execute();
 
-            DatabaseManager::Disconnect();
+            if($connected == false)
+                DatabaseManager::Disconnect();
         }
         catch (Exception $exception){
             ResponseHandler::getInstance()
@@ -230,21 +234,23 @@ class DocumentItem
 
     /**
      * @param bool $connected
-     * @return $this
+     * @return $this|boolean
      */
     public function fetchFromDatabase($connected = false){
         if($this->ID != null){
             $item = self::fetchFromDatabaseByID($this->ID, $connected);
 
-            $this
-                ->setProductNumber($item->productNumber)
-                ->setTitle($item->title)
-                ->setDescription($item->description)
-                ->setValueBeforeTax($item->valueBeforeTax)
-                ->setTaxPercentage($item->taxPercentage)
-                ->setCurrency($item->currency);
+            if($item != null) {
+                $this
+                    ->setProductNumber($item->productNumber)
+                    ->setTitle($item->title)
+                    ->setDescription($item->description)
+                    ->setValueBeforeTax($item->valueBeforeTax)
+                    ->setTaxPercentage($item->taxPercentage)
+                    ->setCurrency($item->currency);
 
-            return $this;
+                return $this;
+            }
         }
 
         if(
@@ -319,7 +325,7 @@ class DocumentItem
         }
         */
 
-        return $this;
+        return false;
     }
 
     public static function fetchFromDatabaseByID($ID, $connected = false){

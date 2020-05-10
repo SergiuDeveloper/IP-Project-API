@@ -4,11 +4,7 @@
         define('ROOT', dirname(__FILE__) . '/..');
     }
 
-    require_once(ROOT . "/Utility/CommonEndPointLogic.php");
-    require_once(ROOT . "/Utility/UserValidation.php");
-    require_once(ROOT . "/Utility/StatusCodes.php");
-    require_once(ROOT . "/Utility/SuccessStates.php");
-    require_once(ROOT . "/Utility/ResponseHandler.php");
+    require_once(ROOT . "/Utility/Utilities.php");
 
     require_once(ROOT . "/Institution/Role/Utility/InstitutionRoles.php");
     require_once(ROOT . "/Institution/Utility/InstitutionCreation.php");
