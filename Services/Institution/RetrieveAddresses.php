@@ -1,79 +1,84 @@
 <?php
 
-    if(!defined('ROOT'))
-    {
-        define('ROOT', dirname(__FILE__) . '/../..');
-    }
+if(!defined('ROOT'))
+{
+    define('ROOT', dirname(__FILE__) . '/..');
+}
 
-    require_once(ROOT . "/Utility/CommonEndPointLogic.php");
-    require_once(ROOT . "/Utility/UserValidation.php");
-    require_once(ROOT . "/Utility/StatusCodes.php");
-    require_once(ROOT . "/Utility/SuccessStates.php");
-    require_once(ROOT . "/Utility/ResponseHandler.php");
+require_once(ROOT . "/Utility/CommonEndPointLogic.php");
+require_once(ROOT . "/Utility/UserValidation.php");
+require_once(ROOT . "/Utility/StatusCodes.php");
+require_once(ROOT . "/Utility/SuccessStates.php");
+require_once(ROOT . "/Utility/ResponseHandler.php");
 
-    require_once("Utility/InstitutionValidator.php");
+require_once(ROOT . "/Institution/Utility/InstitutionValidator.php");
 
-    CommonEndPointLogic::ValidateHTTPGETRequest();
+CommonEndPointLogic::ValidateHTTPGETRequest();
 
-    $institutionName = $_GET["institutionName"];
+$email              = $_GET['email'];
+$hashedPassword     = $_GET['hashedPassword'];
+$institutionName    = $_GET["institutionName"];
 
-    if ($institutionName == null)
-    {
-        ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
-            ->send(StatusCodes::BAD_REQUEST);
-    }
+if (
+    $institutionName    == null ||
+    $email              == null ||
+    $hashedPassword     == null
+)
+{
+    ResponseHandler::getInstance()
+        ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
+        ->send(StatusCodes::BAD_REQUEST);
+}
 
-    InstitutionValidator::validateInstitution($institutionName);
+CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
-    $institutionID = InstitutionValidator::getLastValidatedInstitution()->getID();
+InstitutionValidator::validateInstitution($institutionName);
 
-    $queryAddressList = "SELECT Address_ID FROM institution_addresses_list WHERE Institution_ID = :institutionID";
+$institutionID = InstitutionValidator::getLastValidatedInstitution()->getID();
 
-    $queryAllAddresses = "SELECT * FROM addresses WHERE ID = :id";
+$queryAddressList = "SELECT Address_ID FROM institution_addresses_list WHERE Institution_ID = :institutionID";
 
-    $addressArray = array();
+$queryAllAddresses = "SELECT * FROM addresses WHERE ID = :ID";
 
-    try
-    {
-        DatabaseManager::Connect();
+$addressArray = array();
 
-        $sqlStatement = DatabaseManager::PrepareStatement($queryAddressList);
-        $sqlStatement->bindParam("institutionID", $institutionID);
+try
+{
+    DatabaseManager::Connect();
+
+    $sqlStatement = DatabaseManager::PrepareStatement($queryAddressList);
+    $sqlStatement->bindParam("institutionID", $institutionID);
+    $sqlStatement->execute();
+
+    while($addressRow = $sqlStatement->fetch(PDO::FETCH_ASSOC)){
+        $sqlStatement = DatabaseManager::PrepareStatement($queryAllAddresses);
+        $sqlStatement->bindParam(":ID", $addressRow["Address_ID"]);
         $sqlStatement->execute();
 
-        $addressIDs = $sqlStatement->fetch(PDO::FETCH_ASSOC);
+        $addressRow = $sqlStatement->fetch(PDO::FETCH_ASSOC);
 
-        foreach ($addressIDs as $addressID)
-        {
-            $sqlStatement = DatabaseManager::PrepareStatement($queryAllAddresses);
-            $sqlStatement->bindParam(":id", $addressID["ID"]);
-            $sqlStatement->execute();
-
-            $addressRow = $sqlStatement->fetch(PDO::FETCH_ASSOC);
-
-            array_push($addressArray, $addressRow);
-        }
+        array_push($addressArray, $addressRow);
     }
-    catch (Exception $databaseException)
-    {
-        ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
-            ->send();
-    }
+}
+catch (Exception $databaseException)
+{
+    ResponseHandler::getInstance()
+        ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+        ->send();
+}
 
-    try
-    {
-        ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
-            ->addResponseData("Addresses", $addressArray)
-            ->send();
-    }
-    catch(ResponseHandlerDuplicateLabel $e)
-    {
-        ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
-            ->send(StatusCodes::INTERNAL_SERVER_ERROR);
-    } 
+try
+{
+    ResponseHandler::getInstance()
+        ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+        ->addResponseData("Addresses", $addressArray)
+        ->send();
+}
+catch(Exception $e)
+{
+    ResponseHandler::getInstance()
+        ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
+        ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+}
 
 ?>

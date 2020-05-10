@@ -10,8 +10,8 @@
     require_once(ROOT . "/Utility/SuccessStates.php");
     require_once(ROOT . "/Utility/ResponseHandler.php");
 
-    require_once("./Utility/InstitutionActions.php");
-    require_once("./Utility/InstitutionRoles.php");
+    require_once(ROOT . "/Institution/Role/Utility/InstitutionActions.php");
+    require_once(ROOT . "/Institution/Role/Utility/InstitutionRoles.php");
 
     CommonEndPointLogic::ValidateHTTPGETRequest();
 
@@ -23,21 +23,18 @@
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
             ->send(StatusCodes::BAD_REQUEST);
-        /*
-        $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
-
-        echo json_encode($failureResponseStatus), PHP_EOL;
-        http_response_code(StatusCodes::BAD_REQUEST);
-        die();
-        */
     }
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
     $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName;";
 
-    $queryGetRoles = "SELECT DISTINCT title FROM Institution_Roles
+    $queryGetRoles = "SELECT Title, Institution_Rights_ID FROM Institution_Roles
     WHERE Institution_ID = :institutionID;";
+
+    $queryGetRoleRights = "
+        SELECT * FROM institution_rights WHERE ID = :ID
+    ";
 
     $institutionRoles = array();
     try {
@@ -53,26 +50,12 @@
             ResponseHandler::getInstance()
                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND"))
                 ->send();
-            /*
-            DatabaseManager::Disconnect();
-            $response = CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND");
-
-            http_response_code(StatusCodes::OK);
-            echo json_encode($response), PHP_EOL;
-            die();
-            */
         }
 
         if( false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::ASSIGN_ROLE)) {
             ResponseHandler::getInstance()
                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION"))
                 ->send();
-            /*
-            $response = CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION");
-            echo json_encode($response), PHP_EOL;
-            http_response_code(StatusCodes::OK);
-            die();
-            */
         }
 
         DatabaseManager::Connect();
@@ -81,20 +64,25 @@
         $getRoles->execute();
 
         while($getRolesRow = $getRoles->fetch(PDO::FETCH_ASSOC)){
-            array_push($institutionRoles,$getRolesRow["title"]);
+            array_push($institutionRoles, new RoleDAO($getRolesRow['Title'], $getRolesRow['Institution_Rights_ID']));
         }
+
+        foreach($institutionRoles as $role){
+            $rightsID = $role->getRightsID();
+
+            $getRightsStatement = DatabaseManager::PrepareStatement($queryGetRoleRights);
+            $getRightsStatement->bindParam(":ID", $rightsID);
+            $getRightsStatement->execute();
+
+            $role->setRights($getRightsStatement->fetch(PDO::FETCH_ASSOC));
+        }
+
         DatabaseManager::Disconnect();
     }
     catch (Exception $databaseException) {
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
             ->send();
-        /*
-        $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
-        echo json_encode($response), PHP_EOL;
-        http_response_code(StatusCodes::OK);
-        die();
-        */
     }
 
     try {
@@ -109,10 +97,26 @@
             ->send(StatusCodes::INTERNAL_SERVER_ERROR);
     }
 
-    /*
-    $responseSuccess = CommonEndPointLogic::GetSuccessResponseStatus();
-    echo json_encode($responseSuccess), PHP_EOL;
-    echo json_encode($institutionRoles), PHP_EOL;
-    http_response_code(StatusCodes::OK);
-    */
+    class RoleDAO{
+        public $name;
+        private $rightsID;
+        public $rights;
+
+        public function __construct($name, $ID){
+            $this->rightsID = $ID;
+            $this->name = $name;
+            $this->rights = null;
+        }
+
+        public function setRights($rights){
+            $this->rights = $rights;
+        }
+
+        /**
+         * @return int
+         */
+        public function getRightsID(){
+            return $this->rightsID;
+        }
+    }
 ?>

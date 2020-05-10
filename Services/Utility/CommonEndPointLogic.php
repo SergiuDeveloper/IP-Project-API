@@ -172,12 +172,51 @@ class CommonEndPointLogic {
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("CONFIRMATION_EMAIL_SEND_FAILURE"))
             ->send();
-        /*
-        $responseStatus = CommonEndPointLogic::GetFailureResponseStatus("CONFIRMATION_EMAIL_SEND_FAILURE");
-        echo json_encode($responseStatus), PHP_EOL;
-        http_response_code(StatusCodes::OK);
-        die();
-        */
+    }
+
+    /**
+     * @param string $receiver
+     * @param string $subject
+     * @param string $newPassword
+     * @throws Exception
+     */
+    public static function sendPasswordEmail($receiver, $subject, $newPassword){
+        if(!self::$sendGridCredentialsBound)
+            self::BindSendGridCredentials();
+
+        $content = self::composePasswordEmailBody($newPassword);
+
+        $requestParameters = array(
+            "api_user"  => self::$sendGridUsername,
+            "api_key"   => self::$sendGridPassword,
+            "to"        => $receiver,
+            "subject"   => $subject,
+            "html"      => $content,
+            "text"      => $content,
+            "from"      => self::$sendGridUsername,
+            "fromname"  => self::$sendGridNickname
+        );
+
+        $curlSession = curl_init(self::$sendGridURL);
+
+        curl_setopt($curlSession, CURLOPT_POST, true);
+        curl_setopt($curlSession, CURLOPT_POSTFIELDS, $requestParameters);
+        curl_setopt($curlSession, CURLOPT_HEADER, false);
+        curl_setopt($curlSession, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curlSession, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curlSession, CURLOPT_SSL_VERIFYHOST, false);
+
+        $azureEmailAPIResponse = curl_exec($curlSession);
+        curl_close($curlSession);
+
+        $azureEmailAPIResponse = json_decode($azureEmailAPIResponse);
+
+        if($azureEmailAPIResponse->message == "success")
+            return;
+
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("PASSWORD_RESET_EMAIL_SEND_FAILURE"))
+            ->send();
     }
 
     /**
@@ -244,6 +283,20 @@ class CommonEndPointLogic {
             <a href='http://fiscaldocumentsapi.azurewebsites.net/Account/Activation.php?uniqueKey=$activationKey'>
                 http://fiscaldocumentsapi.azurewebsites.net/Account/Activation.php?uniqueKey=$activationKey
             </a> <br>";
+    }
+
+    /**
+     * @param $newPassword
+     * @return                  string  The full email content string, with markdown encoding
+     */
+    private static function composePasswordEmailBody($newPassword){
+        return "
+            Hello!<br>
+            Your password has been changed to :<br> 
+            $newPassword <br>
+            
+            You can change it later in your account dashboard <br>    
+        ";
     }
 
     private static $getAllAdministratorInfoStatement = "

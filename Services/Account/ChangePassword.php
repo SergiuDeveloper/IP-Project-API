@@ -20,14 +20,23 @@
                                      ->send(StatusCodes::BAD_REQUEST);
    }
 
-   $sqlStatement = DatabaseManager::PrepareStatement("SELECT * FROM users WHERE Email = :email");
-   $sqlStatement->bindParam(":email", $inputEmail);
-   $sqlStatement->execute();
+   try {
+       DatabaseManager::Connect();
 
-   if ($sqlStatement->fetch() == null)
-   {
-       ResponseHandler::getInstance()->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("EMAIL_NOT_FOUND"))
-                                     ->send(StatusCodes::BAD_REQUEST);
+       $sqlStatement = DatabaseManager::PrepareStatement("SELECT * FROM users WHERE Email = :email");
+       $sqlStatement->bindParam(":email", $inputEmail);
+       $sqlStatement->execute();
+
+       if (($userRow = $sqlStatement->fetch()) == null) {
+           ResponseHandler::getInstance()->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("EMAIL_NOT_FOUND"))
+               ->send();
+       }
+
+       DatabaseManager::Disconnect();
+   }catch (PDOException $exception){
+       ResponseHandler::getInstance()
+           ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+           ->send();
    }
 
    $alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -36,7 +45,7 @@
 
    try
    {
-       CommonEndPointLogic::SendEmail($inputEmail, "New Account Password", $newPassword);  // TODO : add different body for email
+       CommonEndPointLogic::SendPasswordEmail($inputEmail, "New Account Password", $newPassword);  // TODO : add different body for email
    }
    catch (Exception $e)
    {
