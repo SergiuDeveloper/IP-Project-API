@@ -14,7 +14,7 @@
     require_once("./Utility/InstitutionActions.php");
     require_once("./Utility/InstitutionRoles.php");
 
-    CommonEndPointLogic::ValidateHTTPPOSTRequest();
+    CommonEndPointLogic::ValidateHTTPGETRequest();
 
     $email = $_GET["email"];
     $hashedPassword = $_GET["hashedPassword"];
@@ -29,7 +29,22 @@
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
-    $queryIDInstitution = "SELECT ID FROM institutions WHERE name = :institutionName";
+    InstitutionValidator::validateInstitution($institutionName);
 
-    $queryRoleID = "SELECT Institution_Rights_ID FROM institution_roles WHERE Institution_ID = :institutionID";
+    $fullRoleRights = InstitutionRoles::fetchUserRightsDictionary($email, $institutionName);
+
+    try
+    {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+            ->addResponseData("Rights", $fullRoleRights)
+            ->send();
+    }
+    catch(ResponseHandlerDuplicateLabel $e)
+    {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
+            ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+    }
+?>
 

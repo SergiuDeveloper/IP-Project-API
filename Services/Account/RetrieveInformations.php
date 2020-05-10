@@ -10,7 +10,7 @@
    require_once(ROOT . "/Utility/StatusCodes.php");
    require_once(ROOT . "/Utility/ResponseHandler.php");
 
-   CommonEndPointLogic::ValidateHTTPPOSTRequest();
+   CommonEndPointLogic::ValidateHTTPGETRequest();
 
    $email = $_GET["email"];
    $hashedPassword = $_GET["hashedPassword"];
