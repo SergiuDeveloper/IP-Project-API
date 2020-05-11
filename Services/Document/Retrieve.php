@@ -143,23 +143,10 @@
     }
     
     try{
-        if($type == "Invoice"){
-
-            ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
-            ->addResponseData("documentType", "Invoice")
-            ->addResponseData("document", $document->getDAO())
-            ->send();
-    
-        } else if($type == "Receipt"){
-    
-            ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
-            ->addResponseData("documentType", "Receipt")
-            ->addResponseData("document", $document->getDAO())
-            ->send();
-    
-        }
+        ResponseHandler::getInstance()
+        ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+        ->addResponseData("document", $document->getDAO()->setDocumentType($type))
+        ->send();
     }
     catch (Exception $exception){
         ResponseHandler::getInstance()

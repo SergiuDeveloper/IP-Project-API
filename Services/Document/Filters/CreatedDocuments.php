@@ -2,7 +2,7 @@
 
     if(!defined('ROOT'))
     {
-        define('ROOT', dirname(__FILE__) . '/..');
+        define('ROOT', dirname(__FILE__) . '/../..');
     }
 
     require_once(ROOT . "/Utility/CommonEndPointLogic.php");
@@ -70,23 +70,22 @@
         $responseArray = array();
 
         while($row = $getDocumentHeadersForCreatorStatement->fetch(PDO::FETCH_ASSOC)){
-            array_push($responseArray,
-                new \DAO\Document(
-                    $row['ID'],
-                    $row['Sender_User_ID'],
-                    $row['Sender_Institution_ID'],
-                    $row['Sender_Address_ID'],
-                    $row['Receiver_User_ID'],
-                    $row['Receiver_Institution_ID'],
-                    $row['Receiver_Address_ID'],
-                    $row['Creator_User_ID'],
-                    $row['Date_Created'],
-                    $row['Date_Sent'],
-                    $row['Is_Sent']
-                )
-            );
-        }
+            $document = new \DAO\Document();
 
+            $document->ID = $row['ID'];
+            $document->senderID = $row['Sender_User_ID'];
+            $document->senderInstitutionID = $row['Sender_Institution_ID'];
+            $document->senderAddressID = $row['Sender_Address_ID'];
+            $document->receiverID = $row['Receiver_User_ID'];
+            $document->receiverInstitutionID = $row['Receiver_Institution_ID'];
+            $document->receiverAddressID = $row['Receiver_Address_ID'];
+            $document->creatorID = $row['Creator_User_ID'];
+            $document->dateCreated = $row['Date_Created'];
+            $document->dateSent = $row['Date_Sent'];
+            $document->isSent = $row['Is_Sent'];
+
+            array_push($responseArray, $document);
+        }
         DatabaseManager::Disconnect();
     }
     catch (PDOException $exception){

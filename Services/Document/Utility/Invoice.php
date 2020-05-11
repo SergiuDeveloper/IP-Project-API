@@ -120,9 +120,10 @@ class Invoice extends Document
         }
     }
 
-    public function updateItems($items){
+    public function updateItems($items, $connected = false){
         try{
-            DatabaseManager::Connect();
+            if(!$connected)
+                DatabaseManager::Connect();
 
             $this->itemsContainer->clearContents();
 
@@ -183,7 +184,8 @@ class Invoice extends Document
 
             }
 
-            DatabaseManager::Disconnect();
+            if(!$connected)
+                DatabaseManager::Disconnect();
         }
         catch (PDOException $exception){
             ResponseHandler::getInstance()
@@ -204,20 +206,74 @@ class Invoice extends Document
                     ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DOCUMENT_TYPE_INVALID"))
                     ->send();
 
+        $updateStatementString = "UPDATE documents SET";
+
         foreach(array_keys($documentJSON) as $key){
             switch ($key){
-                case 'senderID' :               $this->setSenderID($documentJSON[$key]);                break;
-                case 'senderInstitutionID' :    $this->setSenderInstitutionID($documentJSON[$key]);     break;
-                case 'senderAddressID' :        $this->setSenderAddressID($documentJSON[$key]);         break;
-                case 'creatorID' :              $this->setCreatorID($documentJSON[$key]);               break;
-                case 'receiverID' :             $this->setReceiverID($documentJSON[$key]);              break;
-                case 'receiverInstitutionID' :  $this->setReceiverInstitutionID($documentJSON[$key]);   break;
-                case 'receiverAddressID' :      $this->setReceiverAddressID($documentJSON[$key]);       break;
+                case 'senderID' :
+                    $this->setSenderID($documentJSON[$key]);
+                    $updateStatementString = $updateStatementString . ' Sender_User_ID = :senderID,';
+                    break;
+                case 'senderInstitutionID' :
+                    $this->setSenderInstitutionID($documentJSON[$key]);
+                    $updateStatementString = $updateStatementString . ' Sender_Institution_ID = :senderInstitutionID,';
+                    break;
+                case 'senderAddressID' :
+                    $this->setSenderAddressID($documentJSON[$key]);
+                    $updateStatementString = $updateStatementString . ' Sender_Address_ID = :senderAddressID,';
+                    break;
+                case 'creatorID' :
+                    $this->setCreatorID($documentJSON[$key]);
+                    $updateStatementString = $updateStatementString . ' Creator_User_ID = :creatorUserID,';
+                    break;
+                case 'receiverID' :
+                    $this->setReceiverID($documentJSON[$key]);
+                    $updateStatementString = $updateStatementString . ' Receiver_User_ID = :receiverID,';
+                    break;
+                case 'receiverInstitutionID' :
+                    $this->setReceiverInstitutionID($documentJSON[$key]);
+                    $updateStatementString = $updateStatementString . ' Receiver_Institution_ID = :receiverInstitutionID,';
+                    break;
+                case 'receiverAddressID' :
+                    $this->setReceiverAddressID($documentJSON[$key]);
+                    $updateStatementString = $updateStatementString . ' Receiver_Address_ID = :receiverAddressID,';
+                    break;
 
-                case 'receiptID' :              $this->setReceiptDocumentID($documentJSON[$key]);       break;
-                case 'items' :                  $this->updateItems($documentJSON['items']);             break;
+                case 'receiptID' :              $this->setReceiptDocumentID($documentJSON[$key]);           break;  /// TODO : receipt id
+                case 'items' :                  $this->updateItems($documentJSON['items']);                 break;
             }
+
+            $updateStatementString = substr($updateStatementString, 0, -1) . ' WHERE ID = :ID';
         }
+
+        try{
+            DatabaseManager::Connect();
+
+            $statement = DatabaseManager::PrepareStatement($updateStatementString);
+            $statement->bindParam(":ID", $documentJSON['ID']);
+
+            foreach (array_keys($documentJSON) as $key){
+                switch($key){
+                    case 'senderID' :               $statement->bindParam(":senderID", $documentJSON[$key]);                break;
+                    case 'senderInstitutionID' :    $statement->bindParam(":senderInstitutionID", $documentJSON[$key]);     break;
+                    case 'senderAddressID' :        $statement->bindParam(":senderAddressID", $documentJSON[$key]);         break;
+                    case 'creatorID' :              $statement->bindParam(":creatorID", $documentJSON[$key]);               break;
+                    case 'receiverID' :             $statement->bindParam(":receiverID", $documentJSON[$key]);              break;
+                    case 'receiverInstitutionID' :  $statement->bindParam(":receiverInstitutionID", $documentJSON[$key]);   break;
+                    case 'receiverAddressID' :      $statement->bindParam(":receiverAddressID", $documentJSON[$key]);       break;
+                }
+            }
+
+            $statement->execute();
+
+            DatabaseManager::Disconnect();
+        }
+        catch (PDOException $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+        }
+
     }
 
     public function fetchFromDatabase($connected = false){
