@@ -100,7 +100,12 @@ CREATE TABLE Contact_Email_Addresses (
     Institution_ID 		INT 			NOT NULL,
     Value 				VARCHAR(256) 	NOT NULL,
     
-    CONSTRAINT fk_Institution_ID_Contact_Email_Addresses FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE
+    CONSTRAINT fk_Institution_ID_Contact_Email_Addresses FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE,
+    
+    UNIQUE KEY (
+		Institution_ID,
+        Value
+    )
 );
 
 CREATE TABLE Contact_Phone_Numbers (
@@ -108,7 +113,12 @@ CREATE TABLE Contact_Phone_Numbers (
     Institution_ID 		INT 			NOT NULL,
     Value 				VARCHAR(16) 	NOT NULL,
     
-    CONSTRAINT fk_Institution_ID_Contact_Phone_Numbers FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE
+    CONSTRAINT fk_Institution_ID_Contact_Phone_Numbers FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE,
+    
+    UNIQUE KEY (
+		Institution_ID,
+        Value
+    )
 );
 
 CREATE TABLE Contact_Fax_Numbers (
@@ -116,7 +126,12 @@ CREATE TABLE Contact_Fax_Numbers (
     Institution_ID 		INT 			NOT NULL,
     Value 				VARCHAR(16) 	NOT NULL,
     
-    CONSTRAINT fk_Institution_ID_Contact_Fax_Numbers FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE
+    CONSTRAINT fk_Institution_ID_Contact_Fax_Numbers FOREIGN KEY (Institution_ID) REFERENCES Institutions(ID) ON DELETE CASCADE,
+    
+    UNIQUE KEY (
+		Institution_ID,
+        Value
+    )
 );
 
 CREATE TABLE Addresses (
