@@ -1,5 +1,9 @@
 <?php
 
+if(!defined('ROOT')){
+    define('ROOT', dirname(__FILE__) . '/..');
+}
+
 /**
     Database management class(connection, disconnection, statement preparing)
 */
@@ -9,8 +13,8 @@ class DatabaseManager {
     private static $Password;
     private static $Schema;
 
-    private static $credentialsJSONFilePath = "./../Sensitive/Database.json";
-    private static $credentialsBinded = false;
+    private static $credentialsJSONFilePath = ROOT . '/Sensitive/Database.json';
+    private static $credentialsBound = false;
 
     /**
      * Used by PhpStorm to identify PDO methods
@@ -19,6 +23,12 @@ class DatabaseManager {
     private static $pdoDatabaseConnection;
     private static $connectionActive = false;
 
+    public static function getConnectionInstance(){
+        if(!self::$connectionActive)
+            return null;
+        return self::$pdoDatabaseConnection;
+    }
+
     /**
      * @return bool Database Connection success state
      */
@@ -26,8 +36,14 @@ class DatabaseManager {
         if (DatabaseManager::$connectionActive)
             return false;
 
-        if (!DatabaseManager::$credentialsBinded)
-            DatabaseManager::BindCredentials();
+        if (!DatabaseManager::$credentialsBound)
+            try {
+                DatabaseManager::BindCredentials();
+            }
+            catch (Exception $e) {
+                echo $e, PHP_EOL;
+                return false;
+            }
 
         $connectionString = sprintf(
             "mysql:host=%s;dbname=%s;",
@@ -75,7 +91,15 @@ class DatabaseManager {
     }
 
     /**
+     * @return  integer     Last insert ID
+     */
+    public static function GetLastInsertID() {
+        return DatabaseManager::$pdoDatabaseConnection->lastInsertID();
+    }
+
+    /**
      *  Binds the database credentials from the JSON file
+     * @throws Exception
      */
     private static function BindCredentials() {
         $jsonFileContent = file_get_contents(DatabaseManager::$credentialsJSONFilePath);
@@ -97,6 +121,7 @@ class DatabaseManager {
         if (DatabaseManager::$URL === null || DatabaseManager::$Username === null || DatabaseManager::$Password === null || DatabaseManager::$Schema === null)
             throw new Exception("Bad Database Credentials JSON object format");
 
-        DatabaseManager::$credentialsBinded = true;
+        DatabaseManager::$credentialsBound = true;
     }
 }
+?>

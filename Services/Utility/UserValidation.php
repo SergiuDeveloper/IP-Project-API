@@ -45,6 +45,10 @@ class UserValidation {
         if (!$usersTableRow->Is_Active)
             return SuccessStates::USER_INACTIVE;
 
+        if(!defined('CALLER_USER_ID')){
+            define('CALLER_USER_ID', $usersTableRow->ID);
+        }
+
         return SuccessStates::SUCCESS;
     }
 
@@ -82,6 +86,7 @@ class UserValidation {
      *  Old rights validation
      *  Mark as safe for delete : SergiuDeveloper
      */
+    /*
     public static function ValidateInstitutionActionRequiredRights($inputUsername, $inputInstitutionName, $inputInstitutionActionRequiredRightsDictionary) {
         try {
             DatabaseManager::Connect();
@@ -117,15 +122,18 @@ class UserValidation {
         
         return SuccessStates::SUCCESS;
     }
+    */
 
     private static $getHashedPasswordAndActiveStateQuery = "
-        SELECT Hashed_Password, Is_Active FROM Users WHERE Email = :inputEmail;
+        SELECT ID, Hashed_Password, Is_Active FROM Users WHERE Email = :inputEmail;
     ";
+
 
     /**
      * @var string
      * @deprecated
      */
+    /*
      private static $getInstitutionMemberRightsQuery = "
         SELECT * FROM Institution_Rights WHERE ID = (
             SELECT Institution_Roles_ID FROM Institution_Members WHERE
@@ -133,6 +141,6 @@ class UserValidation {
                 Institution_ID = (SELECT ID From Institutions WHERE Name = :inputInstitutionName)
         );
     ";
+    */
 }
-
 ?>

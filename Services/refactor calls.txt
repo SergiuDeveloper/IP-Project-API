@@ -127,3 +127,61 @@ Institution Delete (POST) :
 	link  : rootpath/Institution/Delete.php
 	param : email=nihiwo9844@mailboxt.com&hashedPassword=test&institutionName=TestInstModified
 
+Upload Invoice (POST) : 
+	link  : rootpath/Document/UploadInvoice.php
+	param : email=vlad.loghin00@gmai.com&hashedPassword=parola&institutionName=TestareDocumenteFinal&creatorUserEmail=vlad.loghin00@gmail.com&institutionAddress=57&documentItems=
+	[
+		{ 
+    			"currencyTitle" : "RON",
+    			"productNumber" : 99910231,
+    			"title"         : "Surub",
+    			"description"   : "Surub 10mm",
+    			"valueBeforeTax": 20,
+    			"taxPercentage" : 0.1,
+    			"quantity"      : 100
+		},
+		{ 
+			"currencyTitle" : "RON",
+    			"productNumber" : 99950231,
+    			"title"         :  "Faianta Baie",
+    			"description"   : "Faianta Gri 5x10cm",
+    			"valueBeforeTax": 15,
+    			"taxPercentage" : 0.1,
+    			"quantity"      : 150
+		}
+	]
+
+Upload Receipt (POST) : 
+	link  : rootpath/Document/UploadReceipt.php
+	param : email=vlad.loghin00@gmai.com&hashedPassword=parola&institutionName=TestareDocumenteFinal&creatorUserEmail=vlad.loghin00@gmail.com&institutionAddress=57&documentItems=
+	[
+		{ 
+    			"currencyTitle" : "RON",
+    			"productNumber" : 99910231,
+    			"title"         : "Surub",
+    			"description"   : "Surub 10mm",
+    			"valueBeforeTax": 20,
+    			"taxPercentage" : 0.1,
+    			"quantity"      : 100
+		},
+		{ 
+			"currencyTitle" : "RON",
+    			"productNumber" : 99950231,
+    			"title"         :  "Faianta Baie",
+    			"description"   : "Faianta Gri 5x10cm",
+    			"valueBeforeTax": 15,
+    			"taxPercentage" : 0.1,
+    			"quantity"      : 150
+		}
+	]
+	&paymentMethodID=2
+
+	SAU param : email=vlad.loghin00@gmai.com&hashedPassword=parola&institutionName=TestareDocumenteFinal&creatorUserEmail=vlad.loghin00@gmail.com&institutionAddress=57&invoiceID=59&paymentMethodID=2
+
+Retrieve Document (GET) : 
+	link : rootpath/Document/Retrieve.php?email=vlad.loghin00@gmail.com&hashedPassword=parola&institutionName=TestareDocumenteFinal&documentID=46
+
+
+Retrieve Created Documents (GET) : 
+	link : rootpath/Document/RetrieveCreatedDocuments.php?email=vlad.loghin00@gmail.com&hashedPassword=parola&institutionName=TestareDocumenteFinal  <- nume inst. optional
+	

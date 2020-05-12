@@ -16,3 +16,4 @@ class SuccessStates {
     const INSTITUTION_RIGHTS_ROW_NOT_FOUND = 7;
     const NOT_ENOUGH_RIGHTS = 8;
 }
+?>

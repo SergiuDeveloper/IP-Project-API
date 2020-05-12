@@ -40,3 +40,4 @@
     echo json_encode($responseStatus), PHP_EOL;
     http_response_code(StatusCodes::OK);
     */
+?>

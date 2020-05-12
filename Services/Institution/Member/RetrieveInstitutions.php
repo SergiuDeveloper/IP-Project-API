@@ -25,19 +25,12 @@
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
             ->send(StatusCodes::BAD_REQUEST);
-        /*
-        $response = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
-
-        echo json_encode($response), PHP_EOL;
-        http_response_code(StatusCodes::BAD_REQUEST);
-        die();
-        */
     }
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
     $getInstitutionsAndRolesForEmailStatement = "
-        SELECT Name, Title FROM institution_members 
+        SELECT institutions.ID, Name, Title FROM institution_members 
             JOIN users ON User_ID = users.ID 
             JOIN institution_roles ON institution_members.Institution_Roles_ID = institution_ROles.ID 
             JOIN institutions ON institutions.id = institution_members.Institution_ID 
@@ -55,7 +48,7 @@
         $SQLStatement->execute();
 
         while($row = $SQLStatement->fetch(PDO::FETCH_OBJ)){
-            $institutionRole = new InstitutionRole($row->Name, $row->Title);
+            $institutionRole = new InstitutionRole($row->ID, $row->Name, $row->Title);
 
             array_push($institutionRolesArray, $institutionRole);
         }
@@ -66,13 +59,6 @@
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
             ->send();
-        /*
-        $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
-
-        echo json_encode($response), PHP_EOL;
-        http_response_code(StatusCodes::BAD_REQUEST);
-        die();
-        */
     }
 
     try {
@@ -87,21 +73,16 @@
             ->send(StatusCodes::INTERNAL_SERVER_ERROR);
     }
 
-    /*
-    $response = CommonEndPointLogic::GetSuccessResponseStatus();
-    echo json_encode($response),PHP_EOL;
-    echo json_encode($institutionRolesArray), PHP_EOL;
-    http_response_code(StatusCodes::OK);
-    */
-
     class InstitutionRole {
         public $institutionName;
         public $roleName;
+        public $ID;
 
-        function __construct($institutionName, $roleName)
+        function __construct($ID, $institutionName, $roleName)
         {
-                $this->institutionName = $institutionName;
-                $this->roleName = $roleName;
+            $this->ID = $ID;
+            $this->institutionName = $institutionName;
+            $this->roleName = $roleName;
         }
     }
 

@@ -133,15 +133,16 @@ class CommonEndPointLogic {
      * @param $subject          string  The email's subject
      * @param $activationKey    string  The email's content
      * @return                  void    Sends an email. On failure, stop execution and log
+     * @throws Exception
      */
     public static function SendEmail($receiver, $subject, $activationKey) {
-        if (!CommonEndPointLogic::$sendGridCredentialsBinded)
+        if (!CommonEndPointLogic::$sendGridCredentialsBound)
             CommonEndPointLogic::BindSendGridCredentials();
 
         $content = CommonEndPointLogic::composeEmailBody($activationKey);
 
         $requestParameters = array(
-            "api_user" => CommonEndPointLogic::$sendGridURL,
+            "api_user" => CommonEndPointLogic::$sendGridUsername,
             "api_key"  => CommonEndPointLogic::$sendGridPassword,
             "to"       => $receiver,
             "subject"  => $subject,
@@ -171,12 +172,51 @@ class CommonEndPointLogic {
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("CONFIRMATION_EMAIL_SEND_FAILURE"))
             ->send();
-        /*
-        $responseStatus = CommonEndPointLogic::GetFailureResponseStatus("CONFIRMATION_EMAIL_SEND_FAILURE");
-        echo json_encode($responseStatus), PHP_EOL;
-        http_response_code(StatusCodes::OK);
-        die();
-        */
+    }
+
+    /**
+     * @param string $receiver
+     * @param string $subject
+     * @param string $newPassword
+     * @throws Exception
+     */
+    public static function sendPasswordEmail($receiver, $subject, $newPassword){
+        if(!self::$sendGridCredentialsBound)
+            self::BindSendGridCredentials();
+
+        $content = self::composePasswordEmailBody($newPassword);
+
+        $requestParameters = array(
+            "api_user"  => self::$sendGridUsername,
+            "api_key"   => self::$sendGridPassword,
+            "to"        => $receiver,
+            "subject"   => $subject,
+            "html"      => $content,
+            "text"      => $content,
+            "from"      => self::$sendGridUsername,
+            "fromname"  => self::$sendGridNickname
+        );
+
+        $curlSession = curl_init(self::$sendGridURL);
+
+        curl_setopt($curlSession, CURLOPT_POST, true);
+        curl_setopt($curlSession, CURLOPT_POSTFIELDS, $requestParameters);
+        curl_setopt($curlSession, CURLOPT_HEADER, false);
+        curl_setopt($curlSession, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curlSession, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curlSession, CURLOPT_SSL_VERIFYHOST, false);
+
+        $azureEmailAPIResponse = curl_exec($curlSession);
+        curl_close($curlSession);
+
+        $azureEmailAPIResponse = json_decode($azureEmailAPIResponse);
+
+        if($azureEmailAPIResponse->message == "success")
+            return;
+
+        ResponseHandler::getInstance()
+            ->setResponseHeader("PASSWORD_RESET_SEND_EMAIL_FAILURE")
+            ->send();
     }
 
     /**
@@ -206,6 +246,9 @@ class CommonEndPointLogic {
         ];
     }
 
+    /**
+     * @throws Exception
+     */
     private static function BindSendGridCredentials() {
         $jsonFileContent = file_get_contents(CommonEndPointLogic::$sendGridJSONFilePath);
 
@@ -226,7 +269,7 @@ class CommonEndPointLogic {
         if (CommonEndPointLogic::$sendGridURL === null || CommonEndPointLogic::$sendGridUsername === null || CommonEndPointLogic::$sendGridPassword === null || CommonEndPointLogic::$sendGridNickname === null)
             throw new Exception("Bad SendGrid Credentials JSON object format");
 
-        CommonEndPointLogic::$sendGridCredentialsBinded = true;
+        CommonEndPointLogic::$sendGridCredentialsBound = true;
     }
 
     /**
@@ -237,9 +280,23 @@ class CommonEndPointLogic {
         return "
             Hello!<br>
             Your activation link is below :<br> 
-            <a href='http://fiscaldocumentseditest.azurewebsites.net/Account/Activation.php?uniqueKey=$activationKey'>
-                http://fiscaldocumentseditest.azurewebsites.net/Account/Activation.php?uniqueKey=$activationKey 
+            <a href='http://fiscaldocumentsapi.azurewebsites.net/Account/Activation.php?uniqueKey=$activationKey'>
+                http://fiscaldocumentsapi.azurewebsites.net/Account/Activation.php?uniqueKey=$activationKey
             </a> <br>";
+    }
+
+    /**
+     * @param $newPassword
+     * @return                  string  The full email content string, with markdown encoding
+     */
+    private static function composePasswordEmailBody($newPassword){
+        return "
+            Hello!<br>
+            Your password has been changed to :<br> 
+            $newPassword <br>
+            
+            You can change it later in your account dashboard <br>    
+        ";
     }
 
     private static $getAllAdministratorInfoStatement = "
@@ -250,6 +307,7 @@ class CommonEndPointLogic {
     private static $sendGridUsername;
     private static $sendGridPassword;
     private static $sendGridNickname;
-    private static $sendGridJSONFilePath = "./../Sensitive/SendGrid.json";
-    private static $sendGridCredentialsBinded = false;
+    private static $sendGridJSONFilePath = ROOT . '/Sensitive/SendGrid.json';
+    private static $sendGridCredentialsBound = false;
 }
+?>

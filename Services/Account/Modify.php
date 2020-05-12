@@ -53,3 +53,4 @@
     echo json_encode($response), PHP_EOL;
     http_response_code(StatusCodes::OK);
     */
+?>

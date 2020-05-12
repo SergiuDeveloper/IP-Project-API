@@ -127,3 +127,5 @@
             INSERT INTO Newsfeed_Tags (Title) VALUES (:title)
         ";
     }
+
+?>

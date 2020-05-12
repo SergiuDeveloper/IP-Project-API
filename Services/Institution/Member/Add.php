@@ -120,3 +120,5 @@
     echo json_encode($successResponse);
     http_response_code(StatusCodes::OK);
     */
+
+?>

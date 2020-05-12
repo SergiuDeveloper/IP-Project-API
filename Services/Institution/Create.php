@@ -4,14 +4,12 @@
         define('ROOT', dirname(__FILE__) . '/..');
     }
 
-    require_once(ROOT . "/Utility/CommonEndPointLogic.php");
-    require_once(ROOT . "/Utility/UserValidation.php");
-    require_once(ROOT . "/Utility/StatusCodes.php");
-    require_once(ROOT . "/Utility/SuccessStates.php");
-    require_once(ROOT . "/Utility/ResponseHandler.php");
+    require_once(ROOT . "/Utility/Utilities.php");
 
-    require_once("Role/Utility/InstitutionRoles.php");
-    require_once("Utility/InstitutionCreation.php ");
+    require_once(ROOT . "/Institution/Role/Utility/InstitutionRoles.php");
+    require_once(ROOT . "/Institution/Utility/InstitutionCreation.php");
+
+    $debugHeader = 'In ' . basename(__FILE__) . ', ';
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
@@ -19,58 +17,92 @@
     $hashedPassword     = $_POST["hashedPassword"];
     $institutionName    = $_POST["institutionName"];
     $institutionAddress = json_decode($_POST["institutionAddress"], true);
+    $institutionCIF     = $_POST["institutionCIF"];
+
+    $debugModeExists    = isset($_POST['debugMode']);
+    if($debugModeExists)
+        $debugMode      = $_POST['debugMode'];
 
     if(
         $email              == null ||
         $hashedPassword     == null ||
         $institutionName    == null ||
-        $institutionAddress == null
+        $institutionAddress == null ||
+        $institutionCIF     == null
     ){
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
             ->send(StatusCodes::BAD_REQUEST);
-        /*
-        $response = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
-
-        echo json_encode($response), PHP_EOL;
-        http_response_code(StatusCodes::BAD_REQUEST);
-        die();
-        */
     }
+
+    if($debugMode)
+        DebugHandler::getInstance()
+            ->setSource(basename(__FILE__))
+            ->setDebugMessage('PASSED VAR TEST')
+            ->setLineNumber(__LINE__)
+            ->debugEcho();
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
-    if( InstitutionCreation::checkForInstitutionDuplicate($institutionName) == false ){
+    if($debugMode)
+        DebugHandler::getInstance()
+            ->setSource(basename(__FILE__))
+            ->setDebugMessage('PASSED CREDENTIAL TEST')
+            ->setLineNumber(__LINE__)
+            ->debugEcho();
+
+    if( InstitutionCreation::checkForInstitutionDuplicate($institutionName) == true ){
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DUPLICATE_INSTITUTION"))
             ->send();
-        /*
-        $response = CommonEndPointLogic::GetFailureResponseStatus("DUPLICATE_INSTITUTION");
-
-        echo json_encode($response), PHP_EOL;
-        http_response_code(StatusCodes::OK);
-        die();
-        */
     }
+
+    if($debugMode)
+        DebugHandler::getInstance()
+            ->setSource(basename(__FILE__))
+            ->setDebugMessage('PASSED INITIAL DUPLICATE TEST')
+            ->setLineNumber(__LINE__)
+            ->debugEcho();
 
     if( InstitutionCreation::checkAddressValidity($institutionAddress) == false ){
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ADDRESS_INVALID"))
             ->send();
-        /*
-        $response = CommonEndPointLogic::GetFailureResponseStatus("ADDRESS_INVALID");
-
-        echo json_encode($response), PHP_EOL;
-        http_response_code(StatusCodes::OK);
-        die();
-        */
     }
+
+    if($debugMode)
+        DebugHandler::getInstance()
+            ->setSource(basename(__FILE__))
+            ->setDebugMessage('PASSED ADDRESS VALIDITY CHECKER TEST')
+            ->setLineNumber(__LINE__)
+            ->debugEcho();
 
     $addressID = InstitutionCreation::insertAddressIntoDatabase($institutionAddress);
 
-    $institutionID = InstitutionCreation::insertInstitutionIntoDatabase($institutionName);
+    if($debugMode)
+        DebugHandler::getInstance()
+            ->setSource(basename(__FILE__))
+            ->setDebugMessage('PASSED ADDRESS INSERTION')
+            ->setLineNumber(__LINE__)
+            ->debugEcho();
+
+    $institutionID = InstitutionCreation::insertInstitutionIntoDatabase($institutionName, $institutionCIF);
+
+    if($debugMode)
+        DebugHandler::getInstance()
+            ->setSource(basename(__FILE__))
+            ->setDebugMessage('PASSED INSTITUTION INSERTION')
+            ->setLineNumber(__LINE__)
+            ->debugEcho();
 
     InstitutionCreation::linkInstitutionWithAddress($institutionID, $addressID);
+
+    if($debugMode)
+        DebugHandler::getInstance()
+            ->setSource(basename(__FILE__))
+            ->setDebugMessage('PASSED LINKAGE')
+            ->setLineNumber(__LINE__)
+            ->debugEcho();
 
     $roleDictionary =  [
             "Can_Modify_Institution"                    => true,
@@ -90,19 +122,28 @@
             "Can_Modify_Roles"                          => true,
             "Can_Assign_Roles"                          => true,
             "Can_Deassign_Roles"                        => true
-       ];
+    ];
 
     InstitutionRoles::createRole('Manager', $institutionName, $roleDictionary);
 
+    if($debugMode)
+        DebugHandler::getInstance()
+            ->setSource(basename(__FILE__))
+            ->setDebugMessage('PASSED ROLE INSERTION')
+            ->setLineNumber(__LINE__)
+            ->debugEcho();
+
     InstitutionRoles::addAndAssignMemberToInstitution($email, $institutionName, 'Manager');
+
+    if($debugMode)
+        DebugHandler::getInstance()
+            ->setSource(basename(__FILE__))
+            ->setDebugMessage('PASSED MEMBER INSERTION AND ROLE MANAGER')
+            ->setLineNumber(__LINE__)
+            ->debugEcho();
 
     ResponseHandler::getInstance()
         ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
         ->send();
 
-    /*
-    $response = CommonEndPointLogic::GetSuccessResponseStatus();
-
-    echo json_encode($response), PHP_EOL;
-    http_response_code(StatusCodes::OK);
-    */
+?>

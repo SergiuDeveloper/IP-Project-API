@@ -5,3 +5,4 @@ class ResponseHandlerDuplicateLabel extends Exception
 {
 
 }
+?>

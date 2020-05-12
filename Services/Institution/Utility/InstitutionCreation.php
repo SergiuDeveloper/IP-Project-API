@@ -16,6 +16,10 @@ if(!defined('ROOT')){
     define('ROOT', dirname(__FILE__) . "/../..");
 }
 
+if(!defined('DISABLE_CIF_VALIDITY')) {
+    define('DISABLE_CIF_VALIDITY', true);
+}
+
 require_once(ROOT . "/Utility/StatusCodes.php");
 require_once(ROOT . "/Utility/CommonEndPointLogic.php");
 require_once(ROOT . "/Utility/DatabaseManager.php");
@@ -40,6 +44,42 @@ require_once(ROOT . "/Utility/ResponseHandler.php");
  */
 class InstitutionCreation
 {
+
+    public static function validateCIF($cif){
+        if(DISABLE_CIF_VALIDITY)
+            return true;
+
+        if(!is_integer($cif)){
+            $cif = strtoupper($cif);
+            if(strpos($cif, 'RO') === 0){
+                $cif = substr($cif, 2);
+            }
+            $cif = (int)trim($cif);
+        }
+
+        if(strlen($cif) > 10 || strlen($cif) < 2)
+            return false;
+
+        $controlValue = 753217532;
+
+        $controlDigit = $cif%10;
+        $cif = (int)($cif/10);
+
+        $aux = 0;
+        while($cif > 0){
+            $aux += ($cif%10) * ($controlValue%10);
+            $cif = (int) ($cif / 10);
+            $controlValue = (int) ($controlValue/10);
+        }
+
+        $controlDigitMultiply = ($aux * 10) / 11;
+
+        if($controlDigitMultiply == 10)
+            $controlDigitMultiply = 0;
+
+        return $controlDigit == $controlDigitMultiply;
+    }
+
     /**
      * Function links an institution with an address
      *
@@ -92,15 +132,23 @@ class InstitutionCreation
      * Inserts an institution into the database and returns its ID
      *
      * @param $institutionName  string  Name of the institution to be added
+     * @param $CIF              string  Institution CIF
      * @return                  int     ID of the institution
      */
-    public static function insertInstitutionIntoDatabase($institutionName){
+    public static function insertInstitutionIntoDatabase($institutionName, $CIF){
+
+        if(!self::validateCIF($CIF)){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_CIF"))
+                ->send();
+        }
 
         try{
             DatabaseManager::Connect();
 
             $SQLStatement = DatabaseManager::PrepareStatement(self::$insertInstitutionStatement);
             $SQLStatement->bindParam(":institutionName", $institutionName);
+            $SQLStatement->bindParam(":cif", $CIF);
 
             $SQLStatement->execute();
 
@@ -250,7 +298,9 @@ class InstitutionCreation
 
             DatabaseManager::Disconnect();
 
-            return $row == null;
+            echo $row, PHP_EOL;
+
+            return $row != null;
         }
         catch(Exception $exception){
             ResponseHandler::getInstance()
@@ -283,8 +333,8 @@ class InstitutionCreation
     ";
 
     private static $insertInstitutionStatement = "
-        INSERT INTO institutions (Name, DateTime_Created, DateTime_Modified) VALUE 
-            (:institutionName, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        INSERT INTO institutions (Name, DateTime_Created, DateTime_Modified, CIF) VALUE 
+            (:institutionName, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, :cif)
     ";
 
     private static $getAddressID = "
@@ -305,3 +355,4 @@ class InstitutionCreation
     ";
 
 }
+?>

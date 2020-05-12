@@ -1,7 +1,2 @@
-# Call examples are in 'refactor calls.txt'
 
-## Removed Username
-
-## Services Deployed
-
-## ResponseHandler!
+* Framework for Documents in progress
