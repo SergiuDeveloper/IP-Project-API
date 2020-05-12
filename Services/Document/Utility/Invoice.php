@@ -50,6 +50,83 @@ class Invoice extends Document
         $this->itemsContainer->addItem($item, $quantity);
     }
 
+    public function deleteFromDatabase($type){
+        if($type == "Internal"){
+            try{
+                DatabaseManager::Connect();
+
+                $removeItemLinks = null;
+                $removeInvoice = null;
+                $removeFromOtherEntries = null;
+                $removeFromDocuments = null;
+                $removeItemLinksDoubleParse = null;
+
+                if($this->senderInstitutionID == null) {
+                    $removeItemLinks = DatabaseManager::PrepareStatement("DELETE FROM document_items WHERE Invoices_ID = :invoiceID AND Receipts_ID IS NULL");
+                    $removeItemLinksDoubleParse = DatabaseManager::PrepareStatement("UPDATE document_items SET Invoices_ID = null WHERE Receipts_ID IS NOT NULL AND Invoices_ID = :invoiceID");
+                    $removeInvoice = DatabaseManager::PrepareStatement("DELETE FROM invoices WHERE ID = :ID");
+                    $removeFromOtherEntries = DatabaseManager::PrepareStatement("UPDATE receipts SET Invoices_ID = null WHERE Invoices_ID = :invoiceID");
+                    $removeFromDocuments = DatabaseManager::PrepareStatement("DELETE FROM documents WHERE ID = :ID");
+                } else {
+                    $removeFromDocuments = DatabaseManager::PrepareStatement("UPDATE documents SET Receiver_Institution_ID = null, Receiver_User_ID = null, Receiver_Address_ID = null, Is_Sent = false, Date_Sent = null WHERE ID = :ID" );
+                }
+
+                if($removeItemLinks != null){
+                    $removeItemLinksDoubleParse->bindParam("invoiceID:", $this->entryID);
+                    $removeItemLinksDoubleParse->execute();
+                    $removeItemLinks->bindParam(":invoiceID", $this->entryID);
+                    $removeItemLinks->execute();
+                }
+
+                if($removeInvoice != null){
+                    $removeInvoice->bindParam(":ID", $this->entryID);
+                    $removeInvoice->execute();
+                    $removeFromOtherEntries->bindParam(":invoiceID", $this->entryID);
+                    $removeFromOtherEntries->execute();
+                }
+
+                $removeFromDocuments->bindParam(":ID", $this->ID);
+                $removeFromDocuments->execute();
+
+                DatabaseManager::Disconnect();
+            } catch (PDOException $exception){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                    ->send();
+            }
+        }
+        if($type == "External"){
+            try{
+                DatabaseManager::Connect();
+
+                $removeItemLinksDoubleParse = DatabaseManager::PrepareStatement("UPDATE document_items SET Invoices_ID = null WHERE Receipts_ID IS NOT NULL AND Invoices_ID = :invoiceID");
+                $removeItemLinks = DatabaseManager::PrepareStatement("DELETE FROM document_items WHERE Invoices_ID = :invoiceID AND Receipts_ID IS NULL");
+                $removeInvoice = DatabaseManager::PrepareStatement("DELETE FROM invoices WHERE ID = :ID");
+                $removeFromOtherEntries = DatabaseManager::PrepareStatement("UPDATE receipts SET Invoices_ID = null WHERE Invoices_ID = :invoiceID");
+                $removeFromDocuments = DatabaseManager::PrepareStatement("DELETE FROM documents WHERE ID = :ID");
+
+                $removeItemLinksDoubleParse->bindParam(":invoiceID", $this->entryID);
+                $removeItemLinksDoubleParse->execute();
+                $removeItemLinks->bindParam(":invoiceID", $this->entryID);
+                $removeItemLinks->execute();
+
+                $removeInvoice->bindParam(":ID", $this->entryID);
+                $removeInvoice->execute();
+                $removeFromOtherEntries->bindParam(":invoiceID", $this->entryID);
+                $removeFromOtherEntries->execute();
+
+                $removeFromDocuments->bindParam(":ID", $this->ID);
+                $removeFromDocuments->execute();
+
+                DatabaseManager::Disconnect();
+            } catch (PDOException $exception){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                    ->send();
+            }
+        }
+    }
+
     /**
      * @throws DocumentItemInvalid
      * @throws DocumentTypeNotFound
@@ -148,20 +225,29 @@ class Invoice extends Document
                         case 'productNumber':   $item->setProductNumber($itemJSON[$itemKey]);                                                   break;
                         case 'description' :    $item->setTitle($itemJSON[$itemKey]);                                                           break;
                         case 'unitPrice' :      $item->setValueBeforeTax($itemJSON[$itemKey]);                                                  break;
-                        case 'taxPercentage' :  $item->setTaxPercentage($itemJSON[$itemKey]);                                                   break;
+                        case 'itemTax' :        $item->setTaxPercentage($itemJSON[$itemKey]);                                                   break;
                         case 'currencyTitle' :  $item->setCurrency(Currency::getCurrencyByTitle($itemJSON[$itemKey], true));    break;
                     }
                 }
 
-                try {
-                    $item->addIntoDatabase(true);
-                } catch (DocumentItemInvalid $exception){
-                    continue;
+                $item->setDescription('TBD');
+
+                //echo json_encode($item->getDAO()), PHP_EOL;
+
+                $item->fetchFromDatabase(true);
+
+                if($item->getID() == null) {
+                    try {
+                        $item->addIntoDatabase(true);
+                    } catch (DocumentItemInvalid $exception) {
+                        continue;
+                    }
                 }
 
                 $this->addItem($item, $itemRowJSON['quantity']);
 
             }
+
             $removeCurrentItemLinksStatement = DatabaseManager::PrepareStatement("
                 DELETE FROM document_items WHERE Invoices_ID = :invoiceID
             ");
@@ -244,9 +330,9 @@ class Invoice extends Document
                 case 'receiptID' :              $this->setReceiptDocumentID($documentJSON[$key]);           break;  /// TODO : receipt id
                 case 'items' :                  $this->updateItems($documentJSON['items']);                 break;
             }
-
-            $updateStatementString = substr($updateStatementString, 0, -1) . ' WHERE ID = :ID';
         }
+
+        $updateStatementString = substr($updateStatementString, 0, -1) . ' WHERE ID = :ID';
 
         try{
             DatabaseManager::Connect();
@@ -259,12 +345,14 @@ class Invoice extends Document
                     case 'senderID' :               $statement->bindParam(":senderID", $documentJSON[$key]);                break;
                     case 'senderInstitutionID' :    $statement->bindParam(":senderInstitutionID", $documentJSON[$key]);     break;
                     case 'senderAddressID' :        $statement->bindParam(":senderAddressID", $documentJSON[$key]);         break;
-                    case 'creatorID' :              $statement->bindParam(":creatorID", $documentJSON[$key]);               break;
+                    case 'creatorID' :              $statement->bindParam(":creatorUserID", $documentJSON[$key]);               break;
                     case 'receiverID' :             $statement->bindParam(":receiverID", $documentJSON[$key]);              break;
                     case 'receiverInstitutionID' :  $statement->bindParam(":receiverInstitutionID", $documentJSON[$key]);   break;
                     case 'receiverAddressID' :      $statement->bindParam(":receiverAddressID", $documentJSON[$key]);       break;
                 }
             }
+
+            //$statement->debugDumpParams();
 
             $statement->execute();
 
@@ -334,35 +422,38 @@ class Invoice extends Document
 
             $row = $statement->fetch(PDO::FETCH_ASSOC);
 
-            //print_r($row);
+            if($row == null){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_DOCUMENT"))
+                    ->send();
+            }
 
-            if($row != null) {
-                $this->entryID = $row['ID'];
-                //$this->ID = $row['Documents_ID'];
-                $this->receiptID = $row['Receipts_ID'];
+            $this->entryID = $row['ID'];
+            //$this->ID = $row['Documents_ID'];
+            $this->receiptID = $row['Receipts_ID'];
 
-                if($this->receiptID != null) {
-                    $getFromReceiptStatement = DatabaseManager::PrepareStatement(self::$getDocumentsIDFromReceipts);
-                    $getFromReceiptStatement->bindParam(":receiptID", $this->receiptID);
-                    $getFromReceiptStatement->execute();
+            if($this->receiptID != null) {
+                $getFromReceiptStatement = DatabaseManager::PrepareStatement(self::$getDocumentsIDFromReceipts);
+                $getFromReceiptStatement->bindParam(":receiptID", $this->receiptID);
+                $getFromReceiptStatement->execute();
 
-                    $getFromReceiptStatement->debugDumpParams();
+                $getFromReceiptStatement->debugDumpParams();
 
-                    $receiptRow = $getFromReceiptStatement->fetch();
-                    $this->receiptDocumentID = $receiptRow['Documents_ID'];
-                }
+                $receiptRow = $getFromReceiptStatement->fetch();
+                $this->receiptDocumentID = $receiptRow['Documents_ID'];
+            }
 
-                $getFromDocumentItemsStatement = DatabaseManager::PrepareStatement(self::$getItemByInvoiceID);
-                $getFromDocumentItemsStatement->bindParam(":entryID", $this->entryID);
-                $getFromDocumentItemsStatement->execute();
+            $getFromDocumentItemsStatement = DatabaseManager::PrepareStatement(self::$getItemByInvoiceID);
+            $getFromDocumentItemsStatement->bindParam(":entryID", $this->entryID);
+            $getFromDocumentItemsStatement->execute();
 
-                while($itemRow = $getFromDocumentItemsStatement->fetch(PDO::FETCH_ASSOC)){
-                    $this->itemsContainer->addItem(
+            while($itemRow = $getFromDocumentItemsStatement->fetch(PDO::FETCH_ASSOC)){
+                $this->itemsContainer->addItem(
                         DocumentItem::fetchFromDatabaseByID($itemRow['Items_ID'], $connected),
                         $itemRow['Quantity']
-                        );
-                }
+                    );
             }
+
 
             if(!$connected)
                 DatabaseManager::Disconnect();

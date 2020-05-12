@@ -133,6 +133,9 @@ class DocumentItem
      * @throws DocumentItemInvalid
      */
     public function addIntoDatabase($connected = false){
+
+        //echo json_encode($this->getDAO());
+
         if($this->currency == null)
             $this->currency = Currency::getCurrencyByTitle(DEFAULT_ITEM_VALUE_CURRENCY);
         if(

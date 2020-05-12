@@ -413,6 +413,8 @@ abstract class Document
 
     public abstract function fetchFromDatabaseByDocumentID($connected = false);
 
+    public abstract function deleteFromDatabase($type);
+
     /**
      * @param int $documentID
      * @return Document

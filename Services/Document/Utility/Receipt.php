@@ -211,6 +211,10 @@ class Receipt extends Document
         }
     }
 
+    public function deleteFromDatabase($type){
+
+    }
+
     public function updateIntoDatabase($documentJSON){
         // TODO: Implement updateIntoDatabase() method.
     }
@@ -225,6 +229,8 @@ class Receipt extends Document
             $statement = DatabaseManager::PrepareStatement(self::$getFromDatabaseByDocumentID);
             $statement->bindParam(":ID", $this->ID);
             $statement->execute();
+
+            //$statement->debugDumpParams();
 
             $row = $statement->fetch(PDO::FETCH_ASSOC);
 
