@@ -215,7 +215,7 @@ class CommonEndPointLogic {
             return;
 
         ResponseHandler::getInstance()
-            ->setResponseHeader("PASSWORD_RESET_SEND_EMAIL_FAILURE")
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("PASSWORD_RESET_SEND_EMAIL_FAILURE"))
             ->send();
     }
 
@@ -280,8 +280,8 @@ class CommonEndPointLogic {
         return "
             Hello!<br>
             Your activation link is below :<br> 
-            <a href='http://fiscaldocumentsapi.azurewebsites.net/Account/Activation.php?uniqueKey=$activationKey'>
-                http://fiscaldocumentsapi.azurewebsites.net/Account/Activation.php?uniqueKey=$activationKey
+            <a href='http://fiscaldocumentsapi.azurewebsites.net/Account/Activate.php?uniqueKey=$activationKey'>
+                http://fiscaldocumentsapi.azurewebsites.net/Account/Activate.php?uniqueKey=$activationKey
             </a> <br>";
     }
 
