@@ -215,11 +215,13 @@ class Receipt extends Document
         // TODO: Implement updateIntoDatabase() method.
     }
 
-    public function fetchFromDatabaseByDocumentID(){
+    public function fetchFromDatabaseByDocumentID($connected = false){
         try{
-            parent::fetchFromDatabaseDocumentBaseByID();
+            parent::fetchFromDatabaseDocumentBaseByID($connected);
 
-            DatabaseManager::Connect();
+            if(!$connected)
+                DatabaseManager::Connect();
+
             $statement = DatabaseManager::PrepareStatement(self::$getFromDatabaseByDocumentID);
             $statement->bindParam(":ID", $this->ID);
             $statement->execute();
@@ -252,9 +254,9 @@ class Receipt extends Document
 
                 while($itemRow = $getFromDocumentItemsStatement->fetch(PDO::FETCH_ASSOC)){
                     $this->itemsContainer->addItem(
-                            DocumentItem::fetchFromDatabaseByID($itemRow['Items_ID']),
-                            $itemRow['Quantity']
-                        );
+                        DocumentItem::fetchFromDatabaseByID($itemRow['Items_ID']),
+                        $itemRow['Quantity']
+                    );
                 }
 
                 foreach($this->getItemsContainer()->getDocumentItemRows() as $itemRow)
@@ -263,7 +265,8 @@ class Receipt extends Document
                 $this->paymentMethod = PaymentMethod::getPaymentMethodByID($paymentID);
             }
 
-            DatabaseManager::Disconnect();
+            if(!$connected)
+                DatabaseManager::Disconnect();
         }
         catch (Exception $exception) {
             ResponseHandler::getInstance()

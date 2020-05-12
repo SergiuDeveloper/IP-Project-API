@@ -13,6 +13,8 @@ require_once ( ROOT . '/Utility/CommonEndPointLogic.php' );
 require_once ( ROOT . '/Utility/ResponseHandler.php' );
 require_once ( ROOT . '/Utility/DatabaseManager.php' );
 
+require_once ( ROOT . '/Institution/Utility/InstitutionValidator.php' );
+
 require_once ( ROOT . '/Document/Utility/Currency.php' );
 require_once ( ROOT . '/Document/Utility/DocumentItem.php' );
 require_once ( ROOT . '/Document/Utility/Invoice.php' );
@@ -130,6 +132,147 @@ abstract class Document
      * TODO : in service or in here
      */
     protected function updateIntoDatabaseDocumentBase(){
+
+    }
+
+    /**
+     * @throws DocumentSendNoReceiverInstitution
+     * @throws DocumentSendInvalidReceiverInstitution
+     * @throws DocumentSendInvalidReceiverUser
+     * @throws DocumentSendUpdateStatementFailed
+     * @throws DocumentSendAlreadySent
+     */
+    public function send(){
+
+        if(defined('DEBUG_ENABLED'))
+            DebugHandler::getInstance()
+                ->setSource('Document.php')
+                ->setLineNumber(__LINE__)
+                ->setDebugMessage('DOC VAR CHECK')
+                ->addDebugVars($this->getDAO())
+                ->debugEcho();
+
+        if($this->isSent != null)
+            if($this->isSent == true)
+                throw new DocumentSendAlreadySent();
+
+        if($this->receiverInstitutionID == null)
+            throw new DocumentSendNoReceiverInstitution();
+
+        try{
+            DatabaseManager::Connect();
+
+            $statement = DatabaseManager::PrepareStatement("SELECT ID FROM institutions WHERE ID = :ID");
+            $statement->bindParam(":ID", $this->receiverInstitutionID);
+            $statement->execute();
+
+            if($statement->rowCount() == 0)
+                throw new DocumentSendInvalidReceiverInstitution();
+
+            $institutionID = $this->receiverInstitutionID;
+
+            DatabaseManager::Disconnect();
+        } catch (PDOException $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+        }
+
+        if($this->receiverID != null) {
+            try {
+                DatabaseManager::Connect();
+
+                $statement = DatabaseManager::PrepareStatement("SELECT * FROM users WHERE ID = :ID");
+                $statement->bindParam(":ID", $this->receiverID);
+                $statement->execute();
+
+                if($statement->rowCount() == 0)
+                    throw new DocumentSendInvalidReceiverUser();
+
+                DatabaseManager::Disconnect();
+            } catch (PDOException $exception) {
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                    ->send();
+            }
+        }
+
+        if($this->receiverAddressID != null){
+            try{
+                DatabaseManager::Connect();
+
+                $statement = DatabaseManager::PrepareStatement("SELECT * FROM institution_addresses_list WHERE Institution_ID = :institutionID AND Address_ID = :addressID");
+                $statement->bindParam(":institutionID", $institutionID);
+                $statement->bindParam(":addressID", $this->receiverAddressID);
+
+                $statement->execute();
+
+                if($statement->rowCount() == 0)
+                    $this->receiverAddressID = null;
+
+                DatabaseManager::Disconnect();
+            } catch (PDOException $exception){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                    ->send();
+            }
+        }
+
+        if($this->receiverAddressID == null){
+            try{
+                DatabaseManager::Connect();
+
+                $statement = DatabaseManager::PrepareStatement("SELECT Address_ID FROM institution_addresses_list WHERE Institution_ID = :institutionID AND Is_Main_Address = true");
+                $statement->bindParam(":institutionID", $institutionID);
+                $statement->execute();
+
+                $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+                $this->receiverAddressID = $row['Address_ID'];
+
+                DatabaseManager::Disconnect();
+            } catch (PDOException $exception){
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                    ->send();
+            }
+        }
+
+        $statementString = "UPDATE documents SET Is_Sent = :isSent, Date_Sent = CURRENT_TIMESTAMP, Receiver_Institution_ID = :institutionID, Receiver_Address_ID = :addressID, Sender_User_ID = :senderUserID";
+
+        if($this->receiverID != null){
+            $statementString = $statementString . ', Receiver_User_ID=:receiverUserID';
+        }
+
+        $statementString = $statementString . ' WHERE ID = :ID';
+
+        try{
+            DatabaseManager::Connect();
+
+            $sendStatus = true;
+
+            $statement = DatabaseManager::PrepareStatement($statementString);
+            $statement->bindParam(":isSent", $sendStatus, PDO::PARAM_BOOL);
+            $statement->bindParam(":ID", $this->ID);
+            $statement->bindParam(":institutionID", $institutionID);
+            $statement->bindParam(":addressID", $this->receiverAddressID);
+            $statement->bindParam(":senderUserID", $this->senderID);
+
+            if($this->receiverID != null)
+                $statement->bindParam(":receiverUserID", $this->receiverID);
+
+            $statement->execute();
+
+            if($statement->rowCount() == 0)
+                throw new DocumentSendUpdateStatementFailed();
+
+            DatabaseManager::Disconnect();
+        }
+        catch (PDOException $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+        }
 
     }
 
@@ -268,7 +411,50 @@ abstract class Document
 
     public abstract function updateIntoDatabase($documentJSON);
 
-    public abstract function fetchFromDatabaseByDocumentID();
+    public abstract function fetchFromDatabaseByDocumentID($connected = false);
+
+    /**
+     * @param int $documentID
+     * @return Document
+     * @throws DocumentNotFound
+     * @throws DocumentTypeNotFound
+     */
+    public static function fetchDocument($documentID){
+        try{
+            DatabaseManager::Connect();
+
+            $statement = DatabaseManager::PrepareStatement("SELECT document_types.Title FROM documents JOIN document_types ON documents.Document_Types_ID = document_types.ID WHERE documents.ID = :ID");
+            $statement->bindParam(":ID", $documentID);
+            $statement->execute();
+
+            if($statement->rowCount() == 0)
+                throw new DocumentNotFound();
+
+            $row = $statement->fetch(PDO::FETCH_OBJ);
+
+            $document = null;
+
+            if($row->Title == 'Invoice')
+                $document = new Invoice();
+            if($row->Title == 'Receipt')
+                $document = new Receipt();
+
+            if($document == null)
+                throw new DocumentTypeNotFound();
+
+            $document->setID($documentID)->fetchFromDatabaseByDocumentID(true);
+
+            DatabaseManager::Disconnect();
+
+            return $document;
+        } catch (PDOException $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+
+            die();
+        }
+    }
 
     /**
      * @return integer

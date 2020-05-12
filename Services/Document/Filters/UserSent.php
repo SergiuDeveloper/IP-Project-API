@@ -59,8 +59,8 @@
             Date_Created,
             Document_Types.Title
         FROM documents JOIN document_types on documents.Document_Types_ID = document_types.ID
-        WHERE Sender_User_ID = :userID
-    " . ($institutionID != null) ? " AND Sender_Institution_ID = :institutionID" : "";
+        WHERE Sender_User_ID = :userID AND Is_Sent = true
+    " . (($institutionID != null) ? " AND Sender_Institution_ID = :institutionID" : "");
 
     $responseArray = array();
 
@@ -77,6 +77,8 @@
         if($institutionID != null)
             $getDocumentRowsStatement->bindParam(":institutionID", $institutionID);
         $getDocumentRowsStatement->execute();
+
+        //$getDocumentRowsStatement->debugDumpParams();
 
         while($row = $getDocumentRowsStatement->fetch(PDO::FETCH_OBJ)){
             $document = new \DAO\Document();

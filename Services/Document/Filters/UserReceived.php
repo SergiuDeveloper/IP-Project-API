@@ -60,7 +60,7 @@
             Document_Types.Title
         FROM documents JOIN document_types on documents.Document_Types_ID = document_types.ID
         WHERE Receiver_User_ID = :userID
-    " . ($institutionID != null) ? " AND Receiver_Institution_ID = :institutionID" : "";
+    " . (($institutionID != null) ? " AND Receiver_Institution_ID = :institutionID" : "");
 
     $responseArray = array();
 

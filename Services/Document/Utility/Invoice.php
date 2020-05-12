@@ -208,6 +208,8 @@ class Invoice extends Document
 
         $updateStatementString = "UPDATE documents SET";
 
+        $multipleParams = false;
+
         foreach(array_keys($documentJSON) as $key){
             switch ($key){
                 case 'senderID' :
