@@ -1,0 +1,8 @@
+{
+    "Connection": {
+        "URL": "fiscaldocumentsdb.mysql.database.azure.com",
+        "Username": "Fiscal_DB_User@fiscaldocumentsdb",
+        "Password": "Fiscal_DB_Pass",
+        "Schema": "Fiscal_Documents_EDI_Test"
+    }
+}
