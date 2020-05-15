@@ -5,11 +5,7 @@
        define('ROOT', dirname(__FILE__) . '/../..');
     }
 
-    require_once(ROOT . "/Utility/CommonEndPointLogic.php");
-    require_once(ROOT . "/Utility/UserValidation.php");
-    require_once(ROOT . "/Utility/StatusCodes.php");
-    require_once(ROOT . "/Utility/SuccessStates.php");
-    require_once(ROOT . "/Utility/ResponseHandler.php");
+    require_once(ROOT . "/Utility/Utilities.php");
 
     require_once(ROOT . "/Institution/Role/Utility/InstitutionActions.php");
     require_once(ROOT . "/Institution/Role/Utility/InstitutionRoles.php");
@@ -25,16 +21,33 @@
 
     $institutionName = $_GET['institutionName'];
 
-    if(
-       $email == null ||
-       $hashedPassword == null
-    ){
-        ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIALS"))
-            ->send(StatusCodes::BAD_REQUEST);
+    $apiKey = $_GET["apiKey"];
+
+    if($apiKey != null){
+        try {
+            $credentials = APIKeyHandler::getInstance()->setAPIKey($apiKey)->getCredentials();
+        } catch (APIKeyHandlerKeyUnbound $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNBOUND_KEY"))
+                ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+        } catch (APIKeyHandlerAPIKeyInvalid $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_KEY"))
+                ->send();
+        }
+
+        $email = $credentials->getEmail();
+        //$hashedPassword = $credentials->getHashedPassword();
+    } else {
+        if ($email == null || $hashedPassword == null) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+                ->send(StatusCodes::BAD_REQUEST);
+        }
+        CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
     }
 
-    CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+    //CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
     $institutionID = null;
 

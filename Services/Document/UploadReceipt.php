@@ -3,13 +3,14 @@
         define('ROOT', dirname(__FILE__) . '/..');
     }
     
-    require_once(ROOT . '/Utility/CommonEndPointLogic.php');
-    require_once(ROOT . '/Utility/ResponseHandler.php');
+    require_once(ROOT . '/Utility/Utilities.php');
     require_once(ROOT . '/Institution/Role/Utility/InstitutionActions.php');
     require_once(ROOT . '/Institution/Role/Utility/InstitutionRoles.php');
     require_once(ROOT . '/Document/Utility/Document.php');
     require_once(ROOT . '/Document/Utility/DocumentItem.php');
     require_once(ROOT . '/DataAccessObject/DataObjects.php');
+
+    CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
     $email                  = $_POST['email'];
     $hashedPassword         = $_POST['hashedPassword'];
@@ -21,15 +22,39 @@
     //$paymentNumer           = $_POST['paymentNumber']; self calculating
     $paymentMethodID        = $_POST['paymentMethodID']; // keep ID for now
 
-    CommonEndPointLogic::ValidateHTTPPOSTRequest();
+    $apiKey = $_POST["apiKey"];
 
-    if ($email == null || $hashedPassword == null || $institutionName == null) {
+    if($apiKey != null){
+        try {
+            $credentials = APIKeyHandler::getInstance()->setAPIKey($apiKey)->getCredentials();
+        } catch (APIKeyHandlerKeyUnbound $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNBOUND_KEY"))
+                ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+        } catch (APIKeyHandlerAPIKeyInvalid $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_KEY"))
+                ->send();
+        }
+
+        $email = $credentials->getEmail();
+        //$hashedPassword = $credentials->getHashedPassword();
+    } else {
+        if ($email == null || $hashedPassword == null) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+                ->send(StatusCodes::BAD_REQUEST);
+        }
+        CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+    }
+
+    if ($institutionName == null) {
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus('NULL_INPUT'))
             ->send(StatusCodes::BAD_REQUEST);
     }
 
-    CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+    //CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
     if (!InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::UPLOAD_DOCUMENTS)) {
         ResponseHandler::getInstance()

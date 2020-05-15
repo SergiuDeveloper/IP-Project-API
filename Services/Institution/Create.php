@@ -19,20 +19,47 @@
     $institutionAddress = json_decode($_POST["institutionAddress"], true);
     $institutionCIF     = $_POST["institutionCIF"];
 
+    $apiKey             = $_POST["apiKey"];
+
     $debugModeExists    = isset($_POST['debugMode']);
     if($debugModeExists)
         $debugMode      = $_POST['debugMode'];
 
+    if($apiKey != null) {
+        try {
+            $credentials = APIKeyHandler::getInstance()->setAPIKey($apiKey)->getCredentials();
+        } catch (APIKeyHandlerKeyUnbound $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNBOUND_KEY"))
+                ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+        } catch (APIKeyHandlerAPIKeyInvalid $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_KEY"))
+                ->send();
+        }
+
+        $email = $credentials->getEmail();
+    } else {
+        if (
+            $email == null ||
+            $hashedPassword == null
+        ) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIALS"))
+                ->send(StatusCodes::BAD_REQUEST);
+        }
+
+        CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+    }
+
     if(
-        $email              == null ||
-        $hashedPassword     == null ||
-        $institutionName    == null ||
+        $institutionName == null ||
         $institutionAddress == null ||
-        $institutionCIF     == null
-    ){
+        $institutionCIF == null
+    ) {
         ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
-            ->send(StatusCodes::BAD_REQUEST);
+         ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
+         ->send(StatusCodes::BAD_REQUEST);
     }
 
     if($debugMode)
@@ -42,7 +69,6 @@
             ->setLineNumber(__LINE__)
             ->debugEcho();
 
-    CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
     if($debugMode)
         DebugHandler::getInstance()

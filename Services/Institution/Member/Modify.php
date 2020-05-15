@@ -7,21 +7,47 @@ require_once (ROOT . '/Utility/Utilities.php');
 require_once (ROOT . '/Institution/Role/Utility/InstitutionRoles.php');
 require_once (ROOT . '/Institution/Role/Utility/InstitutionActions.php');
 
+CommonEndPointLogic::ValidateHTTPPOSTRequest();
+
 $email = $_POST["email"];
 $hashedPassword = $_POST["hashedPassword"];
 $institutionName = $_POST["institutionName"];
 $memberEmail = $_POST["memberEmail"];
 $newRole = $_POST["newRole"];
 
-CommonEndPointLogic::ValidateHTTPPOSTRequest();
+$apiKey = $_POST["apiKey"];
 
-if ($email == null || $hashedPassword == null || $institutionName == null || $memberEmail == null || $newRole == null) {
+if($apiKey != null){
+    try {
+        $credentials = APIKeyHandler::getInstance()->setAPIKey($apiKey)->getCredentials();
+    } catch (APIKeyHandlerKeyUnbound $e) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNBOUND_KEY"))
+            ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+    } catch (APIKeyHandlerAPIKeyInvalid $e) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_KEY"))
+            ->send();
+    }
+
+    $email = $credentials->getEmail();
+    //$hashedPassword = $credentials->getHashedPassword();
+} else {
+    if ($email == null || $hashedPassword == null) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+            ->send(StatusCodes::BAD_REQUEST);
+    }
+    CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+}
+
+if ($institutionName == null || $memberEmail == null || $newRole == null) {
     ResponseHandler::getInstance()
         ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
         ->send();
 }
 
-CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+//CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
 try {
     $userHasRights = InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::ASSIGN_ROLE);
