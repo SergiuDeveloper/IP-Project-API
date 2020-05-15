@@ -320,63 +320,64 @@ class InstitutionRoles{
 
         self::updateRoleName($roleID, $newRoleName);
 
-        if(self::canModifyOrDeleteRole($roleID) == true){
-           if(self::updateRoleRights($roleID, $newRoleRights) == false){
+        if($newRoleRights != null){
+            if(self::canModifyOrDeleteRole($roleID) == true){
+               if(self::updateRoleRights($roleID, $newRoleRights) == false){
 
-               $rightsID = self::fetchRightsID($newRoleRights);
+                   $rightsID = self::fetchRightsID($newRoleRights);
 
-               try{
-                    DatabaseManager::Connect();
+                   try{
+                        DatabaseManager::Connect();
 
-                    $SQLStatement = DatabaseManager::PrepareStatement(self::$updateRoleRightsStatement);
+                        $SQLStatement = DatabaseManager::PrepareStatement(self::$updateRoleRightsStatement);
 
-                    $SQLStatement->bindParam(":ID", $roleID);
-                    $SQLStatement->bindParam(":rightsID", $rightsID);
+                        $SQLStatement->bindParam(":ID", $roleID);
+                        $SQLStatement->bindParam(":rightsID", $rightsID);
 
-                    $SQLStatement->execute();
+                        $SQLStatement->execute();
 
-                    if($SQLStatement->rowCount() == 0){
-                        ResponseHandler::getInstance()
-                            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS"))
-                            ->send();
-                        /*
-                        $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS");
+                        if($SQLStatement->rowCount() == 0){
+                            ResponseHandler::getInstance()
+                                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS"))
+                                ->send();
+                            /*
+                            $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS");
 
-                        echo json_encode($response), PHP_EOL;
-                        http_response_code(StatusCodes::OK);
-                        die();
-                        */
-                    }
+                            echo json_encode($response), PHP_EOL;
+                            http_response_code(StatusCodes::OK);
+                            die();
+                            */
+                        }
 
-                    DatabaseManager::Disconnect();
+                        DatabaseManager::Disconnect();
+                   }
+                   catch(Exception $exception){
+                       ResponseHandler::getInstance()
+                           ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                           ->send();
+                       /*
+                       $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
+
+                       echo json_encode($response), PHP_EOL;
+                       http_response_code(StatusCodes::OK);
+                       die();
+                       */
+                   }
                }
-               catch(Exception $exception){
-                   ResponseHandler::getInstance()
-                       ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
-                       ->send();
-                   /*
-                   $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
+            }
+            else{
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_RIGHTS_UNMODIFIABLE"))
+                    ->send();
+                /*
+                $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_RIGHTS_UNMODIFIABLE");
 
-                   echo json_encode($response), PHP_EOL;
-                   http_response_code(StatusCodes::OK);
-                   die();
-                   */
-               }
-           }
+                echo json_encode($response), PHP_EOL;
+                http_response_code(StatusCodes::OK);
+                die();
+                */
+            }
         }
-        else{
-            ResponseHandler::getInstance()
-                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_RIGHTS_UNMODIFIABLE"))
-                ->send();
-            /*
-            $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_RIGHTS_UNMODIFIABLE");
-
-            echo json_encode($response), PHP_EOL;
-            http_response_code(StatusCodes::OK);
-            die();
-            */
-        }
-
     }
 
     private static function linkRoleWithRights($institutionID, $institutionRightsID, $roleTitle){

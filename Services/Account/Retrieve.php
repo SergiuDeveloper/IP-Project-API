@@ -58,8 +58,7 @@ catch (Exception $databaseException)
         ->send();
 }
 
-try
-{
+try {
     ResponseHandler::getInstance()
         ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
         ->addResponseData("ID", $id)
@@ -72,6 +71,7 @@ try
         ->addResponseData("DateTime_Modified", $dateModified)
         ->send();
 }
+
 catch(Exception $e)
 {
     ResponseHandler::getInstance()

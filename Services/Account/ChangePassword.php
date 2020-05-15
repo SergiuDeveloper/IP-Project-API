@@ -43,12 +43,10 @@
 
    $newPassword = substr(str_shuffle($alphabet), 0, 16);
 
-   try
-   {
+   try {
        CommonEndPointLogic::SendPasswordEmail($inputEmail, "New Account Password", $newPassword);  // TODO : add different body for email
    }
-   catch (Exception $e)
-   {
+   catch (Exception $e) {
       ResponseHandler::getInstance()
           ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("EMAIL_FAILURE"))
           ->send();

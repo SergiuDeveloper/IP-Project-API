@@ -10,8 +10,8 @@
     require_once(ROOT . "/Utility/SuccessStates.php");
     require_once(ROOT . "/Utility/ResponseHandler.php");
 
-    require_once(ROOT . "Institution/Role/Utility/InstitutionActions.php");
-    require_once(ROOT . "Institution/Role/Utility/InstitutionRoles.php");
+    require_once(ROOT . "/Institution/Role/Utility/InstitutionActions.php");
+    require_once(ROOT . "/Institution/Role/Utility/InstitutionRoles.php");
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
@@ -25,8 +25,7 @@
     if( $email           == null ||
         $hashedPassword  == null ||
         $institutionName == null ||
-        $roleName        == null ||
-        $newRoleRights   == null
+        $roleName        == null
     ){
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
