@@ -5,7 +5,7 @@
         define('ROOT', dirname(__FILE__) . '/../..');
     }
 
-    require_once(ROOT . "/Utility/ResponseHandler.php");
+    require_once(ROOT . "/Utility/Utilities.php");
 
     require_once(ROOT . "/Institution/Utility/InstitutionValidator.php");
     require_once(ROOT . "/Institution/Role/Utility/InstitutionActions.php");
