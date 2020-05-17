@@ -63,10 +63,13 @@ if (!$userHasRights) {
         ->send();
 }
 
+$institutionID = InstitutionValidator::getLastValidatedInstitution()->getID();
+
 DatabaseManager::Connect();
 
-$getRoleIDStatement = DatabaseManager::PrepareStatement("SELECT ID FROM Institution_Roles WHERE Title = :title");
+$getRoleIDStatement = DatabaseManager::PrepareStatement("SELECT ID FROM Institution_Roles WHERE Title = :title AND Institution_ID = :institutionID");
 $getRoleIDStatement->bindParam(":title", $newRole);
+$getRoleIDStatement->bindParam(":institutionID", $institutionID);
 $getRoleIDStatement->execute();
 $roleRow = $getRoleIDStatement->fetch(PDO::FETCH_OBJ);
 
