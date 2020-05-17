@@ -46,6 +46,15 @@ namespace DAO {
             $this->documentType = $type;
             return $this;
         }
+
+        /**
+         * @param $toggle
+         * @return $this
+         */
+        public function setIsApproved($toggle) {
+            $this->isApproved = $toggle;
+            return $this;
+        }
     }
 }
 ?>
