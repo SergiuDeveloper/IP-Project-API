@@ -83,7 +83,7 @@
             Date_Created,
             document_types.Title
         FROM documents JOIN document_types on documents.Document_Types_ID = document_types.ID 
-        WHERE Sender_Institution_ID = :institutionID
+        WHERE Sender_Institution_ID = :institutionID AND Is_Approved = :isApproved
     ";
 
     $responseArray = array();
@@ -93,6 +93,7 @@
 
         $statement = DatabaseManager::PrepareStatement($statementString);
         $statement->bindParam(":institutionID", $institutionID);
+        $statement->bindParam(":isApproved", $canViewUnapproved, PDO::PARAM_BOOL);
         $statement->execute();
 
         while($row = $statement->fetch(PDO::FETCH_OBJ)){

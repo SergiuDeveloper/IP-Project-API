@@ -72,7 +72,7 @@
             Date_Created,
             Document_Types.Title
         FROM documents JOIN document_types on documents.Document_Types_ID = document_types.ID
-        WHERE Receiver_User_ID = :userID
+        WHERE Receiver_User_ID = :userID AND Is_Approved = true
     " . (($institutionID != null) ? " AND Receiver_Institution_ID = :institutionID" : "");
 
     $responseArray = array();
