@@ -61,7 +61,7 @@
     $queryInstitutionMember = "SELECT * FROM Institution_Members i JOIN Users u ON i.User_ID = u.ID
      WHERE u.Email = :callerEmail AND i.Institution_ID = :institutionID;";
 
-    $queryGetMembers = "SELECT r.ID, u.Email, r.title FROM Institution_Members i JOIN Users u ON i.User_ID = u.ID
+    $queryGetMembers = "SELECT r.ID, u.ID as UID, u.Email, r.title FROM Institution_Members i JOIN Users u ON i.User_ID = u.ID
     JOIN Institution_Roles r ON i.Institution_Roles_ID = r.ID
     WHERE i.Institution_ID = :institutionID;";
 
@@ -118,7 +118,9 @@
         $getMembers->execute();
 
         while($getMembersRow = $getMembers->fetch(PDO::FETCH_ASSOC)){
-            $member=new Member($getMembersRow["Email"],$getMembersRow["title"], $getMembersRow['ID']);
+            $member=new Member($getMembersRow["Email"],$getMembersRow["title"], $getMembersRow['ID'], $getMembersRow['UID']);
+
+            //echo 'debug' . $getMembersRow['UID'], PHP_EOL;
 
             array_push($institutionMembers,$member);
         }
@@ -159,12 +161,14 @@
         public $email;
         public $role;
         public $id;
+        public $userID;
 
-        function __construct($email, $role, $id)
+        function __construct($email, $role, $id, $userID)
         {
             $this->email = $email;
             $this->role = $role;
             $this->id = $id;
+            $this->userID = $userID;
         }
     }
 

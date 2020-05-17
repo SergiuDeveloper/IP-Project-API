@@ -52,7 +52,7 @@
 
     $queryIdInstitution = "SELECT ID FROM Institutions WHERE name = :institutionName;";
 
-    $queryGetRoles = "SELECT Title, Institution_Rights_ID FROM Institution_Roles
+    $queryGetRoles = "SELECT ID, Title, Institution_Rights_ID FROM Institution_Roles
     WHERE Institution_ID = :institutionID;";
 
     $queryGetRoleRights = "
@@ -87,7 +87,7 @@
         $getRoles->execute();
 
         while($getRolesRow = $getRoles->fetch(PDO::FETCH_ASSOC)){
-            array_push($institutionRoles, new RoleDAO($getRolesRow['Title'], $getRolesRow['Institution_Rights_ID']));
+            array_push($institutionRoles, new RoleDAO($getRolesRow['Title'], $getRolesRow['Institution_Rights_ID'], $getRolesRow['ID']));
         }
 
         foreach($institutionRoles as $role){
@@ -124,11 +124,13 @@
         public $name;
         private $rightsID;
         public $rights;
+        public $ID;
 
-        public function __construct($name, $ID){
-            $this->rightsID = $ID;
+        public function __construct($name, $rightsID, $ID){
+            $this->rightsID = $rightsID;
             $this->name = $name;
             $this->rights = null;
+            $this->ID = $ID;
         }
 
         public function setRights($rights){
