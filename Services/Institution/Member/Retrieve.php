@@ -61,7 +61,7 @@
     $queryInstitutionMember = "SELECT * FROM Institution_Members i JOIN Users u ON i.User_ID = u.ID
      WHERE u.Email = :callerEmail AND i.Institution_ID = :institutionID;";
 
-    $queryGetMembers = "SELECT u.ID, u.Email, r.title FROM Institution_Members i JOIN Users u ON i.User_ID = u.ID
+    $queryGetMembers = "SELECT r.ID, u.Email, r.title FROM Institution_Members i JOIN Users u ON i.User_ID = u.ID
     JOIN Institution_Roles r ON i.Institution_Roles_ID = r.ID
     WHERE i.Institution_ID = :institutionID;";
 
