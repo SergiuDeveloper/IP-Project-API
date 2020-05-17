@@ -182,6 +182,8 @@ Retrieve Document (GET) :
 	link : rootpath/Document/Retrieve.php?email=vlad.loghin00@gmail.com&hashedPassword=parola&institutionName=TestareDocumenteFinal&documentID=46
 
 
-Retrieve Created Documents (GET) : 
+Retrieve User Created Documents (GET) :
 	link : rootpath/Document/RetrieveCreatedDocuments.php?email=vlad.loghin00@gmail.com&hashedPassword=parola&institutionName=TestareDocumenteFinal  <- nume inst. optional
-	
+
+
+Retrieve User Received Documents

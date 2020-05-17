@@ -13,6 +13,7 @@ namespace DAO {
         public $dateCreated;
         public $dateSent;
         public $isSent;
+        public $isApproved;
 
         public $documentType;
 

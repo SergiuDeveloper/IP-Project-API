@@ -68,6 +68,7 @@ class InstitutionRoles{
             case InstitutionActions::PREVIEW_SPECIFIC_RECEIVED_DOCUMENT :   return $rightsDictionary['Can_Preview_Specific_Received_Document'];
             case InstitutionActions::REMOVE_RECEIVED_DOCUMENTS :            return $rightsDictionary['Can_Remove_Received_Documents'];
             case InstitutionActions::DOWNLOAD_DOCUMENTS :                   return $rightsDictionary['Can_Download_Documents'];
+            case InstitutionActions::APPROVE_DOCUMENTS :                    return $rightsDictionary['Can_Approve_Documents;'];
 
             default : throw new InstitutionRolesInvalidAction("Invalid Action");
         }
@@ -182,7 +183,8 @@ class InstitutionRoles{
             "Can_Remove_Roles"                          => true,
             "Can_Modify_Roles"                          => true,
             "Can_Assign_Roles"                          => true,
-            "Can_Deassign_Roles"                        => true
+            "Can_Deassign_Roles"                        => true,
+            "Can_Approve_Documents"                     => true
         ];
 
         $rightsID = self::fetchRightsID($fullRoleRights);
@@ -776,6 +778,7 @@ class InstitutionRoles{
         $SQLStatement->bindParam(':canModifyRoles',                     $rightsDictionary['Can_Modify_Roles'],                          PDO::PARAM_BOOL);
         $SQLStatement->bindParam(':canAssignRoles',                     $rightsDictionary['Can_Assign_Roles'],                          PDO::PARAM_BOOL);
         $SQLStatement->bindParam(':canDeassignRoles',                   $rightsDictionary['Can_Deassign_Roles'],                        PDO::PARAM_BOOL);
+        $SQLStatement->bindParam(':canApproveDocuments',                $rightsDictionary['Can_Approve_Documents'],                     PDO::PARAM_BOOL);
         return $SQLStatement;
     }
 
@@ -881,7 +884,8 @@ class InstitutionRoles{
             Can_Remove_Roles,
             Can_Modify_Roles,
             Can_Assign_Roles,
-            Can_Deassign_Roles
+            Can_Deassign_Roles,
+            Can_Approve_Documents
         FROM institution_rights WHERE ID = (
             SELECT Institution_Rights_ID FROM institution_roles WHERE ID = (
                 SELECT Institution_Roles_ID FROM institution_members WHERE User_ID = (
@@ -910,7 +914,8 @@ class InstitutionRoles{
             Can_Remove_Roles =                          :canRemoveRoles                     AND
             Can_Modify_Roles =                          :canModifyRoles                     AND
             Can_Assign_Roles =                          :canAssignRoles                     AND
-            Can_Deassign_Roles =                        :canDeassignRoles
+            Can_Deassign_Roles =                        :canDeassignRoles                   AND
+            Can_Approve_Documents =                     :canApproveDocuments                                 
         ";
 
     private static $updateRightsStatement = "
@@ -931,7 +936,8 @@ class InstitutionRoles{
             Can_Remove_Roles                        = :canRemoveRoles,
             Can_Modify_Roles                        = :canModifyRoles,
             Can_Assign_Roles                        = :canAssignRoles,
-            Can_Deassign_Roles                      = :canDeassignRoles
+            Can_Deassign_Roles                      = :canDeassignRoles,
+            Can_Approve_Documents                   = :canApproveDocuments
         WHERE
             ID = :ID
     ";
@@ -955,7 +961,8 @@ class InstitutionRoles{
             Can_Remove_roles,
             Can_Modify_Roles,
             Can_Assign_Roles,
-            Can_Deassign_Roles
+            Can_Deassign_Roles,
+            Can_Approve_Documents         
         ) value (
             :ID,
             :canModifyInstitution, 
@@ -974,7 +981,8 @@ class InstitutionRoles{
             :canRemoveRoles,
             :canModifyRoles,
             :canAssignRoles,
-            :canDeassignRoles
+            :canDeassignRoles,  
+            :canApproveDocuments
         )
     ";
 
