@@ -86,7 +86,7 @@ try
 {
     ResponseHandler::getInstance()
         ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
-        ->addResponseData("addresses", $addressArray)
+        ->addResponseData("Addresses", $addressArray)
         ->send();
 }
 catch(Exception $e)
