@@ -14,3 +14,8 @@ DEFAULT_ITEM_VALUE_CURRENCY = RON
 6 ) Tabela inst. whitelist (PRIETENI)  <- Vlad
 7 ) Servicii de get into whitelist
 8 ) On send, A sends doc d to B. If B trusts A, then d auto approve.
+
+9 ) Inst : adaugi o alta inst. ca si trusted  ( A adds B, A = Inst, B = Trusted Inst. => B trimte doc. la A, doc este automat aprobat )
+10 ) scoatere =||===
+
+11 ) din 9 si 10 -> Send.php a.i.

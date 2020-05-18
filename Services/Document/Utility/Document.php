@@ -238,6 +238,9 @@ abstract class Document
             }
         }
 
+        /**
+         * Daca receiver trusts sender => isapproved = 1
+         */
         $statementString = "UPDATE documents SET Is_Sent = :isSent, Date_Sent = CURRENT_TIMESTAMP, Receiver_Institution_ID = :institutionID, Receiver_Address_ID = :addressID, Sender_User_ID = :senderUserID";
 
         if($this->receiverID != null){
