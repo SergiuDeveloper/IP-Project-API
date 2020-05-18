@@ -62,7 +62,7 @@
 
     $institutionID = InstitutionValidator::getLastValidatedInstitution()->getID();
 
-    $queryGetInstID = "SELECT id from institutions WHERE Name = :instName";
+    $queryGetInstID = "SELECT ID from institutions WHERE Name = :instName";
     $getFromWhitelist = "SELECT ID FROM institution_whitelist WHERE Institution_ID = :instID AND Trusted_Institution_ID = :trustedInstID";
     $queryDeleteTrustedInst = "DELETE FROM institution_whitelist WHERE ID = :trustID";
 
@@ -72,6 +72,8 @@
         $getInst = DatabaseManager::PrepareStatement($queryGetInstID);
         $getInst->bindParam(":instName", $institutionName);
         $getInst->execute();
+
+//        $getInst->debugDumpParams();
 
         $instRow = $getInst->fetch(PDO::FETCH_ASSOC);
         if($instRow == null){
@@ -96,7 +98,7 @@
 
         $getTrust = DatabaseManager::PrepareStatement($getFromWhitelist);
         $getTrust->bindParam(":instID", $idInst);
-        $getTrust->bindParam(":trustedInstID", $trustedInstRow);
+        $getTrust->bindParam(":trustedInstID", $trustedInstID);
         $getTrust->execute(); 
         
         $getTrustRow = $getTrust->fetch(PDO::FETCH_ASSOC);
