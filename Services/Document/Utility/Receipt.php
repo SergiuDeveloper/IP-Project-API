@@ -219,6 +219,10 @@ class Receipt extends Document
         // TODO: Implement updateIntoDatabase() method.
     }
 
+    public function fetchFromDatabase($connected = false){
+        $this->fetchFromDatabaseByDocumentID($connected);
+    }
+
     public function fetchFromDatabaseByDocumentID($connected = false){
         try{
             parent::fetchFromDatabaseDocumentBaseByID($connected);
