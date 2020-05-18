@@ -49,7 +49,7 @@
     }
 
     try {
-        if (false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::APPROVE_DOCUMENTS)){
+        if (false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::MODIFY_INSTITUTION)){
             ResponseHandler::getInstance()
                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION"))
                 ->send();
@@ -74,6 +74,12 @@
         $getInst->execute();
 
         $instRow = $getInst->fetch(PDO::FETCH_ASSOC);
+        if($instRow == null){
+            ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND"))
+            ->send();
+        }
+        $idInst = $instRow["ID"];
 
         $getInst = DatabaseManager::PrepareStatement($queryGetInstID);
         $getInst->bindParam(":instName", $trustedInst);
@@ -81,15 +87,16 @@
 
         $trustedInstRow = $getInst->fetch(PDO::FETCH_ASSOC);
 
-        if($instRow == null || $trustedInstRow == null){
+        if($trustedInstRow == null){
             ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND"))
             ->send();
         }
+        $trustedInstID = $trustedInstRow["ID"];
 
         $getTrust = DatabaseManager::PrepareStatement($getFromWhitelist);
-        $getTrust->bindParam(":instID", $instRow['ID']);
-        $getTrust->bindParam(":trustedInstID", $trustedInstRow['ID']);
+        $getTrust->bindParam(":instID", $idInst);
+        $getTrust->bindParam(":trustedInstID", $trustedInstRow);
         $getTrust->execute(); 
         
         $getTrustRow = $getTrust->fetch(PDO::FETCH_ASSOC);

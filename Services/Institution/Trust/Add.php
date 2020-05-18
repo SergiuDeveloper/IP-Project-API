@@ -49,7 +49,7 @@
     }
 
     try {
-        if (false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::APPROVE_DOCUMENTS)){
+        if (false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::MODIFY_INSTITUTION)){
             ResponseHandler::getInstance()
                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION"))
                 ->send();
@@ -62,7 +62,7 @@
 
     $institutionID = InstitutionValidator::getLastValidatedInstitution()->getID();
 
-    $queryGetInstID = "SELECT id from institutions WHERE Name = :instName";
+    $queryGetInstID = "SELECT ID from institutions WHERE Name = :instName";
     $getFromWhitelist = "SELECT ID FROM institution_whitelist WHERE Institution_ID = :instID AND Trusted_Institution_ID = :trustedInstID";
     $queryInsetTrustedInst = "INSERT into institution_whitelist(Institution_ID,Trusted_Institution_ID) VALUES(:instID,:trustedInstID)";
 
@@ -74,6 +74,12 @@
         $getInst->execute();
 
         $instRow = $getInst->fetch(PDO::FETCH_ASSOC);
+        if($instRow == null){
+            ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND"))
+            ->send();
+        }
+        $idInst = $instRow["ID"];
 
         $getInst = DatabaseManager::PrepareStatement($queryGetInstID);
         $getInst->bindParam(":instName", $trustedInst);
@@ -81,28 +87,29 @@
 
         $trustedInstRow = $getInst->fetch(PDO::FETCH_ASSOC);
 
-        if($instRow == null || $trustedInstRow == null){
+        if($trustedInstRow == null){
             ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND"))
             ->send();
         }
+        $trustedInstID = $trustedInstRow["ID"];
 
         $getTrust = DatabaseManager::PrepareStatement($getFromWhitelist);
-        $getTrust->bindParam(":instID", $instRow['ID']);
-        $getTrust->bindParam(":trustedInstID", $trustedInstRow['ID']);
+        $getTrust->bindParam(":instID", $idInst);
+        $getTrust->bindParam(":trustedInstID", $trustedInstID);
         $getTrust->execute(); 
         
         $getTrustRow = $getTrust->fetch(PDO::FETCH_ASSOC);
         
         if($getTrustRow != null){
             ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INST_ALREADY_ON WHITELIST"))
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INST_ALREADY_ON_WHITELIST"))
             ->send();
         }
 
         $insertTrust = DatabaseManager::PrepareStatement($queryInsetTrustedInst);
-        $insertTrust->bindParam(":instID", $instRow['ID']);
-        $insertTrust->bindParam(":trustedInstID", $trustedInstRow['ID']);
+        $insertTrust->bindParam(":instID", $idInst);
+        $insertTrust->bindParam(":trustedInstID", $trustedInstID);
         $insertTrust->execute();
 
         DatabaseManager::Disconnect();
