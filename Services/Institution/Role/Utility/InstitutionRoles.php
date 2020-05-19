@@ -68,6 +68,7 @@ class InstitutionRoles{
             case InstitutionActions::PREVIEW_SPECIFIC_RECEIVED_DOCUMENT :   return $rightsDictionary['Can_Preview_Specific_Received_Document'];
             case InstitutionActions::REMOVE_RECEIVED_DOCUMENTS :            return $rightsDictionary['Can_Remove_Received_Documents'];
             case InstitutionActions::DOWNLOAD_DOCUMENTS :                   return $rightsDictionary['Can_Download_Documents'];
+            case InstitutionActions::APPROVE_DOCUMENTS :                    return $rightsDictionary['Can_Approve_Documents'];
 
             default : throw new InstitutionRolesInvalidAction("Invalid Action");
         }
@@ -182,7 +183,8 @@ class InstitutionRoles{
             "Can_Remove_Roles"                          => true,
             "Can_Modify_Roles"                          => true,
             "Can_Assign_Roles"                          => true,
-            "Can_Deassign_Roles"                        => true
+            "Can_Deassign_Roles"                        => true,
+            "Can_Approve_Documents"                     => true
         ];
 
         $rightsID = self::fetchRightsID($fullRoleRights);
@@ -320,63 +322,66 @@ class InstitutionRoles{
 
         self::updateRoleName($roleID, $newRoleName);
 
-        if(self::canModifyOrDeleteRole($roleID) == true){
-           if(self::updateRoleRights($roleID, $newRoleRights) == false){
+        if($newRoleRights != null){
+            if(self::canModifyOrDeleteRole($roleID) == true){
+               if(self::updateRoleRights($roleID, $newRoleRights) == false){
 
-               $rightsID = self::fetchRightsID($newRoleRights);
+                   $rightsID = self::fetchRightsID($newRoleRights);
 
-               try{
-                    DatabaseManager::Connect();
+                   try{
+                        DatabaseManager::Connect();
 
-                    $SQLStatement = DatabaseManager::PrepareStatement(self::$updateRoleRightsStatement);
+                        $SQLStatement = DatabaseManager::PrepareStatement(self::$updateRoleRightsStatement);
 
-                    $SQLStatement->bindParam(":ID", $roleID);
-                    $SQLStatement->bindParam(":rightsID", $rightsID);
+                        $SQLStatement->bindParam(":ID", $roleID);
+                        $SQLStatement->bindParam(":rightsID", $rightsID);
 
-                    $SQLStatement->execute();
+                        $SQLStatement->execute();
 
-                    if($SQLStatement->rowCount() == 0){
-                        ResponseHandler::getInstance()
-                            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS"))
-                            ->send();
-                        /*
-                        $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS");
+//                        $SQLStatement->debugDumpParams();
 
-                        echo json_encode($response), PHP_EOL;
-                        http_response_code(StatusCodes::OK);
-                        die();
-                        */
-                    }
+                        if($SQLStatement->rowCount() == 0){
+                            ResponseHandler::getInstance()
+                                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS"))
+                                ->send();
+                            /*
+                            $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS");
 
-                    DatabaseManager::Disconnect();
+                            echo json_encode($response), PHP_EOL;
+                            http_response_code(StatusCodes::OK);
+                            die();
+                            */
+                        }
+
+                        DatabaseManager::Disconnect();
+                   }
+                   catch(Exception $exception){
+                       ResponseHandler::getInstance()
+                           ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                           ->send();
+                       /*
+                       $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
+
+                       echo json_encode($response), PHP_EOL;
+                       http_response_code(StatusCodes::OK);
+                       die();
+                       */
+                   }
                }
-               catch(Exception $exception){
-                   ResponseHandler::getInstance()
-                       ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
-                       ->send();
-                   /*
-                   $response = CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT");
+            }
+            else{
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_RIGHTS_UNMODIFIABLE"))
+                    ->send();
+                /*
+                $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_RIGHTS_UNMODIFIABLE");
 
-                   echo json_encode($response), PHP_EOL;
-                   http_response_code(StatusCodes::OK);
-                   die();
-                   */
-               }
-           }
+                echo json_encode($response), PHP_EOL;
+                http_response_code(StatusCodes::OK);
+                die();
+                */
+            }
         }
-        else{
-            ResponseHandler::getInstance()
-                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_RIGHTS_UNMODIFIABLE"))
-                ->send();
-            /*
-            $response = CommonEndPointLogic::GetFailureResponseStatus("ROLE_RIGHTS_UNMODIFIABLE");
-
-            echo json_encode($response), PHP_EOL;
-            http_response_code(StatusCodes::OK);
-            die();
-            */
-        }
-
     }
 
     private static function linkRoleWithRights($institutionID, $institutionRightsID, $roleTitle){
@@ -442,12 +447,16 @@ class InstitutionRoles{
 
             $SQLStatement->execute();
 
+//            $SQLStatement->debugDumpParams();
+
             $rightsID = $SQLStatement->fetch(PDO::FETCH_OBJ);
 
             $SQLStatement = self::generateRightsStatement(self::GENERATE_RIGHTS_UPDATE_ROW_STATEMENT, $newRoleRightsDictionary);
             $SQLStatement->bindParam(":ID", $rightsID->Institution_Rights_ID);
 
             $SQLStatement->execute();
+
+//            $SQLStatement->debugDumpParams();
 
             if($SQLStatement->rowCount() == 0){
                 /**
@@ -567,6 +576,8 @@ class InstitutionRoles{
             $SQLStatement->execute();
 
             $rightsDictionary = $SQLStatement->fetch(PDO::FETCH_ASSOC);
+
+//            print_r($rightsDictionary);
 
             DatabaseManager::Disconnect();
 
@@ -775,6 +786,7 @@ class InstitutionRoles{
         $SQLStatement->bindParam(':canModifyRoles',                     $rightsDictionary['Can_Modify_Roles'],                          PDO::PARAM_BOOL);
         $SQLStatement->bindParam(':canAssignRoles',                     $rightsDictionary['Can_Assign_Roles'],                          PDO::PARAM_BOOL);
         $SQLStatement->bindParam(':canDeassignRoles',                   $rightsDictionary['Can_Deassign_Roles'],                        PDO::PARAM_BOOL);
+        $SQLStatement->bindParam(':canApproveDocuments',                $rightsDictionary['Can_Approve_Documents'],                     PDO::PARAM_BOOL);
         return $SQLStatement;
     }
 
@@ -880,7 +892,8 @@ class InstitutionRoles{
             Can_Remove_Roles,
             Can_Modify_Roles,
             Can_Assign_Roles,
-            Can_Deassign_Roles
+            Can_Deassign_Roles,
+            Can_Approve_Documents
         FROM institution_rights WHERE ID = (
             SELECT Institution_Rights_ID FROM institution_roles WHERE ID = (
                 SELECT Institution_Roles_ID FROM institution_members WHERE User_ID = (
@@ -909,7 +922,8 @@ class InstitutionRoles{
             Can_Remove_Roles =                          :canRemoveRoles                     AND
             Can_Modify_Roles =                          :canModifyRoles                     AND
             Can_Assign_Roles =                          :canAssignRoles                     AND
-            Can_Deassign_Roles =                        :canDeassignRoles
+            Can_Deassign_Roles =                        :canDeassignRoles                   AND
+            Can_Approve_Documents =                     :canApproveDocuments                                 
         ";
 
     private static $updateRightsStatement = "
@@ -930,7 +944,8 @@ class InstitutionRoles{
             Can_Remove_Roles                        = :canRemoveRoles,
             Can_Modify_Roles                        = :canModifyRoles,
             Can_Assign_Roles                        = :canAssignRoles,
-            Can_Deassign_Roles                      = :canDeassignRoles
+            Can_Deassign_Roles                      = :canDeassignRoles,
+            Can_Approve_Documents                   = :canApproveDocuments
         WHERE
             ID = :ID
     ";
@@ -954,7 +969,8 @@ class InstitutionRoles{
             Can_Remove_roles,
             Can_Modify_Roles,
             Can_Assign_Roles,
-            Can_Deassign_Roles
+            Can_Deassign_Roles,
+            Can_Approve_Documents         
         ) value (
             :ID,
             :canModifyInstitution, 
@@ -973,7 +989,8 @@ class InstitutionRoles{
             :canRemoveRoles,
             :canModifyRoles,
             :canAssignRoles,
-            :canDeassignRoles
+            :canDeassignRoles,  
+            :canApproveDocuments
         )
     ";
 

@@ -4,15 +4,12 @@
         define('ROOT', dirname(__FILE__) . '/..');
     }
 
-    require_once(ROOT . "/Utility/CommonEndPointLogic.php");
-    require_once(ROOT . "/Utility/UserValidation.php");
-    require_once(ROOT . "/Utility/StatusCodes.php");
-    require_once(ROOT . "/Utility/SuccessStates.php");
-    require_once(ROOT . "/Utility/ResponseHandler.php");
+    require_once(ROOT . "/Utility/Utilities.php");
 
-    require_once("Role/Utility/InstitutionRoles.php");
-    require_once("Utility/InstitutionCreation.php");
-    require_once("Utility/InstitutionValidator.php");
+    require_once(ROOT . "/Institution/Role/Utility/InstitutionRoles.php");
+    require_once(ROOT . "/Institution/Role/Utility/InstitutionActions.php");
+    require_once(ROOT . "/Institution/Utility/InstitutionCreation.php");
+    require_once(ROOT . "/Institution/Utility/InstitutionValidator.php");
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
@@ -24,22 +21,39 @@
 
     $institutionNewAddresses = json_decode($institutionNewAddressesJSON, true);
 
-    if($callerEmail == null || $callerPassword == null || $institutionName == null || $institutionNewAddresses == null){
+    $apiKey = $_POST["apiKey"];
+
+    if($apiKey != null){
+        try {
+            $credentials = APIKeyHandler::getInstance()->setAPIKey($apiKey)->getCredentials();
+        } catch (APIKeyHandlerKeyUnbound $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNBOUND_KEY"))
+                ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+        } catch (APIKeyHandlerAPIKeyInvalid $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_KEY"))
+                ->send();
+        }
+
+        $email = $credentials->getEmail();
+        //$hashedPassword = $credentials->getHashedPassword();
+    } else {
+        if ($email == null || $hashedPassword == null) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+                ->send(StatusCodes::BAD_REQUEST);
+        }
+        CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+    }
+
+    if($institutionName == null || $institutionNewAddresses == null){
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
             ->send(StatusCodes::BAD_REQUEST);
-        /*
-        $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT");
-
-        echo json_encode($failureResponseStatus), PHP_EOL;
-        http_response_code(StatusCodes::BAD_REQUEST);
-        die();
-        */
     }
 
     $successfullyConnectedToDB = DatabaseManager::Connect();
-
-    CommonEndPointLogic::ValidateUserCredentials($callerEmail, $callerPassword);
 
     try
     {

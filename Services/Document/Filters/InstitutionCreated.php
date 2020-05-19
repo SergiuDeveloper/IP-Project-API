@@ -18,9 +18,33 @@
     $hashedPassword = $_GET['hashedPassword'];
     $institutionName = $_GET['institutionName'];
 
+    $apiKey = $_GET["apiKey"];
+
+    if($apiKey != null){
+        try {
+            $credentials = APIKeyHandler::getInstance()->setAPIKey($apiKey)->getCredentials();
+        } catch (APIKeyHandlerKeyUnbound $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNBOUND_KEY"))
+                ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+        } catch (APIKeyHandlerAPIKeyInvalid $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_KEY"))
+                ->send();
+        }
+
+        $email = $credentials->getEmail();
+        //$hashedPassword = $credentials->getHashedPassword();
+    } else {
+        if ($email == null || $hashedPassword == null) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+                ->send(StatusCodes::BAD_REQUEST);
+        }
+        CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+    }
+
     if(
-        $email == null ||
-        $hashedPassword == null ||
         $institutionName == null
     ){
         ResponseHandler::getInstance()
@@ -28,7 +52,7 @@
             ->send(StatusCodes::BAD_REQUEST);
     }
 
-    CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+    //CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
     try {
         if (false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::PREVIEW_UPLOADED_DOCUMENTS)) {
@@ -64,12 +88,25 @@
 
     $responseArray = array();
 
+//    try {
+//        $canViewUnapproved = !InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::APPROVE_DOCUMENTS);
+//    } catch (InstitutionRolesInvalidAction $e) {
+//        ResponseHandler::getInstance()
+//            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_ACTION"))
+//            ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+//    }
+
+
+
     try{
         DatabaseManager::Connect();
 
         $statement = DatabaseManager::PrepareStatement($statementString);
         $statement->bindParam(":institutionID", $institutionID);
+//        $statement->bindParam(":isApproved", $canViewUnapproved, PDO::PARAM_BOOL);
         $statement->execute();
+
+//        $statement->debugDumpParams();
 
         while($row = $statement->fetch(PDO::FETCH_OBJ)){
             $document = new \DAO\Document();

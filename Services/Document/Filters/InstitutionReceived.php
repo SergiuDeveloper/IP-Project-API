@@ -18,9 +18,33 @@
     $hashedPassword = $_GET['hashedPassword'];
     $institutionName = $_GET['institutionName'];
 
+    $apiKey = $_GET["apiKey"];
+
+    if($apiKey != null){
+        try {
+            $credentials = APIKeyHandler::getInstance()->setAPIKey($apiKey)->getCredentials();
+        } catch (APIKeyHandlerKeyUnbound $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNBOUND_KEY"))
+                ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+        } catch (APIKeyHandlerAPIKeyInvalid $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_KEY"))
+                ->send();
+        }
+
+        $email = $credentials->getEmail();
+        //$hashedPassword = $credentials->getHashedPassword();
+    } else {
+        if ($email == null || $hashedPassword == null) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+                ->send(StatusCodes::BAD_REQUEST);
+        }
+        CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+    }
+
     if(
-        $email == null ||
-        $hashedPassword == null ||
         $institutionName == null
     ){
         ResponseHandler::getInstance()
@@ -28,7 +52,7 @@
             ->send(StatusCodes::BAD_REQUEST);
     }
 
-    CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+    //CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
     try {
         if (false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::PREVIEW_RECEIVED_DOCUMENTS)) {
@@ -44,6 +68,16 @@
 
     $institutionID = InstitutionValidator::getLastValidatedInstitution()->getID();
 
+    $canViewUnapproved = false;
+
+    try{
+        $canViewUnapproved = InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::APPROVE_DOCUMENTS);
+    } catch (InstitutionRolesInvalidAction $e){
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_ACTION"))
+            ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+    }
+
     $statementString = "
         SELECT 
             documents.ID,
@@ -55,11 +89,12 @@
             Receiver_Address_ID,
             Receiver_User_ID,
             Is_Sent,
+            Is_Approved,
             Date_Sent,
             Date_Created,
             document_types.Title
         FROM documents JOIN document_types on documents.Document_Types_ID = document_types.ID 
-        WHERE Receiver_Institution_ID = :institutionID
+        WHERE Receiver_Institution_ID = :institutionID AND ((Is_Approved = 0 AND :isApproved = 1) OR Is_Approved = 1)
     ";
 
     $responseArray = array();
@@ -69,7 +104,10 @@
 
         $statement = DatabaseManager::PrepareStatement($statementString);
         $statement->bindParam(":institutionID", $institutionID);
+        $statement->bindParam(":isApproved", $canViewUnapproved, PDO::PARAM_BOOL);
         $statement->execute();
+
+//        $statement->debugDumpParams();
 
         while($row = $statement->fetch(PDO::FETCH_OBJ)){
             $document = new \DAO\Document();
@@ -85,6 +123,7 @@
             $document->receiverAddressID = $row->Receiver_Address_ID;
             $document->receiverInstitutionID = $row->Receiver_Institution_ID;
             $document->isSent = $row->Is_Sent;
+            $document->isApproved = $row->Is_Approved;
 
             $document->documentType = $row->Title;
 

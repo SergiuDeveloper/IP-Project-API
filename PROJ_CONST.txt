@@ -1,3 +1,21 @@
 ROOT = root path to the service. User defined. ALWAYS Use with includes ( Because of php relative includes )
 CALLER_USER_ID = service caller's username. Defined once after one call of ValidateUser. Cannot be redefined afterwards
 DEFAULT_ITEM_VALUE_CURRENCY = RON
+
+
+
+
+1 ) drepturi, inst Roles. <- Vlad
+2 ) DAO Documente                   Diana - informare
+3 ) Approve Document Endpoint       Diana  (ID doc., ai dreptul)
+4 ) Filter -> get all unapproved docs (inst. received)    Diana
+5 ) Modif. Filtre a.i. , Daca ai dreptul de a da approve, vezi si doc. unapproved, daca nu, nu
+
+6 ) Tabela inst. whitelist (PRIETENI)  <- Vlad
+7 ) Servicii de get into whitelist
+8 ) On send, A sends doc d to B. If B trusts A, then d auto approve.
+
+9 ) Inst : adaugi o alta inst. ca si trusted  ( A adds B, A = Inst, B = Trusted Inst. => B trimte doc. la A, doc este automat aprobat )
+10 ) scoatere =||===
+
+11 ) din 9 si 10 -> Send.php a.i.

@@ -12,17 +12,40 @@
     require_once (ROOT . '/Institution/Role/Utility/InstitutionRoles.php');
     require_once (ROOT . '/Institution/Role/Utility/InstitutionActions.php');
 
-
-CommonEndPointLogic::ValidateHTTPPOSTRequest();
+    CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
     $email = $_POST['email'];
     $hashedPassword = $_POST['hashedPassword'];
     $institutionName = $_POST['institutionName'];
     $documentID = $_POST['documentID'];
 
+    $apiKey = $_POST["apiKey"];
+
+    if($apiKey != null){
+        try {
+            $credentials = APIKeyHandler::getInstance()->setAPIKey($apiKey)->getCredentials();
+        } catch (APIKeyHandlerKeyUnbound $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNBOUND_KEY"))
+                ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+        } catch (APIKeyHandlerAPIKeyInvalid $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_KEY"))
+                ->send();
+        }
+
+        $email = $credentials->getEmail();
+        //$hashedPassword = $credentials->getHashedPassword();
+    } else {
+        if ($email == null || $hashedPassword == null) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+                ->send(StatusCodes::BAD_REQUEST);
+        }
+        CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+    }
+
     if(
-        $email == null ||
-        $hashedPassword == null ||
         $institutionName == null ||
         $documentID == null
     ){
@@ -31,7 +54,7 @@ CommonEndPointLogic::ValidateHTTPPOSTRequest();
             ->send();
     }
 
-    CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
+    //CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
     InstitutionValidator::validateInstitution($institutionName);
 

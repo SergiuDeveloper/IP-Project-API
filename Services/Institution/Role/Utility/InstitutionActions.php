@@ -24,5 +24,6 @@ class InstitutionActions
     const PREVIEW_SPECIFIC_RECEIVED_DOCUMENT    = 14;
     const REMOVE_RECEIVED_DOCUMENTS             = 15;
     const DOWNLOAD_DOCUMENTS                    = 16;
+    const APPROVE_DOCUMENTS                     = 17;
 }
 ?>

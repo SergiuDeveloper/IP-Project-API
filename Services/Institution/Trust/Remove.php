@@ -6,17 +6,15 @@
 
     require_once(ROOT . "/Utility/Utilities.php");
 
-    require_once(ROOT . "/Institution/Role/Utility/InstitutionActions.php");
-    require_once(ROOT . "/Institution/Role/Utility/InstitutionRoles.php");
+    require_once("../Role/Utility/InstitutionActions.php");
+    require_once("../Role/Utility/InstitutionRoles.php");
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
     $email              = $_POST["email"];
     $hashedPassword     = $_POST["hashedPassword"];
     $institutionName    = $_POST["institutionName"];
-    $contactEmail       = json_decode($_POST["contactEmail"], true);
-    $contactPhone       = json_decode($_POST["contactPhone"], true);
-    $contactFax         = json_decode($_POST["contactFax"], true);
+    $trustedInst        = $_POST["trustedInstitutionName"];
 
     $apiKey = $_POST["apiKey"];
 
@@ -44,13 +42,7 @@
         CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
     }
 
-    if ($institutionName == null) {
-        ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
-            ->send(StatusCodes::BAD_REQUEST);
-    }
-
-    if($contactEmail == null && $contactPhone == null && $contactFax == null){
+    if ($institutionName == null || $trustedInst == null) {
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
             ->send(StatusCodes::BAD_REQUEST);
@@ -70,43 +62,59 @@
 
     $institutionID = InstitutionValidator::getLastValidatedInstitution()->getID();
 
+    $queryGetInstID = "SELECT ID from institutions WHERE Name = :instName";
+    $getFromWhitelist = "SELECT ID FROM institution_whitelist WHERE Institution_ID = :instID AND Trusted_Institution_ID = :trustedInstID";
+    $queryDeleteTrustedInst = "DELETE FROM institution_whitelist WHERE ID = :trustID";
+
     try {
         DatabaseManager::Connect();
 
-        $clearEmailTableStatement = DatabaseManager::PrepareStatement("DELETE FROM contact_email_addresses WHERE Institution_ID = :institutionID");
-        $clearPhoneTableStatement = DatabaseManager::PrepareStatement("DELETE FROM contact_phone_numbers WHERE Institution_ID = :institutionID");
-        $clearFaxTableStatement = DatabaseManager::PrepareStatement("DELETE FROM contact_fax_numbers WHERE Institution_ID = :institutionID");
+        $getInst = DatabaseManager::PrepareStatement($queryGetInstID);
+        $getInst->bindParam(":instName", $institutionName);
+        $getInst->execute();
 
-        $clearEmailTableStatement->bindParam(":institutionID", $institutionID);
-        $clearPhoneTableStatement->bindParam(":institutionID", $institutionID);
-        $clearFaxTableStatement->bindParam(":institutionID", $institutionID);
+//        $getInst->debugDumpParams();
 
-        $clearEmailTableStatement->execute();
-        $clearPhoneTableStatement->execute();
-        $clearFaxTableStatement->execute();
+        $instRow = $getInst->fetch(PDO::FETCH_ASSOC);
+        if($instRow == null){
+            ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND"))
+            ->send();
+        }
+        $idInst = $instRow["ID"];
 
-        foreach ($contactEmail as $emailItem){
-            $insertEmailStatement = DatabaseManager::PrepareStatement("INSERT INTO contact_email_addresses (Value, Institution_ID) VALUES (:email, :institutionID)");
-            $insertEmailStatement->bindParam(":email", $emailItem);
-            $insertEmailStatement->bindParam(":institutionID", $institutionID);
-            $insertEmailStatement->execute();
+        $getInst = DatabaseManager::PrepareStatement($queryGetInstID);
+        $getInst->bindParam(":instName", $trustedInst);
+        $getInst->execute();
+
+        $trustedInstRow = $getInst->fetch(PDO::FETCH_ASSOC);
+
+        if($trustedInstRow == null){
+            ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INSTITUTION_NOT_FOUND"))
+            ->send();
+        }
+        $trustedInstID = $trustedInstRow["ID"];
+
+        $getTrust = DatabaseManager::PrepareStatement($getFromWhitelist);
+        $getTrust->bindParam(":instID", $idInst);
+        $getTrust->bindParam(":trustedInstID", $trustedInstID);
+        $getTrust->execute(); 
+        
+        $getTrustRow = $getTrust->fetch(PDO::FETCH_ASSOC);
+
+        if($getTrustRow == null){
+            ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("RELATIONSHIP_NOT_FOUND"))
+            ->send();
         }
 
-        foreach ($contactPhone as $phoneItem){
-            $insertEmailStatement = DatabaseManager::PrepareStatement("INSERT INTO contact_phone_numbers (Value, Institution_ID) VALUES (:phone, :institutionID)");
-            $insertEmailStatement->bindParam(":phone", $phoneItem);
-            $insertEmailStatement->bindParam(":institutionID", $institutionID);
-            $insertEmailStatement->execute();
-        }
-
-        foreach ($contactFax as $faxItem){
-            $insertEmailStatement = DatabaseManager::PrepareStatement("INSERT INTO contact_fax_numbers (Value, Institution_ID) VALUES (:fax, :institutionID)");
-            $insertEmailStatement->bindParam(":fax", $faxItem);
-            $insertEmailStatement->bindParam(":institutionID", $institutionID);
-            $insertEmailStatement->execute();
-        }
+        $deleteTrust = DatabaseManager::PrepareStatement($queryDeleteTrustedInst);
+        $deleteTrust->bindParam(":trustID", $getTrustRow['ID']);
+        $deleteTrust->execute();
 
         DatabaseManager::Disconnect();
+        
     } catch (Exception $exception){
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))

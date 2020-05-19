@@ -4,11 +4,7 @@
         define('ROOT', dirname(__FILE__) . '/..');
     }
 
-    require_once(ROOT . "/Utility/CommonEndPointLogic.php");
-    require_once(ROOT . "/Utility/UserValidation.php");
-    require_once(ROOT . "/Utility/StatusCodes.php");
-    require_once(ROOT . "/Utility/SuccessStates.php");
-    require_once(ROOT . "/Utility/ResponseHandler.php");
+    require_once (ROOT . '/Utility/Utilities.php');
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
@@ -19,25 +15,27 @@
         ResponseHandler::getInstance()
             ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
             ->send(StatusCodes::BAD_REQUEST);
-        /*
-        $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL");
-
-        echo json_encode($failureResponseStatus), PHP_EOL;
-        http_response_code(StatusCodes::BAD_REQUEST);
-        die();
-        */
     }   
 
     CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
-    ResponseHandler::getInstance()
-        ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
-        ->send();
+    try {
+        $apiKey = APIKeyHandler::getInstance()->setCredentials(new Credentials($email, $hashedPassword))->getAPIKey();
+    } catch (APIKeyHandlerCredentialsUnbound $e) {
+        ResponseHandler::getInstance()
+        ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNBOUND_CREDENTIALS_API_KEY"))
+        ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+    }
 
-    /*
-    $responseStatus = CommonEndPointLogic::GetSuccessResponseStatus();
+    try {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())
+            ->addResponseData("API_KEY", $apiKey)
+            ->send();
+    } catch (Exception $e) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INTERNAL_SERVER_ERROR"))
+            ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+    }
 
-    echo json_encode($responseStatus), PHP_EOL;
-    http_response_code(StatusCodes::OK);
-    */
 ?>

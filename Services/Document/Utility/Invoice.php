@@ -232,8 +232,6 @@ class Invoice extends Document
 
                 $item->setDescription('TBD');
 
-                //echo json_encode($item->getDAO()), PHP_EOL;
-
                 $item->fetchFromDatabase(true);
 
                 if($item->getID() == null) {

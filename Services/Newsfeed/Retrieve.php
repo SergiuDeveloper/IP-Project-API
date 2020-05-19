@@ -4,12 +4,7 @@
         define('ROOT', dirname(__FILE__) . '/..');
     }
 
-    require_once(ROOT . "/Utility/CommonEndPointLogic.php");
-    require_once(ROOT . "/Utility/UserValidation.php");
-    require_once(ROOT . "/Utility/StatusCodes.php");
-    require_once(ROOT . "/Utility/SuccessStates.php");
-    require_once(ROOT . "/Utility/DatabaseManager.php");
-    require_once(ROOT . "/Utility/ResponseHandler.php");
+    require_once(ROOT . "/Utility/Utilities.php");
 
     CommonEndPointLogic::ValidateHTTPGETRequest();
 
@@ -17,20 +12,39 @@
     $hashedPassword = $_GET["hashedPassword"];
     $postsCount     = $_GET["postsCount"];
 
-    if ($email == null || $hashedPassword == null || $postsCount == null) {
-        ResponseHandler::getInstance()
-            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
-            ->send(StatusCodes::BAD_REQUEST);
-        /*
-        $failureResponseStatus = CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL");
+    $apiKey = $_GET["apiKey"];
 
-        echo json_encode($failureResponseStatus), PHP_EOL;
-        http_response_code(StatusCodes::BAD_REQUEST);
-        die();
-        */
+    if($apiKey != null){
+        try {
+            $credentials = APIKeyHandler::getInstance()->setAPIKey($apiKey)->getCredentials();
+        } catch (APIKeyHandlerKeyUnbound $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNBOUND_KEY"))
+                ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+        } catch (APIKeyHandlerAPIKeyInvalid $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_KEY"))
+                ->send();
+        }
+
+        $email = $credentials->getEmail();
+        //$hashedPassword = $credentials->getHashedPassword();
+    } else {
+        if ($email == null || $hashedPassword == null) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+                ->send(StatusCodes::BAD_REQUEST);
+        }
+        CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
     }
 
-    CommonEndPointLogic::ValidateAdministrator($email, $hashedPassword);
+    if ($postsCount == null) {
+        ResponseHandler::getInstance()
+            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))
+            ->send(StatusCodes::BAD_REQUEST);
+    }
+
+    //CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
     /**
      * LIMIT with param does not work, needs hardcoding

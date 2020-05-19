@@ -4,12 +4,8 @@
         define('ROOT', dirname(__FILE__) . '/..');
     }
 
-    require_once("./Utility/NewsfeedCreationFunctions.php");
-    require_once(ROOT . "/Utility/CommonEndPointLogic.php");
-    require_once(ROOT . "/Utility/UserValidation.php");
-    require_once(ROOT . "/Utility/StatusCodes.php");
-    require_once(ROOT . "/Utility/SuccessStates.php");
-    require_once(ROOT . "/Utility/ResponseHandler.php");
+    require_once(ROOT . "Newsfeed/Utility/NewsfeedCreationFunctions.php");
+    require_once(ROOT . "/Utility/Utilities.php");
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 
@@ -21,9 +17,56 @@
     $notificationTags       = $_POST["tagsOfPost"];
     $notificationTagsArray  = json_decode($notificationTags);
 
+    $apiKey = $_POST["apiKey"];
+
+    if($apiKey != null){
+        try {
+            $credentials = APIKeyHandler::getInstance()->setAPIKey($apiKey)->getCredentials();
+        } catch (APIKeyHandlerKeyUnbound $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNBOUND_KEY"))
+                ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+        } catch (APIKeyHandlerAPIKeyInvalid $e) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_KEY"))
+                ->send();
+        }
+
+        $email = $credentials->getEmail();
+        //$hashedPassword = $credentials->getHashedPassword();
+
+        try{
+            DatabaseManager::Connect();
+
+            $statement = DatabaseManager::PrepareStatement("
+                SELECT administrators.ID FROM administrators JOIN users ON administrators.Users_ID = users.ID WHERE Email = :email
+            ");
+            $statement->bindParam(":email", $email);
+            $statement->execute();
+            
+            if($statement->rowCount() == 0) {
+                ResponseHandler::getInstance()
+                    ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NOT_ADMIN"))
+                    ->send();
+            }
+
+            DatabaseManager::Disconnect();
+        } catch (PDOException $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+        }
+
+    } else {
+        if ($email == null || $hashedPassword == null) {
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))
+                ->send(StatusCodes::BAD_REQUEST);
+        }
+        CommonEndPointLogic::ValidateAdministrator($email, $hashedPassword);
+    }
+
     if(
-        $email                  == null ||
-        $hashedPassword         == null ||
         $notificationName       == null ||
         $notificationLink       == null ||
         $notificationTagsArray  == null
@@ -40,7 +83,7 @@
         */
     }
 
-    CommonEndPointLogic::ValidateAdministrator($email, $hashedPassword);
+    //CommonEndPointLogic::ValidateAdministrator($email, $hashedPassword);
 
     $tagsIDsArray = NewsfeedCreation::validateNewsfeedPostAndGetTagsID($notificationName, $notificationTagsArray);
 

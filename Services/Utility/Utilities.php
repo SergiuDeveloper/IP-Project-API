@@ -10,6 +10,7 @@ require_once ( ROOT . '/Utility/ResponseHandler.php' );
 require_once ( ROOT . '/Utility/StatusCodes.php' );
 require_once ( ROOT . '/Utility/SuccessStates.php' );
 require_once ( ROOT . '/Utility/UserValidation.php' );
+require_once ( ROOT . '/Utility/APIKeyHandler.php' );
 
 require_once ( ROOT . '/Utility/Exceptions/ResponseHandlerNoHeader.php' );
 require_once ( ROOT . '/Utility/Exceptions/ResponseHandlerDuplicateLabel.php' );

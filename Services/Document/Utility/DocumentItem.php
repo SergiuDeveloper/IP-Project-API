@@ -64,6 +64,8 @@ class DocumentItem
      */
     private $currency;
 
+    private $institutionID;
+
     /**
      * [DEBUG FUNCTION]
      *
@@ -101,6 +103,7 @@ class DocumentItem
         else
             return
                 $this->title            == $item->title &&
+                $this->institutionID    == $item->institutionID &&
                 $this->description      == $item->description &&
                 $this->productNumber    == $item->productNumber &&
                 $this->valueBeforeTax   == $item->valueBeforeTax &&
@@ -126,6 +129,7 @@ class DocumentItem
         $this->valueBeforeTax   = null;
         $this->taxPercentage    = null;
         $this->currency         = null;
+        $this->institutionID    = null;
     }
 
     /**
@@ -164,8 +168,11 @@ class DocumentItem
             $statement->bindParam(":valueAfterTax",     $this->valueAfterTax);
             $statement->bindParam(":taxPercentage",     $this->taxPercentage);
             $statement->bindParam(":productNumber",     $this->productNumber);
+            $statement->bindParam(":institutionID",     $this->institutionID);
 
             $statement->execute();
+
+            $statement->debugDumpParams();
 
             //$this->setID(self::fetchFromDatabaseByTitleAndProductNumber($this->title, $this->productNumber)->ID);
 
@@ -202,7 +209,8 @@ class DocumentItem
             $this->valueBeforeTax   == null ||
             $this->valueAfterTax    == null ||
             $this->taxPercentage    == null ||
-            $this->productNumber    == null
+            $this->productNumber    == null ||
+            $this->institutionID    == null
         ){
             throw new DocumentItemInvalid();
         }
@@ -222,6 +230,7 @@ class DocumentItem
             $statement->bindParam(":valueAfterTax",     $this->valueAfterTax);
             $statement->bindParam(":taxPercentage",     $this->taxPercentage);
             $statement->bindParam(":productNumber",     $this->productNumber);
+            $statement->bindParam(":institutionID",     $this->institutionID);
 
             $statement->execute();
 
@@ -240,6 +249,7 @@ class DocumentItem
      * @return $this|boolean
      */
     public function fetchFromDatabase($connected = false){
+        echo 'FETCH ID', PHP_EOL;
         if($this->ID != null){
             $item = self::fetchFromDatabaseByID($this->ID, $connected);
 
@@ -255,6 +265,7 @@ class DocumentItem
                 return $this;
             }
         }
+        echo 'FETCH ALL', PHP_EOL;
 
         if(
             $this->productNumber    != null ||
@@ -263,7 +274,8 @@ class DocumentItem
             $this->taxPercentage    != null ||
             $this->valueAfterTax    != null ||
             $this->valueBeforeTax   != null ||
-            $this->currency         != null
+            $this->currency         != null ||
+            $this->institutionID    != null
         ){
             $item = self::fetchFromDatabaseByItem($this,$connected);
 
@@ -273,8 +285,24 @@ class DocumentItem
                 return $this;
             }
         }
+
+        echo 'FETCH PROD NO', PHP_EOL;
+        if($this->productNumber != null && $this->institutionID != null){
+            $item = self::fetchFromDatabaseByProductNumberAndInstitutionID($this->productNumber, $this->institutionID, $connected);
+
+            if($item != null){
+                $this
+                    ->setID($item->ID)
+                    ->setDescription($item->description)
+                    ->setValueBeforeTax($item->valueBeforeTax)
+                    ->setTaxPercentage($item->taxPercentage)
+                    ->setCurrency($item->currency)
+                    ->setTitle($item->title);
+            }
+        }
+        echo 'NOT FOUND', PHP_EOL;
         // TODO : change this for duplicates. Individualise items for inst.
-        if($this->productNumber != null && $this->title != null){
+        /*if($this->productNumber != null && $this->title != null){
             $item = self::fetchFromDatabaseByTitleAndProductNumber($this->title, $this->productNumber, $connected);
 
             if($item != null){
@@ -287,7 +315,7 @@ class DocumentItem
 
                 return $this;
             }
-        }
+        }*/
         /*
         if($this->productNumber != null){
             $items = self::fetchAllFromDatabaseByProductNumber($this->productNumber);
@@ -355,6 +383,7 @@ class DocumentItem
                     ->setDescription($row['Description'])
                     ->setValueBeforeTax($row['Value_Before_Tax'])
                     ->setTaxPercentage($row['Tax_Percentage'])
+                    ->setInstitutionID($row['Institution_ID'])
                     ->setCurrency(Currency::getCurrencyByID($row['Currencies_ID'], true));
             }
 
@@ -369,6 +398,22 @@ class DocumentItem
                 ->send();
             die();
         }
+    }
+
+    /**
+     * @param null $institutionID
+     * @return DocumentItem
+     */
+    public function setInstitutionID($institutionID){
+        $this->institutionID = $institutionID;
+        return $this;
+    }
+
+    /**
+     * @return null
+     */
+    public function getInstitutionID(){
+        return $this->institutionID;
     }
 
     public static function fetchAllFromDatabaseByProductNumber($productNumber, $connected = false){
@@ -393,6 +438,7 @@ class DocumentItem
                     ->setDescription( $row['Description'] )
                     ->setValueBeforeTax( $row['Value_Before_Tax'] )
                     ->setTaxPercentage( $row['Tax_Percentage'] )
+                    ->setInstitutionID( $row['Institution_ID'] )
                     ->setCurrency( Currency::getCurrencyByID($row['Currencies_ID'], true) )
                 );
             }
@@ -409,6 +455,56 @@ class DocumentItem
             die();
         }
     }
+
+    /**
+     * @param $productNumber
+     * @param $institutionID
+     * @param bool $connected
+     * @return DocumentItem
+     */
+    public static function fetchFromDatabaseByProductNumberAndInstitutionID($productNumber, $institutionID, $connected = false){
+        try{
+            if(!$connected)
+                DatabaseManager::Connect();
+
+            $statement = DatabaseManager::PrepareStatement(self::$getFromDatabaseByProductNumberAndInstitutionID);
+            $statement->bindParam(":productNumber", $productNumber);
+            $statement->bindParam(":institutionID", $institutionID);
+
+            $statement->execute();
+
+            $row = $statement->fetch(PDO::FETCH_ASSOC);
+
+            $item = null;
+
+            if($row != null){
+                $item = new DocumentItem();
+                $item
+                    ->setID( $row['ID'] )
+                    ->setTitle( $row['Title'] )
+                    ->setProductNumber( $row['Product_Number'] )
+                    ->setDescription( $row['Description'] )
+                    ->setValueBeforeTax( $row['Value_Before_Tax'] )
+                    ->setTaxPercentage( $row['Tax_Percentage'] )
+                    ->setInstitutionID( $row['Institution_ID'] )
+                    ->setCurrency( Currency::getCurrencyByID($row['Currencies_ID'], true) );
+            }
+            if(!$connected)
+                DatabaseManager::Disconnect();
+
+            return $item;
+        }
+        catch (Exception $exception){
+            ResponseHandler::getInstance()
+                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("DB_EXCEPT"))
+                ->send();
+            die();
+        }
+    }
+
+    private static $getFromDatabaseByProductNumberAndInstitutionID = "
+        SELECT * FROM items WHERE Institution_ID = :institutionID AND Product_Number = :productNumber
+    ";
 
     public static function fetchAllFromDatabaseByTitle($title){
         try{
@@ -431,6 +527,7 @@ class DocumentItem
                     ->setDescription( $row['Description'] )
                     ->setValueBeforeTax( $row['Value_Before_Tax'] )
                     ->setTaxPercentage( $row['Tax_Percentage'] )
+                    ->setInstitutionID( $row['Institution_ID'] )
                     ->setCurrency( Currency::getCurrencyByID($row['Currencies_ID'], true) )
                 );
             }
@@ -467,6 +564,7 @@ class DocumentItem
             $statement->bindParam(":valueAfterTax", $item->valueAfterTax);
             $statement->bindParam(":taxPercentage", $item->taxPercentage);
             $statement->bindParam(":currenciesID", $currencyID);
+            $statement->bindParam(":institutionID", $item->institutionID);
 
             $statement->execute();
 
@@ -509,6 +607,7 @@ class DocumentItem
                     ->setDescription($row['Description'])
                     ->setValueBeforeTax($row['Value_Before_Tax'])
                     ->setTaxPercentage($row['Tax_Percentage'])
+                    ->setInstitutionID($row['Institution_ID'])
                     ->setCurrency(Currency::getCurrencyByID($row['Currencies_ID'], true));
             }
 
@@ -659,7 +758,8 @@ class DocumentItem
             Value_Before_Tax, 
             Tax_Percentage, 
             Value_After_Tax, 
-            Currencies_ID
+            Currencies_ID,
+            Institution_ID 
         ) VALUES (
             :productNumber,
             :title,
@@ -667,7 +767,8 @@ class DocumentItem
             :valueBeforeTax,
             :taxPercentage,
             :valueAfterTax,
-            :currenciesID
+            :currenciesID,
+            :institutionID
         );
     ";
 
@@ -679,7 +780,8 @@ class DocumentItem
             Value_Before_Tax = :valueBeforeTax,
             Value_After_Tax = :valueAfterTax,
             Tax_Percentage = :taxPercentage,
-            Currencies_ID = :currencyID
+            Currencies_ID = :currencyID,
+            Institution_ID = :institutionID
         WHERE
             ID = :ID
     ";
@@ -708,7 +810,8 @@ class DocumentItem
             Value_Before_Tax    = :valueBeforeTax AND
             Value_After_Tax     = :valueAfterTax AND
             Tax_Percentage      = :taxPercentage AND
-            Currencies_ID       = :currenciesID 
+            Currencies_ID       = :currenciesID AND
+            Institution_ID      = :institutionID
     ";
 }
 ?>
