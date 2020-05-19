@@ -16,7 +16,13 @@
     $institutionName    = $_POST['institutionName'];
     $roleName           = $_POST['roleName'];
     $newRoleName        = $_POST['newRoleName'];
-    $newRoleRights      = json_decode($_POST['newRoleRights'], true);
+    $encodedRoleRights  = $_POST['newRoleRights'];
+
+//    echo $encodedRoleRights, PHP_EOL;
+
+    $newRoleRights = json_decode($encodedRoleRights, true);
+
+//    print_r($newRoleRights);
 
     $apiKey = $_POST["apiKey"];
 
@@ -55,6 +61,7 @@
 
     //CommonEndPointLogic::ValidateUserCredentials($email, $hashedPassword);
 
+//print_r($newRoleRights);
     try{
         if (InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::MODIFY_ROLE) == false) {
             ResponseHandler::getInstance()
@@ -81,6 +88,8 @@
         die();
         */
     }
+
+//    print_r($newRoleRights);
 
     InstitutionRoles::updateRole($roleName, $institutionName, $newRoleName, $newRoleRights);
 

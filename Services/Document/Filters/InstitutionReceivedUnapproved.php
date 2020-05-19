@@ -35,7 +35,7 @@
 
         $email = $credentials->getEmail();
     } else {
-        if($email != null || $hashedPassword!= null) {
+        if($email == null || $hashedPassword== null) {
             ResponseHandler::getInstance()->
             setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_CREDENTIAL"))->
             send(StatusCodes::BAD_REQUEST);
@@ -45,11 +45,11 @@
 
     if($institutionName == null) {
         ResponseHandler::getInstance()->
-        setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"));
+        setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("NULL_INPUT"))->send();
     }
 
     try {
-        if(false == InstitutionRoles::isUserAuthorized($email, $hashedPassword, InstitutionActions::APPROVE_DOCUMENTS)) {
+        if(false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::APPROVE_DOCUMENTS)) {
             ResponseHandler::getInstance()->
             setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORISED_ACTION"))->
             send();
@@ -81,7 +81,7 @@
             WHERE Receiver_Institution_ID = :institutionID and Is_Approved = 0
         ";
 
-    $responeArray = array();
+    $responseArray = array();
 
     try {
         DatabaseManager::Connect();
@@ -104,8 +104,11 @@
             $document->receiverAddressID = $row->Receiver_Address_ID;
             $document->receiverInstitutionID = $row->Receiver_Institution_ID;
             $document->isSent = $row->Is_Sent;
+            $document->isApproved = $row->Is_Approved;
 
             $document->documentType = $row->Title;
+
+            //echo json_encode($document), PHP_EOL;
 
             array_push($responseArray, $document);
         }
@@ -119,7 +122,7 @@
     try {
         ResponseHandler::getInstance()->
         setResponseHeader(CommonEndPointLogic::GetSuccessResponseStatus())->
-        addResponseData("documents", $responeArray)->
+        addResponseData("documents", $responseArray)->
         send();
     } catch (Exception $e) {
         ResponseHandler::getInstance()->

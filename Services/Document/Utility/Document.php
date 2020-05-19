@@ -14,6 +14,7 @@ require_once ( ROOT . '/Utility/ResponseHandler.php' );
 require_once ( ROOT . '/Utility/DatabaseManager.php' );
 
 require_once ( ROOT . '/Institution/Utility/InstitutionValidator.php' );
+require_once ( ROOT . '/Institution/Utility/InstitutionAutomation.php' );
 
 require_once ( ROOT . '/Document/Utility/Currency.php' );
 require_once ( ROOT . '/Document/Utility/DocumentItem.php' );
@@ -238,10 +239,12 @@ abstract class Document
             }
         }
 
+        $isTrusted = InstitutionAutomation::isInstitutionTrusted($this->receiverInstitutionID, $this->senderInstitutionID);
+
         /**
          * Daca receiver trusts sender => isapproved = 1
          */
-        $statementString = "UPDATE documents SET Is_Sent = :isSent, Date_Sent = CURRENT_TIMESTAMP, Receiver_Institution_ID = :institutionID, Receiver_Address_ID = :addressID, Sender_User_ID = :senderUserID";
+        $statementString = "UPDATE documents SET Is_Sent = :isSent, Date_Sent = CURRENT_TIMESTAMP, Receiver_Institution_ID = :institutionID, Receiver_Address_ID = :addressID, Sender_User_ID = :senderUserID, Is_Approved = :isApproved";
 
         if($this->receiverID != null){
             $statementString = $statementString . ', Receiver_User_ID=:receiverUserID';
@@ -260,6 +263,7 @@ abstract class Document
             $statement->bindParam(":institutionID", $institutionID);
             $statement->bindParam(":addressID", $this->receiverAddressID);
             $statement->bindParam(":senderUserID", $this->senderID);
+            $statement->bindParam(":isApproved", $isTrusted, PDO::PARAM_BOOL);
 
             if($this->receiverID != null)
                 $statement->bindParam(":receiverUserID", $this->receiverID);

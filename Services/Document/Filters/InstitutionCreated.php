@@ -83,18 +83,30 @@
             Date_Created,
             document_types.Title
         FROM documents JOIN document_types on documents.Document_Types_ID = document_types.ID 
-        WHERE Sender_Institution_ID = :institutionID AND Is_Approved = :isApproved
+        WHERE Sender_Institution_ID = :institutionID
     ";
 
     $responseArray = array();
+
+//    try {
+//        $canViewUnapproved = !InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::APPROVE_DOCUMENTS);
+//    } catch (InstitutionRolesInvalidAction $e) {
+//        ResponseHandler::getInstance()
+//            ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("INVALID_ACTION"))
+//            ->send(StatusCodes::INTERNAL_SERVER_ERROR);
+//    }
+
+
 
     try{
         DatabaseManager::Connect();
 
         $statement = DatabaseManager::PrepareStatement($statementString);
         $statement->bindParam(":institutionID", $institutionID);
-        $statement->bindParam(":isApproved", $canViewUnapproved, PDO::PARAM_BOOL);
+//        $statement->bindParam(":isApproved", $canViewUnapproved, PDO::PARAM_BOOL);
         $statement->execute();
+
+//        $statement->debugDumpParams();
 
         while($row = $statement->fetch(PDO::FETCH_OBJ)){
             $document = new \DAO\Document();

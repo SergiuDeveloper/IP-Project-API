@@ -89,11 +89,12 @@
             Receiver_Address_ID,
             Receiver_User_ID,
             Is_Sent,
+            Is_Approved,
             Date_Sent,
             Date_Created,
             document_types.Title
         FROM documents JOIN document_types on documents.Document_Types_ID = document_types.ID 
-        WHERE Receiver_Institution_ID = :institutionID AND Is_Approved = :isApproved
+        WHERE Receiver_Institution_ID = :institutionID AND ((Is_Approved = 0 AND :isApproved = 1) OR Is_Approved = 1)
     ";
 
     $responseArray = array();
@@ -105,6 +106,8 @@
         $statement->bindParam(":institutionID", $institutionID);
         $statement->bindParam(":isApproved", $canViewUnapproved, PDO::PARAM_BOOL);
         $statement->execute();
+
+//        $statement->debugDumpParams();
 
         while($row = $statement->fetch(PDO::FETCH_OBJ)){
             $document = new \DAO\Document();
@@ -120,6 +123,7 @@
             $document->receiverAddressID = $row->Receiver_Address_ID;
             $document->receiverInstitutionID = $row->Receiver_Institution_ID;
             $document->isSent = $row->Is_Sent;
+            $document->isApproved = $row->Is_Approved;
 
             $document->documentType = $row->Title;
 

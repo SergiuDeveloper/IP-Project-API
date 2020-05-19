@@ -68,7 +68,7 @@ class InstitutionRoles{
             case InstitutionActions::PREVIEW_SPECIFIC_RECEIVED_DOCUMENT :   return $rightsDictionary['Can_Preview_Specific_Received_Document'];
             case InstitutionActions::REMOVE_RECEIVED_DOCUMENTS :            return $rightsDictionary['Can_Remove_Received_Documents'];
             case InstitutionActions::DOWNLOAD_DOCUMENTS :                   return $rightsDictionary['Can_Download_Documents'];
-            case InstitutionActions::APPROVE_DOCUMENTS :                    return $rightsDictionary['Can_Approve_Documents;'];
+            case InstitutionActions::APPROVE_DOCUMENTS :                    return $rightsDictionary['Can_Approve_Documents'];
 
             default : throw new InstitutionRolesInvalidAction("Invalid Action");
         }
@@ -338,6 +338,8 @@ class InstitutionRoles{
 
                         $SQLStatement->execute();
 
+//                        $SQLStatement->debugDumpParams();
+
                         if($SQLStatement->rowCount() == 0){
                             ResponseHandler::getInstance()
                                 ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("ROLE_DUPLICATE_SAME_RIGHTS"))
@@ -445,12 +447,16 @@ class InstitutionRoles{
 
             $SQLStatement->execute();
 
+//            $SQLStatement->debugDumpParams();
+
             $rightsID = $SQLStatement->fetch(PDO::FETCH_OBJ);
 
             $SQLStatement = self::generateRightsStatement(self::GENERATE_RIGHTS_UPDATE_ROW_STATEMENT, $newRoleRightsDictionary);
             $SQLStatement->bindParam(":ID", $rightsID->Institution_Rights_ID);
 
             $SQLStatement->execute();
+
+//            $SQLStatement->debugDumpParams();
 
             if($SQLStatement->rowCount() == 0){
                 /**
@@ -570,6 +576,8 @@ class InstitutionRoles{
             $SQLStatement->execute();
 
             $rightsDictionary = $SQLStatement->fetch(PDO::FETCH_ASSOC);
+
+//            print_r($rightsDictionary);
 
             DatabaseManager::Disconnect();
 
