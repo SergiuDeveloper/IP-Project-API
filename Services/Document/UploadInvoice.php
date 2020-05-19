@@ -146,6 +146,7 @@
                 ->setTitle($item['title'])
                 ->setValueBeforeTax($item['valueBeforeTax'])
                 ->setTaxPercentage($item['taxPercentage'])
+                ->setInstitutionID($institutionID)
                 ->setCurrency(Currency::getCurrencyByTitle($item['currencyTitle']));
 
             if($debugMode)

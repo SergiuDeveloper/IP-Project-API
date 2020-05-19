@@ -12,6 +12,7 @@ namespace DAO{
         public $itemTax;
         public $unitPriceWithTax;
         public $currencyTitle;
+        public $institutionID;
 
         /**
          * Item constructor.
@@ -25,6 +26,7 @@ namespace DAO{
             $this->itemTax          = $item->getTaxPercentage();
             $this->unitPriceWithTax = $item->getValueAfterTax();
             $this->currencyTitle    = $item->getCurrency()->getTitle();
+            $this->institutionID    = $item->getInstitutionID();
         }
     }
 }
