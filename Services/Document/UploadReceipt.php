@@ -129,13 +129,16 @@
         ->setSenderAddressID($institutionAddressID)
         ->setSenderInstitutionID($institutionID);
 
-    if($invoiceID != null)
+    if($invoiceID != null) {
+//        echo 'wat', PHP_EOL;
         $receipt->setReceiptDocumentID($invoiceID);
+    }
     if($paymentMethodID != null)
         $receipt->setPaymentMethod(PaymentMethod::getPaymentMethodByID($paymentMethodID));
 
     if($documentItems != null) {
         foreach ($documentItems as $item) {
+
             $itemObject = new DocumentItem();
             $itemObject
                 ->setProductNumber($item['productNumber'])
@@ -145,10 +148,15 @@
                 ->setTaxPercentage($item['taxPercentage'])
                 ->setInstitutionID($institutionID)
                 ->setCurrency(Currency::getCurrencyByTitle($item['currencyTitle']));
-        }
 
-        $receipt->addItem($itemObject, $item['quantity']);
+//            echo json_encode($itemObject->getDAO()), PHP_EOL;
+
+            $receipt->addItem($itemObject, $item['quantity']);
+        }
     }
+
+//    foreach($receipt->getItemsContainer()->getDocumentItemRows() as $itemRow)
+//        echo json_encode($itemRow->getItemReference()->getDAO()), PHP_EOL;
 
     try{
         $receipt->addIntoDatabase();

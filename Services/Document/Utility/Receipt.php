@@ -133,7 +133,10 @@ class Receipt extends Document
             );
             $insertDocumentIntoDatabaseStatement->bindParam(":documentID", $this->ID);
 
-            $invoiceID = $invoice->getEntryID();
+//            echo $invoice == null ? 'wat2' : 'watsrs', PHP_EOL;
+
+            if($invoice != null)
+                $invoiceID = $invoice->getEntryID();
 
             if($invoice != null)
                 $insertDocumentIntoDatabaseStatement->bindParam(":invoiceID", $invoiceID);

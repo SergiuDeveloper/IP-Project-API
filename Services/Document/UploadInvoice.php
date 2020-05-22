@@ -122,8 +122,10 @@
         $getUserIDStatement->execute();
 
         $userRows = $getUserIDStatement->fetch(PDO::FETCH_ASSOC);
-        if ($userRows !== false)
+        if ($userRows !== false) {
             $creatorUserID = $userRows['ID'];
+            define('CALLER_USER_ID', $creatorUserID);
+        }
     }
 
     $invoice = new Invoice();
