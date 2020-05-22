@@ -4,7 +4,7 @@
         define('ROOT', dirname(__FILE__) . '/..');
     }
 
-    require_once(ROOT . "Newsfeed/Utility/NewsfeedCreationFunctions.php");
+    require_once(ROOT . "/Newsfeed/Utility/NewsfeedCreationFunctions.php");
     require_once(ROOT . "/Utility/Utilities.php");
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
