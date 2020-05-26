@@ -4,7 +4,7 @@
         define('ROOT', dirname(__FILE__) . '/..');
     }
 
-    require_once("./Utility/ModifyAccountManager.php");
+    require_once(ROOT . "/Account/Utility/ModifyAccountManager.php");
     require_once(ROOT . "/Utility/CommonEndPointLogic.php");
     require_once(ROOT . "/Utility/StatusCodes.php");
     require_once(ROOT . "/Utility/ResponseHandler.php");
@@ -27,6 +27,10 @@
         http_response_code(StatusCodes::BAD_REQUEST);
         die();
         */
+    }
+
+    if($inputNewHashedPassword == null){
+        $inputNewHashedPassword = $inputCurrentHashedPassword;
     }
 
     $hashedPassword = password_hash($inputNewHashedPassword, PASSWORD_BCRYPT);

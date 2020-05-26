@@ -6,8 +6,8 @@
 
     require_once(ROOT . "/Utility/Utilities.php");
 
-    require_once(ROOT . "Institution/Role/Utility/InstitutionActions.php");
-    require_once(ROOT . "Institution/Role/Utility/InstitutionRoles.php");
+    require_once(ROOT . "/Institution/Role/Utility/InstitutionActions.php");
+    require_once(ROOT . "/Institution/Role/Utility/InstitutionRoles.php");
 
     CommonEndPointLogic::ValidateHTTPPOSTRequest();
 

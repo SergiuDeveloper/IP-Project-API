@@ -75,11 +75,11 @@
                 ->send();
         }
 
-        if( false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::ASSIGN_ROLE)) {
-            ResponseHandler::getInstance()
-                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION"))
-                ->send();
-        }
+//        if( false == InstitutionRoles::isUserAuthorized($email, $institutionName, InstitutionActions::ASSIGN_ROLE)) {
+//            ResponseHandler::getInstance()
+//                ->setResponseHeader(CommonEndPointLogic::GetFailureResponseStatus("UNAUTHORIZED_ACTION"))
+//                ->send();
+//        }
 
         DatabaseManager::Connect();
         $getRoles = DatabaseManager::PrepareStatement($queryGetRoles);

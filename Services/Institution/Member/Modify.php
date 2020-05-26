@@ -89,9 +89,10 @@ $getUserIDStatement->execute();
 
 $userID = $getUserIDStatement->fetch(PDO::FETCH_OBJ);
 
-$changeRoleStatement = DatabaseManager::PrepareStatement("UPDATE Institution_Members SET Institution_Roles_ID = :roleID WHERE User_ID = :userID");
+$changeRoleStatement = DatabaseManager::PrepareStatement("UPDATE Institution_Members SET Institution_Roles_ID = :roleID WHERE User_ID = :userID AND Institution_ID = :institutionID");
 $changeRoleStatement->bindParam(":roleID", $roleID);
 $changeRoleStatement->bindParam(":userID", $userID->ID);
+$changeRoleStatement->bindParam(":institutionID", $institutionID);
 $changeRoleStatement->execute();
 
 DatabaseManager::Disconnect();

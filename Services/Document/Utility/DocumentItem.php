@@ -172,7 +172,7 @@ class DocumentItem
 
             $statement->execute();
 
-            $statement->debugDumpParams();
+//            $statement->debugDumpParams();
 
             //$this->setID(self::fetchFromDatabaseByTitleAndProductNumber($this->title, $this->productNumber)->ID);
 
@@ -249,7 +249,7 @@ class DocumentItem
      * @return $this|boolean
      */
     public function fetchFromDatabase($connected = false){
-        echo 'FETCH ID', PHP_EOL;
+//        echo 'FETCH ID', PHP_EOL;
         if($this->ID != null){
             $item = self::fetchFromDatabaseByID($this->ID, $connected);
 
@@ -265,7 +265,7 @@ class DocumentItem
                 return $this;
             }
         }
-        echo 'FETCH ALL', PHP_EOL;
+//        echo 'FETCH ALL', PHP_EOL;
 
         if(
             $this->productNumber    != null ||
@@ -286,7 +286,7 @@ class DocumentItem
             }
         }
 
-        echo 'FETCH PROD NO', PHP_EOL;
+//        echo 'FETCH PROD NO', PHP_EOL;
         if($this->productNumber != null && $this->institutionID != null){
             $item = self::fetchFromDatabaseByProductNumberAndInstitutionID($this->productNumber, $this->institutionID, $connected);
 
@@ -300,7 +300,7 @@ class DocumentItem
                     ->setTitle($item->title);
             }
         }
-        echo 'NOT FOUND', PHP_EOL;
+//        echo 'NOT FOUND', PHP_EOL;
         // TODO : change this for duplicates. Individualise items for inst.
         /*if($this->productNumber != null && $this->title != null){
             $item = self::fetchFromDatabaseByTitleAndProductNumber($this->title, $this->productNumber, $connected);
