@@ -13,6 +13,10 @@ class Currency{
     private $ID;
     private $title;
 
+    /**
+     * @deprecated
+     * @return string
+     */
     public function __toString()
     {
         return $this->json_encode();

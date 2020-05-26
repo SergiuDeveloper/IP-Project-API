@@ -68,6 +68,8 @@
             $SQLUpdateStatement->bindParam(":ID", $ID);
 
             $SQLUpdateStatement->execute();
+
+            $SQLUpdateStatement->debugDumpParams();
         }
 
         static function updateFieldsInDatabase($ID, $newHashedPassword, $newFirstName, $newLastName) {

@@ -91,6 +91,10 @@
 
 //    print_r($newRoleRights);
 
+    if(!key_exists("Can_Approve_Documents", $newRoleRights)){
+        $newRoleRights['Can_Approve_Documents'] = 0;
+    }
+
     InstitutionRoles::updateRole($roleName, $institutionName, $newRoleName, $newRoleRights);
 
     ResponseHandler::getInstance()
